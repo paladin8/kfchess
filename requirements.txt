@@ -1,3 +1,4 @@
 Flask==0.12.2
 Flask-SocketIO==2.9.4
 eventlet==0.22.1
+yappi==0.98

@@ -11,7 +11,7 @@ class Piece(object):
     KING = 'K'
     ALL_TYPES = [PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING]
 
-    def __init__(self, type, player, row, col):
+    def __init__(self, type, player, row, col, captured=False, id=None):
         if type not in Piece.ALL_TYPES:
             raise ValueError('Invalid piece type: ' + type)
 
@@ -19,8 +19,11 @@ class Piece(object):
         self.player = player
         self.row = row
         self.col = col
-        self.captured = False
-        self.id = str(uuid.uuid4())
+        self.captured = captured
+        self.id = id or str(uuid.uuid4())
+
+    def at_position(self, row, col):
+        return Piece(self.type, self.player, row, col, captured=self.captured, id=self.id)
 
     def to_json_obj(self):
         return {
@@ -34,6 +37,9 @@ class Piece(object):
 
     def __str__(self):
         return self.type + str(self.player)
+
+    def __repr__(self):
+        return self.__str__()
 
     @staticmethod
     def from_str(s, row, col):
@@ -65,6 +71,13 @@ R1N1B1Q1K1B1N1R1'''
             if not p.captured and p.row == row and p.col == col:
                 return p
         return None
+
+    def get_location_to_piece_map(self):
+        result = {}
+        for p in self.pieces:
+            if not p.captured:
+                result[(p.row, p.col)] = p
+        return result
 
     def to_json_obj(self):
         return {

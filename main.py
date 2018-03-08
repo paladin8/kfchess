@@ -8,6 +8,7 @@ import eventlet
 from flask import Flask, request
 from flask_socketio import SocketIO, join_room, leave_room, emit
 
+from lib import ai
 from lib.game import Game, GameState
 
 
@@ -28,28 +29,16 @@ def new():
     data = json.loads(request.data)
     move_ticks = data['moveTicks']
     cooldown_ticks = data['cooldownTicks']
+    bots = data.get('bots', {})
+    bots = {int(player): ai.get_bot(difficulty) for player, difficulty in bots.iteritems()}
 
     game_id = str(uuid.uuid4())
     game = Game(move_ticks, cooldown_ticks, debug=True)
+    for player in bots:
+        game.mark_ready(player)
+
     player_keys = {1: str(uuid.uuid4()), 2: str(uuid.uuid4())}
-    game_states[game_id] = GameState(game_id, game, player_keys)
-    return json.dumps({
-        'id': game_id,
-        'game': game.to_json_obj(),
-        'playerKeys': player_keys,
-    })
-
-
-@app.route('/game/newbot', methods=['POST'])
-def newbot():
-    data = json.loads(request.data)
-    move_ticks = data['moveTicks']
-    cooldown_ticks = data['cooldownTicks']
-
-    game_id = str(uuid.uuid4())
-    game = Game(move_ticks, cooldown_ticks, debug=True)
-    player_keys = {1: str(uuid.uuid4()), 2: str(uuid.uuid4())}
-    game_states[game_id] = GameState(game_id, game, player_keys)
+    game_states[game_id] = GameState(game_id, game, player_keys, bots)
     return json.dumps({
         'id': game_id,
         'game': game.to_json_obj(),
@@ -148,6 +137,22 @@ def tick():
             game = game_state.game
             if not game.started or game.finished:
                 continue
+
+            try:
+                moved = False
+                for player, bot in game_state.bots.iteritems():
+                    move = bot.get_move(game, player)
+                    if move:
+                        piece, row, col = move
+                        game.move(piece.id, player, row, col)
+                        moved = True
+
+                socketio.emit('moveack', {
+                    'game': game_state.game.to_json_obj(),
+                    'success': True,
+                })
+            except:
+                traceback.print_exc()
 
             try:
                 status, updates = game.tick()

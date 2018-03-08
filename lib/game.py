@@ -456,7 +456,8 @@ class Game(object):
 
 class GameState(object):
 
-    def __init__(self, game_id, game, player_keys):
+    def __init__(self, game_id, game, player_keys, bots):
         self.game_id = game_id
         self.game = game
         self.player_keys = player_keys
+        self.bots = bots
