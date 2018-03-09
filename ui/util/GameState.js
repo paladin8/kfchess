@@ -45,6 +45,10 @@ export default class GameState {
     }
 
     getCurrentTick() {
+        if (this.game.finished) {
+            return this.game.currentTick;
+        }
+
         const currentTime = new Date();
         return this.game.currentTick + (currentTime - this.lastUpdate + 1000 * this.game.timeSinceLastTick) / 100;
     }

@@ -106,7 +106,7 @@ def move(data):
     to_row = data['toRow']
     to_col = data['toCol']
     print 'move', data
-    
+
     game_state = game_states[game_id]
 
     auth_player = None
@@ -147,10 +147,11 @@ def tick():
                         game.move(piece.id, player, row, col)
                         moved = True
 
-                socketio.emit('moveack', {
-                    'game': game_state.game.to_json_obj(),
-                    'success': True,
-                })
+                if moved:
+                    socketio.emit('moveack', {
+                        'game': game_state.game.to_json_obj(),
+                        'success': True,
+                    }, room=game_id, json=True)
             except:
                 traceback.print_exc()
 

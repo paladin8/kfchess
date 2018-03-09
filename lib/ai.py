@@ -39,24 +39,24 @@ PIECE_SCORES = {
 
 def get_bot(difficulty):
     if difficulty == 'novice':
-        return NoviceBot()
-    # elif difficulty == 'intermediate':
-    #   return IntermediateBot()
-    # elif difficulty == 'advanced':
-    #   return AdvancedBot()
-    # elif difficulty == 'expert':
-    #   return ExpertBot()
-    # elif difficulty == 'master':
-    #   return MasterBot()
+        return BasicBot(40, 10)
+    elif difficulty == 'intermediate':
+        return BasicBot(20, 3)
+    elif difficulty == 'advanced':
+        return BasicBot(10, 1)
     else:
         raise ValueError('Unexpected difficulty ' + difficulty)
 
 
-class NoviceBot(object):
+class BasicBot(object):
+
+    def __init__(self, ticks_per_move, top_n_moves):
+        self.ticks_per_move = ticks_per_move
+        self.top_n_moves = top_n_moves
 
     def get_move(self, game, player):
-        # moves every 5s with a 1s ofset
-        if game.current_tick % 10 != 5:
+        # moves approx every ticks_per_move (with randomness)
+        if game.current_tick % self.ticks_per_move != random.randint(0, self.ticks_per_move - 1):
             return None
 
         # precompute location -> piece map for performance
@@ -84,16 +84,17 @@ class NoviceBot(object):
             piece_moves = self._get_possible_moves(game, piece)
             for move in piece_moves:
                 score = self._get_score(game, current_pressures, location_to_piece_map, move)
-                all_moves.append((move, score))
+                if score > 0:
+                    all_moves.append((move, score))
 
         print 'moves', all_moves
 
         if len(all_moves) == 0:
             return None
 
-        # sorts all moves by score and picks a random one from the top 10
+        # sorts all moves by score and picks a random one from the top_n_moves
         all_moves.sort(key=lambda p: p[1], reverse=True)
-        return random.choice(all_moves[:10])[0]
+        return random.choice(all_moves[:self.top_n_moves])[0]
 
     def _get_possible_moves(self, game, piece):
         moves = []
@@ -187,13 +188,13 @@ class NoviceBot(object):
 
             # pressure score
             if p.player != piece.player:
-                old_pressure = piece in current_pressures[p.id]
+                old_pressure = p in current_pressures[piece.id]
                 new_pressure = self._can_target(location_to_piece_map, new_piece, p.row, p.col)
                 pressure_score += (new_pressure - old_pressure) * PIECE_SCORES[p.type]
 
             # vulnerable score
             if p.player != piece.player:
-                old_vuln = p in current_pressures[piece.id]
+                old_vuln = piece in current_pressures[p.id]
                 new_vuln = self._can_target(location_to_piece_map, p, row, col)
                 vuln_score -= (new_vuln - old_vuln) * PIECE_SCORES[piece.type]
 

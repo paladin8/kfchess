@@ -269,6 +269,7 @@ class Game(object):
             updates = []
 
             # resolve all movements
+            moving = {}
             for move in self.active_moves:
                 tick_delta = self.current_tick - move.starting_tick
                 movements = tick_delta / self.move_ticks
@@ -276,6 +277,7 @@ class Game(object):
                     continue
 
                 piece = move.piece
+                moving[piece.id] = move
                 new_row, new_col = move.move_seq[movements][0], move.move_seq[movements][1]
 
                 if self.debug and (piece.row != new_row or piece.col != new_col):
@@ -304,23 +306,36 @@ class Game(object):
                 piece = move.piece
                 row, col = self._get_interp_position(move, self.current_tick)
 
-                # check capturing static pieces
-                if piece.row >= 0 and piece.col >= 0 and tick_delta % self.move_ticks == 0:
-                    for p in self.board.pieces:
-                        # p is in the same position, belongs to the other player, isn't already captured or moving => captured!
-                        if (
-                            p.row != piece.row or p.col != piece.col or
-                            p.player == piece.player or p.captured or self._already_moving(p)
-                        ):
+                # check each other piece
+                for p in self.board.pieces:
+                    if p.player == piece.player or p.captured:
+                        continue
+
+                    other_move = moving.get(p.id)
+                    if other_move is not None:
+                        other_row, other_col = self._get_interp_position(other_move, self.current_tick)
+                        if other_row < 0 or other_col < 0:
                             continue
+                    else:
+                        other_row, other_col = p.row, p.col
 
-                        # pawns not moving diagonally cannot capture, so they always get captured on collision
-                        if piece.type == 'P' and piece.col == move.move_seq[0][1]:
-                            piece, p = p, piece
+                    # threshold for capture
+                    dist = math.hypot(row - other_row, col - other_col)
+                    if dist > 0.3:
+                        continue
 
-                        if self.debug:
-                            print '%s captured %s' % (piece, p)
+                    # pawns not moving diagonally cannot capture, so they always get captured on collision
+                    if piece.type == 'P' and move.move_seq[0][1] == move.move_seq[-1][1]:
+                        piece.captured = True
+                        updates.append({
+                            'type': 'capture',
+                            'piece': p.to_json_obj(),
+                            'target': piece.to_json_obj(),
+                        })
+                        break
 
+                    # if the other piece is static, capture it
+                    if other_move is None:
                         p.captured = True
                         updates.append({
                             'type': 'capture',
@@ -329,28 +344,15 @@ class Game(object):
                         })
                         break
 
-                # check capturing moving pieces
-                for other_move in self.active_moves:
-                    if other_move.piece.captured or piece.player == other_move.piece.player:
-                        continue
-
-                    other_row, other_col = self._get_interp_position(other_move, self.current_tick)
-                    dist = math.hypot(row - other_row, col - other_col)
-                    # print 'dist', piece, other_move.piece, row, col, other_row, other_col, dist
-                    if dist > 0.5:
-                        continue
-
                     # close enough to capture; this piece captures other if ticking this makes us closer
                     n_row, n_col = self._get_interp_position(move, self.current_tick + 1)
                     n_dist = math.hypot(n_row - other_row, n_col - other_col)
-                    # print 'n_dist', piece, other_move.piece, n_row, n_col, other_row, other_col, n_dist
-                    if n_dist >= dist:
+                    if n_dist > dist:
                         continue
 
                     # if ticking other also makes us closer, then fall back to earlier piece wins
                     n_other_row, n_other_col = self._get_interp_position(other_move, self.current_tick + 1)
                     n_other_dist = math.hypot(row - n_other_row, col - n_other_col)
-                    # print 'n_other_dist', piece, other_move.piece, row, col, n_other_row, n_other_col, n_dist
                     if n_other_dist < dist and move.starting_tick > other_move.starting_tick:
                         piece.captured = True
                         updates.append({
@@ -418,7 +420,11 @@ class Game(object):
             return 0, updates
 
     def _get_interp_position(self, move, current_tick):
+        total_move_ticks = self.move_ticks * (len(move.move_seq) - 1)
         tick_delta = current_tick - move.starting_tick
+        if move.piece.type == 'N' and tick_delta < total_move_ticks - self.move_ticks / 2:
+            return -1, -1
+
         movements = tick_delta / self.move_ticks
         if movements >= len(move.move_seq):
             movements = len(move.move_seq) - 1

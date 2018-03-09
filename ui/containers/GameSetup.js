@@ -32,7 +32,7 @@ export default class GameSetup extends Component {
 
     setIsBot(event) {
         this.setState({
-            isBot: Boolean(event.target.value),
+            isBot: Boolean(event.target.checked),
         });
     }
 
@@ -52,6 +52,8 @@ export default class GameSetup extends Component {
                 Bot? <input type="checkbox" value={isBot} onChange={this.setIsBot} />
                 Difficulty: <select value={difficulty} onChange={this.setDifficulty}>
                     <option value='novice'>Novice</option>
+                    <option value='intermediate'>Intermediate</option>
+                    <option value='advanced'>Advanced</option>
                 </select>
                 <input
                     type="submit"
