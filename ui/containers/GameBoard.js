@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, { Component } from 'react';
 import * as PIXI from 'pixi.js';
 
 import chessboardImg from '../assets/chessboard.png';
@@ -74,6 +74,8 @@ export default class GameBoard extends Component {
 
     componentWillUnmount() {
         window.removeEventListener('resize', this.resize);
+
+        // TODO: cleanup?
     }
 
     componentWillReceiveProps(nextProps) {

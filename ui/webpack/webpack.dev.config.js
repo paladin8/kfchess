@@ -19,11 +19,17 @@ module.exports = {
         },{
             test: /\.(gif|png|jpe?g|svg)$/,
             use: [
-                'file-loader',
+                {
+                    loader: 'file-loader',
+                    options: {
+                        name: 'img/[name].[ext]',
+                        publicPath: '/',
+                    },
+                },
                 {
                     loader: 'image-webpack-loader',
                     options: {
-                      bypassOnDebug: true,
+                        bypassOnDebug: true,
                     },
                 },
             ],
@@ -31,13 +37,13 @@ module.exports = {
     },
     output: {
         path: parentDir + '/dist',
-        filename: 'bundle.js'
+        filename: 'bundle.js',
     },
     devServer: {
         contentBase: parentDir,
         historyApiFallback: true,
         proxy: {
-            '/game/*': {
+            '/api/*': {
                 target: 'http://localhost:5000/',
                 secure: false,
             },

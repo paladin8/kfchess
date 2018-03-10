@@ -24,7 +24,7 @@ def index():
     return 'Kung Fu Chess'
 
 
-@app.route('/game/new', methods=['POST'])
+@app.route('/api/game/new', methods=['POST'])
 def new():
     data = json.loads(request.data)
     move_ticks = data['moveTicks']
