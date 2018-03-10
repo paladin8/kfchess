@@ -133,8 +133,15 @@ def tick():
         if sleep_amount > 0:
             eventlet.sleep(sleep_amount)
 
+        current_time = time.time()
+        expired_games = set()
         for game_id, game_state in game_states.iteritems():
             game = game_state.game
+
+            if current_time - min(game.last_tick_time, game.last_move_time) > 60 * 10:
+                expired_games.add(game_id)
+                continue
+
             if not game.started or game.finished:
                 continue
 
@@ -164,6 +171,9 @@ def tick():
                     }, room=game_id, json=True)
             except:
                 traceback.print_exc()
+
+        for game_id in expired_games:
+            del game_states[game_id]
 
 
 eventlet.spawn(tick)

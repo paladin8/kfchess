@@ -52,11 +52,11 @@ class Game(object):
         self.cooldowns = []
         self.move_log = []
         self.current_tick = 0
+        self.last_move_time = time.time()
         self.last_tick_time = time.time()
         self.started = False
         self.finished = 0
         self.players_ready = {i + 1: False for i in xrange(num_players)}
-        self.lock = threading.Lock()
 
         self.piece_to_move_seq_fn = {
             'P': self._get_pawn_move_seq,
@@ -69,56 +69,56 @@ class Game(object):
 
     # returns the move or None if it is invalid
     def move(self, piece_id, player, to_row, to_col):
-        with self.lock:
-            # check if piece exists and is owned by the player
-            piece = self.board.get_piece_by_id(piece_id)
-            if piece is None or piece.player != player:
-                if self.debug:
-                    print 'move failed: piece does not exist or is not controlled by player'
-                return None
-
-            # no moving out of bounds
-            if to_row < 0 or to_row >= 8 or to_col < 0 or to_col >= 8:
-                if self.debug:
-                    print 'move failed: out of bounds'
-                return None
-
-            # no staying in the same spot
-            if piece.row == to_row and piece.col == to_col:
-                if self.debug:
-                    print 'move failed: original position'
-                return None
-
-
-            # check if piece can move to destination
-            move_seq = self._compute_move_seq(piece, to_row, to_col)
-            if not move_seq:
-                if self.debug:
-                    print 'move failed: piece cannot move to destination or is blocked'
-                return None
-            move_seq.insert(0, (piece.row, piece.col))
-
-            # check if piece is already moving
-            if self._already_moving(piece):
-                if self.debug:
-                    print 'move failed: piece is already moving'
-                return None
-
-            # check if piece is on cooldown
-            if self._on_cooldown(piece):
-                if self.debug:
-                    print 'move failed: piece is on cooldown'
-                return None
-
-            # move is valid, add to active moves and game log
-            move = Move(piece, move_seq, self.current_tick + 1)
-            self.active_moves.append(move)
-            self.move_log.append(move)
-
+        # check if piece exists and is owned by the player
+        piece = self.board.get_piece_by_id(piece_id)
+        if piece is None or piece.player != player:
             if self.debug:
-                print 'moving %s along %s from tick %s' % (piece, move_seq, self.current_tick)
+                print 'move failed: piece does not exist or is not controlled by player'
+            return None
 
-            return move
+        # no moving out of bounds
+        if to_row < 0 or to_row >= 8 or to_col < 0 or to_col >= 8:
+            if self.debug:
+                print 'move failed: out of bounds'
+            return None
+
+        # no staying in the same spot
+        if piece.row == to_row and piece.col == to_col:
+            if self.debug:
+                print 'move failed: original position'
+            return None
+
+
+        # check if piece can move to destination
+        move_seq = self._compute_move_seq(piece, to_row, to_col)
+        if not move_seq:
+            if self.debug:
+                print 'move failed: piece cannot move to destination or is blocked'
+            return None
+        move_seq.insert(0, (piece.row, piece.col))
+
+        # check if piece is already moving
+        if self._already_moving(piece):
+            if self.debug:
+                print 'move failed: piece is already moving'
+            return None
+
+        # check if piece is on cooldown
+        if self._on_cooldown(piece):
+            if self.debug:
+                print 'move failed: piece is on cooldown'
+            return None
+
+        # move is valid, add to active moves and game log
+        move = Move(piece, move_seq, self.current_tick + 1)
+        self.active_moves.append(move)
+        self.move_log.append(move)
+
+        if self.debug:
+            print 'moving %s along %s from tick %s' % (piece, move_seq, self.current_tick)
+
+        self.last_move_time = time.time()
+        return move
 
     # get the sequence of moves to move piece to (to_row, to_col)
     def _compute_move_seq(self, piece, to_row, to_col):
@@ -262,162 +262,161 @@ class Game(object):
     #   - status indicating whether the game continues or if someone won
     #   - list of meaningful updates (capture, move/cooldown finished, promotion)
     def tick(self):
-        with self.lock:
-            self.current_tick += 1
-            self.last_tick_time = time.time()
+        self.current_tick += 1
+        self.last_tick_time = time.time()
 
-            updates = []
+        updates = []
 
-            # resolve all movements
-            moving = {}
-            for move in self.active_moves:
-                tick_delta = self.current_tick - move.starting_tick
-                movements = tick_delta / self.move_ticks
-                if movements >= len(move.move_seq):
+        # resolve all movements
+        moving = {}
+        for move in self.active_moves:
+            tick_delta = self.current_tick - move.starting_tick
+            movements = tick_delta / self.move_ticks
+            if movements >= len(move.move_seq):
+                continue
+
+            piece = move.piece
+            moving[piece.id] = move
+            new_row, new_col = move.move_seq[movements][0], move.move_seq[movements][1]
+
+            if self.debug and (piece.row != new_row or piece.col != new_col):
+                print '%s to %s %s' % (piece, new_row, new_col)
+
+            piece.row, piece.col = new_row, new_col
+
+            # promote pawn to queen
+            if piece.type == 'P' and ((piece.player == 1 and piece.row == 0) or (piece.player == 2 and piece.row == 7)):
+                piece.type = 'Q'
+                updates.append({
+                    'type': 'promotion',
+                    'piece': piece.to_json_obj(),
+                })
+
+        # resolve all captures
+        for move in self.active_moves:
+            if move.piece.captured:
+                continue
+
+            tick_delta = self.current_tick - move.starting_tick
+            movements = tick_delta / self.move_ticks
+            if movements >= len(move.move_seq):
+                continue
+
+            piece = move.piece
+            row, col = self._get_interp_position(move, self.current_tick)
+
+            # check each other piece
+            for p in self.board.pieces:
+                if p.player == piece.player or p.captured:
                     continue
 
-                piece = move.piece
-                moving[piece.id] = move
-                new_row, new_col = move.move_seq[movements][0], move.move_seq[movements][1]
+                other_move = moving.get(p.id)
+                if other_move is not None:
+                    other_row, other_col = self._get_interp_position(other_move, self.current_tick)
+                    if other_row < 0 or other_col < 0:
+                        continue
+                else:
+                    other_row, other_col = p.row, p.col
 
-                if self.debug and (piece.row != new_row or piece.col != new_col):
-                    print '%s to %s %s' % (piece, new_row, new_col)
+                # threshold for capture
+                dist = math.hypot(row - other_row, col - other_col)
+                if dist > 0.3:
+                    continue
 
-                piece.row, piece.col = new_row, new_col
-
-                # promote pawn to queen
-                if piece.type == 'P' and ((piece.player == 1 and piece.row == 0) or (piece.player == 2 and piece.row == 7)):
-                    piece.type = 'Q'
+                # pawns not moving diagonally cannot capture, so they always get captured on collision
+                if piece.type == 'P' and move.move_seq[0][1] == move.move_seq[-1][1]:
+                    piece.captured = True
                     updates.append({
-                        'type': 'promotion',
-                        'piece': piece.to_json_obj(),
+                        'type': 'capture',
+                        'piece': p.to_json_obj(),
+                        'target': piece.to_json_obj(),
                     })
-
-            # resolve all captures
-            for move in self.active_moves:
-                if move.piece.captured:
-                    continue
-
-                tick_delta = self.current_tick - move.starting_tick
-                movements = tick_delta / self.move_ticks
-                if movements >= len(move.move_seq):
-                    continue
-
-                piece = move.piece
-                row, col = self._get_interp_position(move, self.current_tick)
-
-                # check each other piece
-                for p in self.board.pieces:
-                    if p.player == piece.player or p.captured:
-                        continue
-
-                    other_move = moving.get(p.id)
-                    if other_move is not None:
-                        other_row, other_col = self._get_interp_position(other_move, self.current_tick)
-                        if other_row < 0 or other_col < 0:
-                            continue
-                    else:
-                        other_row, other_col = p.row, p.col
-
-                    # threshold for capture
-                    dist = math.hypot(row - other_row, col - other_col)
-                    if dist > 0.3:
-                        continue
-
-                    # pawns not moving diagonally cannot capture, so they always get captured on collision
-                    if piece.type == 'P' and move.move_seq[0][1] == move.move_seq[-1][1]:
-                        piece.captured = True
-                        updates.append({
-                            'type': 'capture',
-                            'piece': p.to_json_obj(),
-                            'target': piece.to_json_obj(),
-                        })
-                        break
-
-                    # if the other piece is static, capture it
-                    if other_move is None:
-                        p.captured = True
-                        updates.append({
-                            'type': 'capture',
-                            'piece': piece.to_json_obj(),
-                            'target': p.to_json_obj(),
-                        })
-                        break
-
-                    # close enough to capture; this piece captures other if ticking this makes us closer
-                    n_row, n_col = self._get_interp_position(move, self.current_tick + 1)
-                    n_dist = math.hypot(n_row - other_row, n_col - other_col)
-                    if n_dist > dist:
-                        continue
-
-                    # if ticking other also makes us closer, then fall back to earlier piece wins
-                    n_other_row, n_other_col = self._get_interp_position(other_move, self.current_tick + 1)
-                    n_other_dist = math.hypot(row - n_other_row, col - n_other_col)
-                    if n_other_dist < dist and move.starting_tick > other_move.starting_tick:
-                        piece.captured = True
-                        updates.append({
-                            'type': 'capture',
-                            'piece': other_move.piece.to_json_obj(),
-                            'target': piece.to_json_obj(),
-                        })
-                    else:
-                        other_move.piece.captured = True
-                        updates.append({
-                            'type': 'capture',
-                            'piece': piece.to_json_obj(),
-                            'target': other_move.piece.to_json_obj(),
-                        })
-
                     break
 
-            # remove moves that have ended
-            new_active_moves = []
-            new_cooldowns = []
-            for move in self.active_moves:
-                if move.piece.captured:
+                # if the other piece is static, capture it
+                if other_move is None:
+                    p.captured = True
+                    updates.append({
+                        'type': 'capture',
+                        'piece': piece.to_json_obj(),
+                        'target': p.to_json_obj(),
+                    })
+                    break
+
+                # close enough to capture; this piece captures other if ticking this makes us closer
+                n_row, n_col = self._get_interp_position(move, self.current_tick + 1)
+                n_dist = math.hypot(n_row - other_row, n_col - other_col)
+                if n_dist > dist:
                     continue
 
-                tick_delta = self.current_tick - move.starting_tick
-                if tick_delta >= self.move_ticks * (len(move.move_seq) - 1):
-                    if self.debug:
-                        print '%s going on cooldown' % move.piece
-
-                    new_cooldowns.append(Cooldown(move.piece, self.current_tick))
+                # if ticking other also makes us closer, then fall back to earlier piece wins
+                n_other_row, n_other_col = self._get_interp_position(other_move, self.current_tick + 1)
+                n_other_dist = math.hypot(row - n_other_row, col - n_other_col)
+                if n_other_dist < dist and move.starting_tick > other_move.starting_tick:
+                    piece.captured = True
                     updates.append({
-                        'type': 'startcooldown',
-                        'piece': move.piece.to_json_obj(),
+                        'type': 'capture',
+                        'piece': other_move.piece.to_json_obj(),
+                        'target': piece.to_json_obj(),
                     })
                 else:
-                    new_active_moves.append(move)
-
-            # remove cooldowns that have ended
-            for cooldown in self.cooldowns:
-                if cooldown.piece.captured:
-                    continue
-
-                tick_delta = self.current_tick - cooldown.starting_tick
-                if tick_delta < self.cooldown_ticks:
-                    new_cooldowns.append(cooldown)
-                else:
-                    if self.debug:
-                        print '%s going off cooldown' % cooldown.piece
-
+                    other_move.piece.captured = True
                     updates.append({
-                        'type': 'endcooldown',
-                        'piece': cooldown.piece.to_json_obj(),
+                        'type': 'capture',
+                        'piece': piece.to_json_obj(),
+                        'target': other_move.piece.to_json_obj(),
                     })
 
-            # set new active moves and cooldowns
-            self.active_moves = new_active_moves
-            self.cooldowns = new_cooldowns
+                break
 
-            for p in self.board.pieces:
-                # someone's king has been captured, so the game is over
-                if p.type == 'K' and p.captured:
-                    self.finished = 1 if p.player == 2 else 2
-                    return self.finished, updates
+        # remove moves that have ended
+        new_active_moves = []
+        new_cooldowns = []
+        for move in self.active_moves:
+            if move.piece.captured:
+                continue
 
-            return 0, updates
+            tick_delta = self.current_tick - move.starting_tick
+            if tick_delta >= self.move_ticks * (len(move.move_seq) - 1):
+                if self.debug:
+                    print '%s going on cooldown' % move.piece
+
+                new_cooldowns.append(Cooldown(move.piece, self.current_tick))
+                updates.append({
+                    'type': 'startcooldown',
+                    'piece': move.piece.to_json_obj(),
+                })
+            else:
+                new_active_moves.append(move)
+
+        # remove cooldowns that have ended
+        for cooldown in self.cooldowns:
+            if cooldown.piece.captured:
+                continue
+
+            tick_delta = self.current_tick - cooldown.starting_tick
+            if tick_delta < self.cooldown_ticks:
+                new_cooldowns.append(cooldown)
+            else:
+                if self.debug:
+                    print '%s going off cooldown' % cooldown.piece
+
+                updates.append({
+                    'type': 'endcooldown',
+                    'piece': cooldown.piece.to_json_obj(),
+                })
+
+        # set new active moves and cooldowns
+        self.active_moves = new_active_moves
+        self.cooldowns = new_cooldowns
+
+        for p in self.board.pieces:
+            # someone's king has been captured, so the game is over
+            if p.type == 'K' and p.captured:
+                self.finished = 1 if p.player == 2 else 2
+                return self.finished, updates
+
+        return 0, updates
 
     def _get_interp_position(self, move, current_tick):
         total_move_ticks = self.move_ticks * (len(move.move_seq) - 1)
