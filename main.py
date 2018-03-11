@@ -1,4 +1,6 @@
 import json
+import random
+import string
 import threading
 import time
 import traceback
@@ -32,12 +34,12 @@ def new():
     bots = data.get('bots', {})
     bots = {int(player): ai.get_bot(difficulty) for player, difficulty in bots.iteritems()}
 
-    game_id = str(uuid.uuid4())
+    game_id = ''.join(random.choice(string.ascii_uppercase + string.digits) for i in xrange(6))
     game = Game(move_ticks, cooldown_ticks, debug=True)
     for player in bots:
         game.mark_ready(player)
 
-    player_keys = {1: str(uuid.uuid4()), 2: str(uuid.uuid4())}
+    player_keys = {i: str(uuid.uuid4()) for i in xrange(1, 3) if i not in bots}
     game_states[game_id] = GameState(game_id, game, player_keys, bots)
     return json.dumps({
         'id': game_id,
@@ -120,6 +122,33 @@ def move(data):
         emit('moveack', {
             'game': game_state.game.to_json_obj(),
             'success': move is not None,
+        }, room=game_id, json=True)
+
+
+@socketio.on('reset')
+def reset(data):
+    data = json.loads(data)
+    game_id = data['gameId']
+    player_key = data['playerKey']
+    print 'reset', data
+
+    game_state = game_states[game_id]
+
+    auth_player = None
+    for player, key in game_state.player_keys.iteritems():
+        if player_key == key:
+            auth_player = player
+
+    # only authenticated players can make moves
+    if auth_player is not None:
+        old_game = game_state.game
+        game = Game(old_game.move_ticks, old_game.cooldown_ticks, debug=True)
+        for player in game_state.bots:
+            game.mark_ready(player)
+        game_state.game = game
+
+        emit('resetack', {
+            'game': game.to_json_obj(),
         }, room=game_id, json=True)
 
 

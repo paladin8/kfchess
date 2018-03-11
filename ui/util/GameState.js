@@ -19,16 +19,17 @@ export default class GameState {
         this.socket.on('readyack', this.handleMessage);
         this.socket.on('update', this.handleMessage);
         this.socket.on('moveack', this.handleMessage);
+        this.socket.on('resetack', this.handleMessage);
 
         this.socket.emit('join', JSON.stringify({ gameId, playerKey }));
     }
 
     handleMessage(data) {
-        this.update(data.game);
-
-        if (data.player) {
+        if (data.player !== undefined) {
             this.player = data.player;
         }
+
+        this.update(data.game);
     }
 
     update(game) {
@@ -54,6 +55,9 @@ export default class GameState {
     }
 
     isReady() {
+        if (this.game && this.player === 0) {
+            return true;
+        }
         return this.game && this.player && this.game.playersReady[this.player];
     }
 
@@ -65,6 +69,10 @@ export default class GameState {
         this.socket.emit('move', JSON.stringify({
             gameId: this.gameId, playerKey: this.playerKey, pieceId, toRow, toCol
         }));
+    }
+
+    newGame() {
+        this.socket.emit('reset', JSON.stringify({ gameId: this.gameId, playerKey: this.playerKey }));
     }
 
     destroy() {

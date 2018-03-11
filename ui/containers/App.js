@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
-import { BrowserRouter, Route, Link } from 'react-router-dom';
+import { BrowserRouter, Route } from 'react-router-dom';
+import 'react-tippy/dist/tippy.css';
 
+import About from './About.js';
 import Game from './Game.js';
 import Header from './Header.js';
 import Home from './Home.js';
@@ -31,6 +33,7 @@ export default class App extends Component {
                     <Route exact path='/' render={(props) => {
                         return <Home setPlayerKeys={this.setPlayerKeys} {...props} />
                     }} />
+                    <Route path='/about' component={About} />
                     <Route path='/game/:gameId' render={(props) => {
                         return <Game playerKeys={playerKeys} {...props} />
                     }} />

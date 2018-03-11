@@ -1,0 +1,43 @@
+.about {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    width: 100%;
+
+    .about-image {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+
+        width: 70%;
+        max-width: 550px;
+
+        img {
+            width: 100%;
+        }
+
+        .about-image-caption {
+            margin-top: 10px;
+
+            font-size: 13px;
+
+            color: @font-light-grey;
+        }
+    }
+
+    .about-text {
+        width: 70%;
+        max-width: 550px;
+        min-width: 250px;
+
+        margin-top: 20px;
+
+        font-size: 15px;
+        line-height: 20px;
+
+        a {
+            font-weight: 700;
+        }
+    }
+}

@@ -1,0 +1,62 @@
+@import 'colors.less';
+
+.header {
+    display: flex;
+    justify-content: space-between;
+
+    width: 100%;
+    height: 40px;
+
+    margin: 0px 0px 40px 0px;
+
+    .header-logo {
+        display: flex;
+        align-items: center;
+
+        min-width: 240px;
+
+        .header-logo-img {
+            width: 40px;
+            height: 40px;
+
+            img {
+                height: 100%;
+            }
+        }
+
+        .header-logo-text {
+            margin-left: 10px;
+
+            font-size: 30px;
+            font-weight: 700;
+
+            line-height: 40px;
+
+            sup {
+                color: @font-light-grey;
+
+                font-size: 15px;
+                font-weight: 500;
+            }
+        }
+    }
+
+    .header-menu {
+        display: flex;
+        justify-content: space-between;
+
+        margin-left: 20px;
+
+        width: 20%;
+        min-width: 200px;
+
+        font-size: 15px;
+
+        .header-menu-item {
+
+            a {
+                color: @font-black;
+            }
+        }
+    }
+}

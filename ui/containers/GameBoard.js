@@ -8,19 +8,17 @@ import sprites from '../util/Sprites.js';
 const BORDER_FACTOR = 0.0834;
 const SHIFT_FACTOR = 0.005;
 const SPRITE_FACTOR = 0.90;
+
+const TOP_EDGE_PADDING = 4;
+
 const COOLDOWN_COLOR = 0xf0f000;
+const BACKGROUND_COLOR = 0xfcfcf4;
 
 export default class GameBoard extends Component {
 
     constructor(props) {
         super(props);
 
-        this.state = {
-            gameId: null,
-            isReady: false,
-        };
-
-        this.updateState = this.updateState.bind(this);
         this.resize = this.resize.bind(this);
         this.update = this.update.bind(this);
         this.handleClick = this.handleClick.bind(this);
@@ -32,23 +30,23 @@ export default class GameBoard extends Component {
 
     componentDidMount() {
         // create app
-        const windowWidth = window.innerWidth, windowHeight = window.innerHeight;
-        this.dim = Math.max(512, Math.min(windowWidth, windowHeight) - 64);
+        this.dim = this.getDim();
         this.border = this.dim * BORDER_FACTOR;
         this.shift = this.dim * SHIFT_FACTOR;
         this.cellDim = (this.dim - 2 * this.border) / 8;
         this.cellPadding = this.cellDim * (1 - SPRITE_FACTOR) / 2;
 
-        this.app = new PIXI.Application(this.dim, this.dim, {
+        this.app = new PIXI.Application(this.dim, this.dim - this.border + TOP_EDGE_PADDING, {
             view: this.canvas,
         });
 
         this.backgroundTexture = new PIXI.Graphics();
-        this.backgroundTexture.beginFill(0xffffff);
-        this.backgroundTexture.drawRect(0, 0, this.dim, this.dim);
+        this.backgroundTexture.beginFill(BACKGROUND_COLOR);
+        this.backgroundTexture.drawRect(0, 0, this.dim, this.dim - this.border + TOP_EDGE_PADDING);
 
         const chessboardTexture = PIXI.Texture.fromImage(chessboardImg);
         this.chessboardSprite = new PIXI.Sprite(chessboardTexture);
+        this.chessboardSprite.y = - this.border + TOP_EDGE_PADDING;
         this.chessboardSprite.width = this.dim;
         this.chessboardSprite.height = this.dim;
 
@@ -66,16 +64,28 @@ export default class GameBoard extends Component {
 
         this.app.ticker.add(this.update);
 
-        // register listeners
-        this.props.gameState.registerListener(this.updateState);
-
         window.addEventListener('resize', this.resize);
     }
 
     componentWillUnmount() {
+        this.unselect();
+
         window.removeEventListener('resize', this.resize);
 
-        // TODO: cleanup?
+        // destroy all sprites
+        for (let pieceId in this.pieceSprites) {
+            const pieceSprite = this.pieceSprites[pieceId];
+            this.destroyPieceSprite(pieceSprite);
+        }
+
+        this.backgroundTexture.destroy();
+        this.chessboardSprite.destroy();
+
+        this.mainStage.destroy();
+        this.metaStage.destroy();
+
+        this.app.ticker.destroy();
+        this.app.stage.destroy();
     }
 
     componentWillReceiveProps(nextProps) {
@@ -88,35 +98,29 @@ export default class GameBoard extends Component {
 
             this.pieceSprites = {};
             this.unselect();
-
-            nextProps.gameState.registerListener(this.updateState);
-        }
-    }
-
-    updateState(gameState) {
-        if (gameState) {
-            this.setState({
-                gameId: gameState.gameId,
-                isReady: gameState.isReady(),
-            });
         }
     }
 
     resize() {
-        const windowWidth = window.innerWidth, windowHeight = window.innerHeight;
-        this.dim = Math.max(512, Math.min(windowWidth, windowHeight) - 64);
+        this.dim = this.getDim();
         this.border = this.dim * BORDER_FACTOR;
         this.cellDim = (this.dim - 2 * this.border) / 8;
         this.cellPadding = this.cellDim * (1 - SPRITE_FACTOR) / 2;
 
         this.backgroundTexture.clear();
-        this.backgroundTexture.beginFill(0xffffff);
-        this.backgroundTexture.drawRect(0, 0, this.dim, this.dim);
+        this.backgroundTexture.beginFill(BACKGROUND_COLOR);
+        this.backgroundTexture.drawRect(0, 0, this.dim, this.dim - this.border + TOP_EDGE_PADDING);
 
+        this.chessboardSprite.y = - this.border + TOP_EDGE_PADDING;
         this.chessboardSprite.width = this.dim;
         this.chessboardSprite.height = this.dim;
 
-        this.app.renderer.resize(this.dim, this.dim);
+        this.app.renderer.resize(this.dim, this.dim - this.border + TOP_EDGE_PADDING);
+    }
+
+    getDim() {
+        const windowWidth = window.innerWidth, windowHeight = window.innerHeight;
+        return Math.max(512, Math.min(windowWidth - 250, windowHeight - 100));
     }
 
     destroyPieceSprite(pieceSprite) {
@@ -146,6 +150,20 @@ export default class GameBoard extends Component {
         game.cooldowns.forEach(cooldown => {
             cooldownPieces[cooldown.piece.id] = cooldown;
         })
+
+        const allPieces = {};
+        game.board.pieces.forEach(piece => {
+            allPieces[piece.id] = true;
+        });
+
+        // destroy pieces that are gone (e.g. due to game reset)
+        for (let pieceId in this.pieceSprites) {
+            if (!(pieceId in allPieces)) {
+                const pieceSprite = this.pieceSprites[pieceId];
+                this.destroyPieceSprite(pieceSprite);
+                delete this.pieceSprites[pieceId];
+            }
+        }
 
         // render pieces
         game.board.pieces.forEach(piece => {
@@ -335,12 +353,12 @@ export default class GameBoard extends Component {
         if (player === 1) {
             return {
                 x: this.border + col * this.cellDim + this.cellPadding - this.shift,
-                y: this.border + row * this.cellDim + this.cellPadding - this.shift,
+                y: TOP_EDGE_PADDING + row * this.cellDim + this.cellPadding - this.shift,
             };
         } else {
             return {
                 x: this.border + (7 - col) * this.cellDim + this.cellPadding - this.shift,
-                y: this.border + (7 - row) * this.cellDim + this.cellPadding - this.shift,
+                y: TOP_EDGE_PADDING + (7 - row) * this.cellDim + this.cellPadding - this.shift,
             };
         }
     }
@@ -369,7 +387,7 @@ export default class GameBoard extends Component {
         const adjustedX = event.clientX - canvasRect.x, adjustedY = event.clientY - canvasRect.y;
         const point = new PIXI.Point(adjustedX, adjustedY);
 
-        let row = Math.floor((adjustedY - this.border) / this.cellDim);
+        let row = Math.floor(adjustedY / this.cellDim);
         let col = Math.floor((adjustedX - this.border) / this.cellDim);
         if (this.props.gameState.player === 2) {
             row = 7 - row;
@@ -398,29 +416,6 @@ export default class GameBoard extends Component {
     }
 
     render() {
-        const { gameState } = this.props;
-        const { gameId, isReady } = this.state;
-
-        let gameStatus = 'Waiting...';
-        if (gameState && gameState.game) {
-            if (gameState.game.finished) {
-                gameStatus = (gameState.game.finished === 1 ? 'White' : 'Black') + ' wins!';
-            } else if (gameState.game.started) {
-                gameStatus = 'Playing';
-            }
-        }
-
-        return (
-            <div>
-                {gameState && <div> Game ID: {gameId}</div>}
-                {gameState &&
-                    <div>
-                        Game Status: {gameStatus}
-                        {!isReady && <input type='submit' value='Ready!' onClick={gameState.onReady.bind(gameState)} />}
-                    </div>
-                }
-                <canvas ref={ref => (this.canvas = ref)} onClick={this.handleClick} />
-            </div>
-        );
+        return <canvas ref={ref => this.canvas = ref} onClick={this.handleClick} />;
     }
 };

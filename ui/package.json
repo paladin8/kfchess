@@ -12,8 +12,11 @@
     "pixi.js": "^4.7.0",
     "query-string": "^5.1.0",
     "react": "^16.2.0",
+    "react-copy-to-clipboard": "^5.0.1",
     "react-dom": "^16.2.0",
+    "react-modal": "^3.3.1",
     "react-router-dom": "^4.2.2",
+    "react-tippy": "^1.2.2",
     "socket.io-client": "^2.0.4",
     "webpack": "^4.0.1",
     "webpack-dev-server": "^3.1.0"
