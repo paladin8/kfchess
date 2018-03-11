@@ -39,9 +39,9 @@ PIECE_SCORES = {
 
 def get_bot(difficulty):
     if difficulty == 'novice':
-        return BasicBot(40, 10)
+        return BasicBot(50, 10)
     elif difficulty == 'intermediate':
-        return BasicBot(20, 3)
+        return BasicBot(30, 3)
     elif difficulty == 'advanced':
         return BasicBot(10, 1)
     else:

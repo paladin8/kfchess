@@ -21,15 +21,10 @@ class Game extends Component {
 
         const gameState = new GameState(gameId, playerKey);
 
-        let modalType = null;
-        if (props.playerKeys && '2' in props.playerKeys) {
-            modalType = 'friend-link';
-        }
-
         this.state = {
             gameState,
             playerKeys: props.playerKeys,
-            modalType,
+            modalType: null,
             game: null,
             player: null,
             isReady: false,
@@ -55,10 +50,17 @@ class Game extends Component {
     update(gameState) {
         let modalType = this.state.modalType;
         if (gameState.game) {
+            // various modal triggers
             if (modalType === null && gameState.game.finished) {
                 modalType = 'game-finished';
             } else if (modalType === 'game-finished' && !gameState.game.finished) {
                 modalType = null;
+            } else if (modalType === 'ready' && gameState.game.started) {
+                modalType = null;
+            }
+
+            if (!gameState.game.started && gameState.player !== 0) {
+                modalType = 'ready';
             }
         }
 
@@ -131,36 +133,44 @@ class Game extends Component {
                 <Modal
                     isOpen={Boolean(modalType)}
                     onRequestClose={this.closeModal}
-                    shouldCloseOnOverlayClick={modalType !== 'friend-link'}
-                    shouldCloseOnEsc={modalType !== 'friend-link'}
+                    shouldCloseOnOverlayClick={true}
+                    shouldCloseOnEsc={true}
                     className='game-modal'
                     closeTimeoutMS={500}
-                    style={{
-                        content: {
-                            height: (modalType === 'friend-link' ? 100 : 200),
-                        },
-                    }}
                 >
-                    {modalType === 'friend-link' &&
-                        <Tooltip
-                            title='Copied to clipboard!'
-                            distance={5}
-                            trigger='click'
-                        >
-                            <CopyToClipboard
-                                text={friendLink}
-                                onCopy={() => setTimeout(this.closeModal, 1000)}
+                    {modalType === 'ready' &&
+                        <div className='game-ready'>
+                            {friendLink &&
+                                <Tooltip
+                                    title='Copied to clipboard!'
+                                    distance={5}
+                                    trigger='click'
+                                >
+                                    <CopyToClipboard text={friendLink}>
+                                        <div className='game-friend-link'>
+                                            <div className='game-friend-link-text'>
+                                                Click to copy link and send to friend!
+                                            </div>
+                                            <div className='game-friend-link-icon'>
+                                                <i className='fas fa-link' />
+                                            </div>
+                                        </div>
+                                    </CopyToClipboard>
+                                </Tooltip>
+                            }
+                            <div
+                                className={`game-ready-button ${readyAction ? 'clickable' : ''}`}
+                                onClick={() => {
+                                    if (readyAction === 'ready') {
+                                        gameState.onReady();
+                                    } else if (readyAction === 'play-again') {
+                                        gameState.newGame();
+                                    }
+                                }}
                             >
-                                <div className='game-friend-link'>
-                                    <div className='game-friend-link-text'>
-                                        Click to copy link and send to friend!
-                                    </div>
-                                    <div className='game-friend-link-icon'>
-                                        <i className='fas fa-link' />
-                                    </div>
-                                </div>
-                            </CopyToClipboard>
-                        </Tooltip>
+                                {readyText}
+                            </div>
+                        </div>
                     }
                     {modalType === 'game-finished' &&
                         <div className='game-finished'>

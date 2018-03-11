@@ -72,6 +72,7 @@
     align-items: center;
 
     width: 400px;
+    height: 200px;
 
     position: absolute;
     top: 50%;
@@ -83,33 +84,60 @@
     color: @font-black;
     background-color: @beige;
 
-    font-size: 18px;
-
     -webkit-border-radius: 12px;
     -moz-border-radius: 12px;
     -ms-border-radius: 12px;
     -o-border-radius: 12px;
     border-radius: 12px;
 
+    font-size: 18px;
+
     &:focus {
         outline: none;
     }
 
-    .game-friend-link {
+    .game-ready {
         display: flex;
+        flex-direction: column;
+        justify-content: space-evenly;
+        align-items: center;
 
-        cursor: pointer;
+        width: 100%;
+        height: 100%;
 
-        .game-friend-link-text {
-            margin-right: 10px;
+        .game-friend-link {
+            display: flex;
 
-            a {
-                font-weight: 700;
+            cursor: pointer;
+
+            .game-friend-link-text {
+                margin-right: 10px;
+
+                a {
+                    font-weight: 700;
+                }
+            }
+
+            .game-friend-link-icon {
+                color: #5b91c6;
             }
         }
 
-        .game-friend-link-icon {
-            color: #5b91c6;
+        .game-ready-button {
+            .light-green-button;
+
+            width: 200px;
+            height: 40px;
+
+            font-size: 15px;
+
+            &:hover {
+                cursor: default;
+            }
+
+            &.clickable:hover {
+                cursor: pointer;
+            }
         }
     }
 
