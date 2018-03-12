@@ -20,8 +20,8 @@ export default class About extends Component {
                     </p>
 
                     <p>
-                        If you have feedback, please stop by our&nbsp;
-                        <a href='https://www.reddit.com/r/kfchess/'>reddit</a> or reach out to&nbsp;
+                        If you have feedback, please stop by our{' '}
+                        <a href='https://www.reddit.com/r/kfchess/'>reddit</a> or reach out to{' '}
                         <a href='mailto:contact@kfchess.com' target='_top'>contact@kfchess.com</a>.
                     </p>
                 </div>

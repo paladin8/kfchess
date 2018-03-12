@@ -51,6 +51,7 @@ export default class GameBoard extends Component {
         this.chessboardSprite.height = this.dim;
 
         this.app.stage.interactive = true;
+        this.app.stage.pointerdown = this.handleClick;
         this.app.stage.mousemove = this.handleMove;
 
         this.app.stage.addChild(this.backgroundTexture);
@@ -120,7 +121,7 @@ export default class GameBoard extends Component {
 
     getDim() {
         const windowWidth = window.innerWidth, windowHeight = window.innerHeight;
-        return Math.max(512, Math.min(windowWidth - 250, windowHeight - 100));
+        return Math.max(240, Math.min(windowWidth - 240, windowHeight - 40, 720));
     }
 
     destroyPieceSprite(pieceSprite) {
@@ -314,7 +315,7 @@ export default class GameBoard extends Component {
             return;
         }
 
-        const { row, col, piece } = this.getClickedPiece(event);
+        const { row, col, piece } = this.getClickedPiece(event.data.originalEvent);
 
         let shouldSelect = true;
         if (this.selected) {
@@ -384,7 +385,16 @@ export default class GameBoard extends Component {
 
     getClickedPiece(event) {
         const canvasRect = this.canvas.getBoundingClientRect();
-        const adjustedX = event.clientX - canvasRect.x, adjustedY = event.clientY - canvasRect.y;
+
+        let adjustedX, adjustedY;
+        if (event.changedTouches) {
+            adjustedX = event.changedTouches[0].clientX - canvasRect.x;
+            adjustedY = event.changedTouches[0].clientY - canvasRect.y;
+        } else {
+            adjustedX = event.clientX - canvasRect.x;
+            adjustedY = event.clientY - canvasRect.y;
+        }
+
         const point = new PIXI.Point(adjustedX, adjustedY);
 
         let row = Math.floor(adjustedY / this.cellDim);
@@ -416,6 +426,6 @@ export default class GameBoard extends Component {
     }
 
     render() {
-        return <canvas ref={ref => this.canvas = ref} onClick={this.handleClick} />;
+        return <canvas ref={ref => this.canvas = ref} />;
     }
 };

@@ -28,8 +28,11 @@ class Game extends Component {
             game: null,
             player: null,
             isReady: false,
+            windowWidth: window.innerWidth,
+            windowHeight: window.innerHeight,
         };
 
+        this.resize = this.resize.bind(this);
         this.update = this.update.bind(this);
         this.closeModal = this.closeModal.bind(this);
     }
@@ -39,12 +42,24 @@ class Game extends Component {
 
         // listen for updates
         gameState.registerListener(this.update);
+
+        // listen for resizes
+        window.addEventListener('resize', this.resize);
     }
 
     componentWillUnmount() {
+        window.removeEventListener('resize', this.resize);
+
         if (this.state.gameState) {
             this.state.gameState.destroy();
         }
+    }
+
+    resize() {
+        this.setState({
+            windowWidth: window.innerWidth,
+            windowHeight: window.innerHeight,
+        });
     }
 
     update(gameState) {
@@ -79,7 +94,16 @@ class Game extends Component {
     }
 
     render () {
-        const { gameState, playerKeys, modalType, game, player, isReady } = this.state;
+        const {
+            gameState,
+            playerKeys,
+            modalType,
+            game,
+            player,
+            isReady,
+            windowWidth,
+            windowHeight,
+        } = this.state;
         const baseUrl = `${window.location.origin}${window.location.pathname}`;
 
         let started = false;
@@ -127,6 +151,8 @@ class Game extends Component {
                 readyAction = 'play-again';
             }
         }
+
+        const isPortrait = windowHeight > 1.5 * windowWidth;
 
         return game ?
             <div className='game'>
@@ -186,38 +212,38 @@ class Game extends Component {
                         </div>
                     }
                 </Modal>
-                <div className='game-board'>
-                    <GameBoard gameState={gameState} />
-                </div>
-                <div className='game-meta'>
-                    <div>
-                        <div className='game-meta-section'>
-                            <div
-                                className={`game-ready-button ${readyAction ? 'clickable' : ''}`}
-                                onClick={() => {
-                                    if (readyAction === 'ready') {
-                                        gameState.onReady();
-                                    } else if (readyAction === 'play-again') {
-                                        gameState.newGame();
-                                    }
-                                }}
-                            >
-                                {readyText}
+                <div className='game-content'>
+                    <div className='game-board'>
+                        <GameBoard gameState={gameState} />
+                    </div>
+                    <div className='game-meta'>
+                        <div>
+                            <div className='game-meta-section'>
+                                <div
+                                    className={`game-ready-button ${readyAction ? 'clickable' : ''}`}
+                                    onClick={() => {
+                                        if (readyAction === 'ready') {
+                                            gameState.onReady();
+                                        } else if (readyAction === 'play-again') {
+                                            gameState.newGame();
+                                        }
+                                    }}
+                                >
+                                    {readyText}
+                                </div>
                             </div>
-                        </div>
-                        <div className='game-meta-section'>
-                            Game ID: {gameState.gameId}
-                        </div>
-                        {friendLink &&
+                            <div className='game-meta-section'>
+                                Game ID: {gameState.gameId}
+                            </div>
                             <Tooltip
                                 title='Copied to clipboard!'
                                 distance={5}
                                 trigger='click'
                             >
-                                <CopyToClipboard text={friendLink}>
+                                <CopyToClipboard text={baseUrl}>
                                     <div className='game-friend-link'>
                                         <div className='game-friend-link-text'>
-                                            Copy friend link
+                                            Copy spectator link
                                         </div>
                                         <div className='game-friend-link-icon'>
                                             <i className='fas fa-link' />
@@ -225,9 +251,33 @@ class Game extends Component {
                                     </div>
                                 </CopyToClipboard>
                             </Tooltip>
-                        }
+                            {friendLink &&
+                                <Tooltip
+                                    title='Copied to clipboard!'
+                                    distance={5}
+                                    trigger='click'
+                                >
+                                    <CopyToClipboard text={friendLink}>
+                                        <div className='game-friend-link'>
+                                            <div className='game-friend-link-text'>
+                                                Copy friend link
+                                            </div>
+                                            <div className='game-friend-link-icon'>
+                                                <i className='fas fa-link' />
+                                            </div>
+                                        </div>
+                                    </CopyToClipboard>
+                                </Tooltip>
+                            }
+                        </div>
                     </div>
                 </div>
+                {isPortrait &&
+                    <div className='game-portrait-warning'>
+                        Your browser appears to be in portrait mode.<br/>
+                        Rotate for a better experience!
+                    </div>
+                }
             </div>
             :
             null;
