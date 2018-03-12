@@ -18,9 +18,7 @@
     "react-modal": "^3.3.1",
     "react-router-dom": "^4.2.2",
     "react-tippy": "^1.2.2",
-    "socket.io-client": "^2.0.4",
-    "webpack": "^4.0.1",
-    "webpack-dev-server": "^3.1.0"
+    "socket.io-client": "^2.0.4"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
@@ -37,6 +35,8 @@
     "less": "^3.0.1",
     "less-loader": "^4.0.6",
     "style-loader": "^0.20.2",
+    "webpack": "^4.0.1",
+    "webpack-dev-server": "^3.1.0",
     "webpack-cli": "^2.0.10",
     "webpack-merge": "^4.1.2"
   },
