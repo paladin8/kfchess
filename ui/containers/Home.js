@@ -52,7 +52,7 @@ class Home extends Component {
             <div className='home'>
                 <div className='home-banner'>
                     <div className='home-banner-video'>
-                        <video autoPlay loop muted>
+                        <video autoPlay loop muted playsInline>
                             <source src='/static/banner-video.mp4' type='video/mp4' />
                         </video>
                     </div>
