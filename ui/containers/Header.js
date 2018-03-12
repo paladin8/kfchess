@@ -1,3 +1,4 @@
+import amplitude from 'amplitude-js';
 import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -19,7 +20,12 @@ export default class Header extends Component {
                         <Link to='/'>Home</Link>
                     </div>
                     <div className='header-menu-item'>
-                        <a href='https://www.reddit.com/r/kfchess/'>Reddit</a>
+                        <a
+                            href='https://www.reddit.com/r/kfchess/'
+                            onClick={() => amplitude.getInstance().logEvent('Click Reddit Link')}
+                        >
+                            Reddit
+                        </a>
                     </div>
                     <div className='header-menu-item'>
                         <Link to='/about'>About</Link>

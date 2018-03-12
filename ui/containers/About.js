@@ -1,6 +1,11 @@
+import amplitude from 'amplitude-js';
 import React, { Component } from 'react';
 
 export default class About extends Component {
+
+    componentDidMount() {
+        amplitude.getInstance().logEvent('Visit About Page');
+    }
 
     render() {
         return (

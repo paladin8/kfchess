@@ -1,3 +1,4 @@
+import amplitude from 'amplitude-js';
 import React, { Component } from 'react';
 import { withRouter } from 'react-router'
 
@@ -8,11 +9,14 @@ class Home extends Component {
 
         this.state = {
             difficulty: 'novice',
-            speed: 'standard',
+            friendlySpeed: 'standard',
         };
 
         this.createNewGame = this.createNewGame.bind(this);
-        this.joinGame = this.joinGame.bind(this);
+    }
+
+    componentDidMount() {
+        amplitude.getInstance().logEvent('Visit Home Page');
     }
 
     createNewGame(moveTicks, cooldownTicks, isBot, difficulty) {
@@ -31,12 +35,18 @@ class Home extends Component {
         });
     }
 
-    joinGame(gameId, playerKey) {
-        this.props.history.push(`/game/${gameId}?key=${playerKey}`);
+    changeDifficulty(difficulty) {
+        amplitude.getInstance().logEvent('Change AI Difficulty', { difficulty });
+        this.setState({ difficulty });
+    }
+
+    changeFriendlySpeed(friendlySpeed) {
+        amplitude.getInstance().logEvent('Change Friendly Speed', { friendlySpeed });
+        this.setState({ friendlySpeed })
     }
 
     render () {
-        const { difficulty, speed } = this.state;
+        const { difficulty, friendlySpeed } = this.state;
 
         return (
             <div className='home'>
@@ -60,6 +70,12 @@ class Home extends Component {
                         <div
                             className='home-play-button home-play-vs-ai-button'
                             onClick={() => {
+                                amplitude.getInstance().logEvent('Create New Game', {
+                                    moveTicks: 10,
+                                    cooldownticks: 100,
+                                    isBot: true,
+                                    difficulty,
+                                });
                                 this.createNewGame(10, 100, true, difficulty);
                             }}
                         >
@@ -68,19 +84,19 @@ class Home extends Component {
                         <div className='home-play-option-wrapper'>
                             <div
                                 className={`home-play-option ${difficulty === 'novice' ? 'selected' : ''}`}
-                                onClick={() => this.setState({ difficulty: 'novice' })}
+                                onClick={() => this.changeDifficulty('novice')}
                             >
                                 Novice
                             </div>
                             <div
                                 className={`home-play-option ${difficulty === 'intermediate' ? 'selected' : ''}`}
-                                onClick={() => this.setState({ difficulty: 'intermediate' })}
+                                onClick={() => this.changeDifficulty('intermediate')}
                             >
                                 Intermediate
                             </div>
                             <div
                                 className={`home-play-option ${difficulty === 'advanced' ? 'selected' : ''}`}
-                                onClick={() => this.setState({ difficulty: 'advanced' })}
+                                onClick={() => this.changeDifficulty('advanced')}
                             >
                                 Advanced
                             </div>
@@ -90,8 +106,14 @@ class Home extends Component {
                         <div
                             className='home-play-button home-create-game-button'
                             onClick={(() => {
+                                amplitude.getInstance().logEvent('Create New Game', {
+                                    moveTicks: 10,
+                                    cooldownticks: 100,
+                                    isBot: false,
+                                });
+
                                 let moveTicks = 10, cooldownTicks = 100;
-                                if (speed === 'lightning') {
+                                if (friendlySpeed === 'lightning') {
                                     moveTicks = 1;
                                     cooldownTicks = 1;
                                 }
@@ -102,14 +124,14 @@ class Home extends Component {
                         </div>
                         <div className='home-play-option-wrapper'>
                             <div
-                                className={`home-play-option ${speed === 'standard' ? 'selected' : ''}`}
-                                onClick={() => this.setState({ speed: 'standard' })}
+                                className={`home-play-option ${friendlySpeed === 'standard' ? 'selected' : ''}`}
+                                onClick={() => this.changeFriendlySpeed('standard')}
                             >
                                 Standard
                             </div>
                             <div
-                                className={`home-play-option ${speed === 'lightning' ? 'selected' : ''}`}
-                                onClick={() => this.setState({ speed: 'lightning' })}
+                                className={`home-play-option ${friendlySpeed === 'lightning' ? 'selected' : ''}`}
+                                onClick={() => this.changeFriendlySpeed('lightning')}
                             >
                                 Lightning
                             </div>

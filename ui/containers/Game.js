@@ -1,3 +1,4 @@
+import amplitude from 'amplitude-js';
 import qs from 'query-string';
 import React, { Component } from 'react';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
@@ -67,10 +68,20 @@ class Game extends Component {
         if (gameState.game) {
             // various modal triggers
             if (modalType === null && gameState.game.finished) {
+                amplitude.getInstance().logEvent('Finish Game', {
+                    gameId: gameState.gameId,
+                    player: gameState.player,
+                });
+
                 modalType = 'game-finished';
             } else if (modalType === 'game-finished' && !gameState.game.finished) {
                 modalType = null;
             } else if (modalType === 'ready' && gameState.game.started) {
+                amplitude.getInstance().logEvent('Start Game', {
+                    gameId: gameState.gameId,
+                    player: gameState.player,
+                });
+
                 modalType = null;
             }
 
@@ -172,7 +183,16 @@ class Game extends Component {
                                     distance={5}
                                     trigger='click'
                                 >
-                                    <CopyToClipboard text={friendLink}>
+                                    <CopyToClipboard
+                                        text={friendLink}
+                                        onCopy={() => {
+                                            amplitude.getInstance().logEvent('Copy Friend Link', {
+                                                source: 'modal',
+                                                player,
+                                                gameId: gameState.gameId,
+                                            });
+                                        }}
+                                    >
                                         <div className='game-friend-link'>
                                             <div className='game-friend-link-text'>
                                                 Click to copy link and send to friend!
@@ -188,9 +208,13 @@ class Game extends Component {
                                 className={`game-ready-button ${readyAction ? 'clickable' : ''}`}
                                 onClick={() => {
                                     if (readyAction === 'ready') {
+                                        amplitude.getInstance().logEvent('Click Ready', {
+                                            source: 'modal',
+                                            player,
+                                            gameId: gameState.gameId,
+                                        });
+
                                         gameState.onReady();
-                                    } else if (readyAction === 'play-again') {
-                                        gameState.newGame();
                                     }
                                 }}
                             >
@@ -204,7 +228,15 @@ class Game extends Component {
                             {player !== 0 &&
                                 <div
                                     className='game-finished-button-again'
-                                    onClick={() => gameState.newGame()}
+                                    onClick={() => {
+                                        amplitude.getInstance().logEvent('Click Play Again', {
+                                            source: 'modal',
+                                            player,
+                                            gameId: gameState.gameId,
+                                        });
+
+                                        gameState.newGame();
+                                    }}
                                 >
                                     Play Again
                                 </div>
@@ -223,8 +255,20 @@ class Game extends Component {
                                     className={`game-ready-button ${readyAction ? 'clickable' : ''}`}
                                     onClick={() => {
                                         if (readyAction === 'ready') {
+                                            amplitude.getInstance().logEvent('Click Ready', {
+                                                source: 'sidebar',
+                                                player,
+                                                gameId: gameState.gameId,
+                                            });
+
                                             gameState.onReady();
                                         } else if (readyAction === 'play-again') {
+                                            amplitude.getInstance().logEvent('Click Play Again', {
+                                                source: 'sidebar',
+                                                player,
+                                                gameId: gameState.gameId,
+                                            });
+
                                             gameState.newGame();
                                         }
                                     }}
@@ -243,7 +287,16 @@ class Game extends Component {
                                     distance={5}
                                     trigger='click'
                                 >
-                                    <CopyToClipboard text={baseUrl}>
+                                    <CopyToClipboard
+                                        text={baseUrl}
+                                        onCopy={() => {
+                                            amplitude.getInstance().logEvent('Copy Spectator Link', {
+                                                source: 'sidebar',
+                                                gameId: gameState.gameId,
+                                                player,
+                                            });
+                                        }}
+                                    >
                                         <div className='game-friend-link'>
                                             <div className='game-friend-link-text'>
                                                 Copy spectator link
@@ -262,7 +315,16 @@ class Game extends Component {
                                         distance={5}
                                         trigger='click'
                                     >
-                                        <CopyToClipboard text={friendLink}>
+                                        <CopyToClipboard
+                                            text={friendLink}
+                                            onCopy={() => {
+                                                amplitude.getInstance().logEvent('Copy Friend Link', {
+                                                    source: 'sidebar',
+                                                    gameId: gameState.gameId,
+                                                    player,
+                                                });
+                                            }}
+                                        >
                                             <div className='game-friend-link'>
                                                 <div className='game-friend-link-text'>
                                                     Copy friend link
