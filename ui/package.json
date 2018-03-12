@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "./node_modules/.bin/webpack-dev-server --config ./webpack/webpack.dev.config.js"
+    "dev": "webpack-dev-server --config ./webpack/webpack.dev.config.js",
+    "prod": "webpack --config ./webpack/webpack.prod.config.js"
   },
   "author": "",
   "license": "ISC",
@@ -36,7 +37,8 @@
     "less": "^3.0.1",
     "less-loader": "^4.0.6",
     "style-loader": "^0.20.2",
-    "webpack-cli": "^2.0.10"
+    "webpack-cli": "^2.0.10",
+    "webpack-merge": "^4.1.2"
   },
   "babel": {
     "presets": [
