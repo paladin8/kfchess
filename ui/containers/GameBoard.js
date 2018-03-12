@@ -5,7 +5,7 @@ import chessboardImg from '../assets/chessboard.png';
 import * as gameLogic from '../util/GameLogic.js';
 import sprites from '../util/Sprites.js';
 
-const BORDER_FACTOR = 0.0834;
+const BORDER_FACTOR = 0.08341323;
 const SHIFT_FACTOR = 0.005;
 const SPRITE_FACTOR = 0.90;
 
@@ -105,6 +105,7 @@ export default class GameBoard extends Component {
     resize() {
         this.dim = this.getDim();
         this.border = this.dim * BORDER_FACTOR;
+        this.shift = this.dim * SHIFT_FACTOR;
         this.cellDim = (this.dim - 2 * this.border) / 8;
         this.cellPadding = this.cellDim * (1 - SPRITE_FACTOR) / 2;
 
@@ -121,7 +122,7 @@ export default class GameBoard extends Component {
 
     getDim() {
         const windowWidth = window.innerWidth, windowHeight = window.innerHeight;
-        return Math.max(240, Math.min(windowWidth - 240, windowHeight - 40, 720));
+        return Math.max(480, Math.min(windowWidth - 240, windowHeight - 40, 720));
     }
 
     destroyPieceSprite(pieceSprite) {
@@ -143,14 +144,26 @@ export default class GameBoard extends Component {
         const currentTick = gameState.getCurrentTick();
 
         const movingPieces = {};
-        game.activeMoves.forEach(move => {
+        for (let i = 0; i < game.moveLog.length; i++) {
+            const move = game.moveLog[i];
+            const totalMoveTicks = (move.moveSeq.length - 1) * game.moveTicks;
+            if (currentTick <= move.startingTick + totalMoveTicks + 10) {
+                movingPieces[move.piece.id] = move;
+            }
+        }
+
+        for (let i = 0; i < game.activeMoves.length; i++) {
+            const move = game.activeMoves[i];
             movingPieces[move.piece.id] = move;
-        });
+        }
 
         const cooldownPieces = {};
-        game.cooldowns.forEach(cooldown => {
-            cooldownPieces[cooldown.piece.id] = cooldown;
-        })
+        for (let i = 0; i < game.cooldowns.length; i++) {
+            const cooldown = game.cooldowns[i];
+            if (currentTick >= cooldown.startingTick) {
+                cooldownPieces[cooldown.piece.id] = cooldown;
+            }
+        }
 
         const allPieces = {};
         game.board.pieces.forEach(piece => {
@@ -239,8 +252,10 @@ export default class GameBoard extends Component {
 
         // render selected if necessary
         if (this.selected) {
-            this.metaStage.removeChild(this.selected.graphics);
-            this.metaStage.addChild(this.selected.graphics);
+            if (!this.selected.graphicsAdded) {
+                this.metaStage.addChild(this.selected.graphics);
+                this.selected.graphicsAdded = true;
+            }
 
             const position = this.getPosition(this.selected.piece.row, this.selected.piece.col);
             if (gameState.player === 2) {
@@ -248,9 +263,22 @@ export default class GameBoard extends Component {
                 position.y++;
             }
 
-            this.selected.graphics.clear();
-            this.selected.graphics.lineStyle(4, COOLDOWN_COLOR);
-            this.selected.graphics.drawRect(position.x, position.y, this.cellDim - 2, this.cellDim - 2);
+            if (
+                !this.selected.graphicsX ||
+                (
+                    this.selected.graphicsX === position.x &&
+                    this.selected.graphicsY === position.y &&
+                    this.selected.cellDim === this.cellDim
+                )
+            ) {
+                this.selected.graphics.clear();
+                this.selected.graphics.lineStyle(4, COOLDOWN_COLOR);
+                this.selected.graphics.drawRect(position.x, position.y, this.cellDim - 2, this.cellDim - 2);
+
+                this.selected.graphicsX = position.x;
+                this.selected.graphicsY = position.y;
+                this.selected.cellDim = position.cellDim;
+            }
 
             if (gameLogic.isLegalMove(game, currentTick, this.selected.piece, this.selected.row, this.selected.col)) {
                 // selected piece sprite is re-added to the stage so it appears on top
@@ -353,13 +381,13 @@ export default class GameBoard extends Component {
 
         if (player === 1) {
             return {
-                x: this.border + col * this.cellDim + this.cellPadding - this.shift,
-                y: TOP_EDGE_PADDING + row * this.cellDim + this.cellPadding - this.shift,
+                x: Math.round(this.border + col * this.cellDim + this.cellPadding - this.shift),
+                y: Math.round(TOP_EDGE_PADDING + row * this.cellDim + this.cellPadding - this.shift),
             };
         } else {
             return {
-                x: this.border + (7 - col) * this.cellDim + this.cellPadding - this.shift,
-                y: TOP_EDGE_PADDING + (7 - row) * this.cellDim + this.cellPadding - this.shift,
+                x: Math.round(this.border + (7 - col) * this.cellDim + this.cellPadding - this.shift),
+                y: Math.round(TOP_EDGE_PADDING + (7 - row) * this.cellDim + this.cellPadding - this.shift),
             };
         }
     }

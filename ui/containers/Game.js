@@ -233,34 +233,20 @@ class Game extends Component {
                                 </div>
                             </div>
                             <div className='game-meta-section'>
-                                Game ID: {gameState.gameId}
+                                <div className='game-id'>
+                                    Game ID: {gameState.gameId}
+                                </div>
                             </div>
-                            <Tooltip
-                                title='Copied to clipboard!'
-                                distance={5}
-                                trigger='click'
-                            >
-                                <CopyToClipboard text={baseUrl}>
-                                    <div className='game-friend-link'>
-                                        <div className='game-friend-link-text'>
-                                            Copy spectator link
-                                        </div>
-                                        <div className='game-friend-link-icon'>
-                                            <i className='fas fa-link' />
-                                        </div>
-                                    </div>
-                                </CopyToClipboard>
-                            </Tooltip>
-                            {friendLink &&
+                            <div className='game-meta-section'>
                                 <Tooltip
                                     title='Copied to clipboard!'
                                     distance={5}
                                     trigger='click'
                                 >
-                                    <CopyToClipboard text={friendLink}>
+                                    <CopyToClipboard text={baseUrl}>
                                         <div className='game-friend-link'>
                                             <div className='game-friend-link-text'>
-                                                Copy friend link
+                                                Copy spectator link
                                             </div>
                                             <div className='game-friend-link-icon'>
                                                 <i className='fas fa-link' />
@@ -268,6 +254,26 @@ class Game extends Component {
                                         </div>
                                     </CopyToClipboard>
                                 </Tooltip>
+                            </div>
+                            {friendLink &&
+                                <div className='game-meta-section'>
+                                    <Tooltip
+                                        title='Copied to clipboard!'
+                                        distance={5}
+                                        trigger='click'
+                                    >
+                                        <CopyToClipboard text={friendLink}>
+                                            <div className='game-friend-link'>
+                                                <div className='game-friend-link-text'>
+                                                    Copy friend link
+                                                </div>
+                                                <div className='game-friend-link-icon'>
+                                                    <i className='fas fa-link' />
+                                                </div>
+                                            </div>
+                                        </CopyToClipboard>
+                                    </Tooltip>
+                                </div>
                             }
                         </div>
                     </div>

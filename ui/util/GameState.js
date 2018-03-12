@@ -1,5 +1,7 @@
 import openSocket from 'socket.io-client';
 
+const SIMULATED_DELAY = 0;
+
 export default class GameState {
 
     constructor(gameId, playerKey) {
@@ -9,6 +11,8 @@ export default class GameState {
         this.player = null;
         this.game = null;
         this.lastUpdate = new Date();
+        this.lastCurrentTick = 0;
+        this.lastCurrentTime = new Date();
         this.updateListeners = [];
 
         this.handleMessage = this.handleMessage.bind(this);
@@ -29,7 +33,11 @@ export default class GameState {
             this.player = data.player;
         }
 
-        this.update(data.game);
+        if (SIMULATED_DELAY > 0) {
+            setTimeout(() => this.update(data.game), Math.random() * SIMULATED_DELAY);
+        } else {
+            this.update(data.game);
+        }
     }
 
     update(game) {
@@ -50,8 +58,30 @@ export default class GameState {
             return this.game.currentTick;
         }
 
+        // compute the tick based on the game as last received from the server
         const currentTime = new Date();
-        return this.game.currentTick + (currentTime - this.lastUpdate + 1000 * this.game.timeSinceLastTick) / 100;
+        const newTick = this.game.currentTick + (currentTime - this.lastUpdate + 1000 * this.game.timeSinceLastTick) / 100;
+
+        // compute the tick based on the the last tick computation and how much time has passed
+        const expectedTick = this.lastCurrentTick + (currentTime - this.lastCurrentTime) / 100;
+
+        // differ by too much, jump to current
+        if (Math.abs(newTick - expectedTick) > 10) {
+            this.lastCurrentTick = newTick;
+            this.lastCurrentTime = currentTime;
+            return newTick;
+        }
+
+        // compute speed based on difference between expected and server tick:
+        //   - expected ahead by 10 ticks => e times slower ticks
+        //   - expected behind by 10 ticks => e times faster ticks
+        const speed = Math.exp((newTick - expectedTick) / 10);
+        const currentTick = this.lastCurrentTick + speed * (currentTime - this.lastCurrentTime) / 100;
+
+        this.lastCurrentTick = currentTick;
+        this.lastCurrentTime = currentTime;
+
+        return currentTick;
     }
 
     isReady() {
