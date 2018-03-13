@@ -14,6 +14,7 @@ export default class GameState {
         this.lastCurrentTick = 0;
         this.lastCurrentTime = new Date();
         this.updateListeners = [];
+        this.destroyed = false;
 
         this.handleMessage = this.handleMessage.bind(this);
         this.onMove = this.onMove.bind(this);
@@ -24,8 +25,10 @@ export default class GameState {
     connect() {
         this.socket = openSocket();
         this.socket.on('disconnect', () => {
-            this.socket.close();
-            this.connect();
+            if (!this.destroyed) {
+                this.socket.close();
+                this.connect();
+            }
         });
 
         this.socket.on('joinack', this.handleMessage);
@@ -60,6 +63,13 @@ export default class GameState {
     registerListener(listener) {
         this.updateListeners.push(listener);
         listener(this);
+    }
+
+    unregisterListener(listener) {
+        const index = this.updateListeners.indexOf(listener);
+        if (index >= 0) {
+            this.updateListeners.splice(index, 1);
+        }
     }
 
     getCurrentTick() {
@@ -115,6 +125,7 @@ export default class GameState {
     }
 
     destroy() {
+        this.destroyed = true;
         this.socket.emit('leave', JSON.stringify({ gameId: this.gameId }));
         this.socket.close();
     }

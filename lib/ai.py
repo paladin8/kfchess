@@ -39,11 +39,11 @@ PIECE_SCORES = {
 
 def get_bot(difficulty):
     if difficulty == 'novice':
-        return BasicBot(50, 10)
+        return BasicBot(45, 10)
     elif difficulty == 'intermediate':
         return BasicBot(30, 3)
     elif difficulty == 'advanced':
-        return BasicBot(10, 1)
+        return BasicBot(15, 1)
     else:
         raise ValueError('Unexpected difficulty ' + difficulty)
 
@@ -86,8 +86,6 @@ class BasicBot(object):
                 score = self._get_score(game, current_pressures, location_to_piece_map, move)
                 if score > 0:
                     all_moves.append((move, score))
-
-        print 'moves', all_moves
 
         if len(all_moves) == 0:
             return None
@@ -209,7 +207,7 @@ class BasicBot(object):
                 protect_score += (new_protect - protect) * protect_value
 
         # print piece, row, col, row_score, col_score, capture_score, pressure_score, vuln_score, protect_score
-        return 2 * row_score + col_score + 16 * capture_score + 8 * pressure_score + 8 * vuln_score + 4 * protect_score
+        return 2 * row_score + col_score + 16 * capture_score + 8 * pressure_score + 12 * vuln_score + 4 * protect_score
 
     def _can_target(self, location_to_piece_map, piece, t_row, t_col):
         if t_row == piece.row and t_col == piece.col:

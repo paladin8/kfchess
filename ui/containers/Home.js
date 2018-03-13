@@ -114,8 +114,8 @@ class Home extends Component {
 
                                 let moveTicks = 10, cooldownTicks = 100;
                                 if (friendlySpeed === 'lightning') {
-                                    moveTicks = 1;
-                                    cooldownTicks = 1;
+                                    moveTicks = 2;
+                                    cooldownTicks = 20;
                                 }
                                 this.createNewGame(moveTicks, cooldownTicks, false);
                             }).bind(this)}

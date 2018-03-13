@@ -50,6 +50,7 @@ class Game extends Component {
 
     componentWillUnmount() {
         window.removeEventListener('resize', this.resize);
+        this.state.gameState.unregisterListener(this.update);
 
         if (this.state.gameState) {
             this.state.gameState.destroy();

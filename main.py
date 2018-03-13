@@ -35,7 +35,7 @@ def new():
     bots = {int(player): ai.get_bot(difficulty) for player, difficulty in bots.iteritems()}
 
     game_id = ''.join(random.choice(string.ascii_uppercase + string.digits) for i in xrange(6))
-    game = Game(move_ticks, cooldown_ticks, debug=True)
+    game = Game(move_ticks, cooldown_ticks)
     for player in bots:
         game.mark_ready(player)
 
@@ -142,7 +142,7 @@ def reset(data):
     # only authenticated players can make moves
     if auth_player is not None:
         old_game = game_state.game
-        game = Game(old_game.move_ticks, old_game.cooldown_ticks, debug=True)
+        game = Game(old_game.move_ticks, old_game.cooldown_ticks)
         for player in game_state.bots:
             game.mark_ready(player)
         game_state.game = game

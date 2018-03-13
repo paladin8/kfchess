@@ -26,6 +26,7 @@ export default class GameBoard extends Component {
 
         this.pieceSprites = {};
         this.selected = null;
+        this.dragging = false;
     }
 
     componentDidMount() {
@@ -51,8 +52,9 @@ export default class GameBoard extends Component {
         this.chessboardSprite.height = this.dim;
 
         this.app.stage.interactive = true;
-        this.app.stage.pointerdown = this.handleClick;
-        this.app.stage.mousemove = this.handleMove;
+        this.app.stage.pointerdown = (e) => this.handleClick(e, true);
+        this.app.stage.pointermove = this.handleMove;
+        this.app.stage.pointerup = (e) => this.handleClick(e, false);
 
         this.app.stage.addChild(this.backgroundTexture);
         this.app.stage.addChild(this.chessboardSprite);
@@ -336,7 +338,13 @@ export default class GameBoard extends Component {
         cooldownGraphics.drawRect(position.x, position.y + offset, this.cellDim, remaining);
     }
 
-    handleClick(event) {
+    handleClick(event, down) {
+        if (!down && !this.dragging) {
+            return;
+        }
+
+        this.dragging = false;
+
         const { gameState } = this.props;
         if (!gameState.game.started || gameState.game.finished) {
             // don't allow clicks before game starts or after game finishes
@@ -348,7 +356,6 @@ export default class GameBoard extends Component {
         let shouldSelect = true;
         if (this.selected) {
             if (piece && this.selected.piece.id === piece.id) {
-                this.unselect();
                 shouldSelect = false;
             } else if (!gameLogic.isLegalMove(gameState.game, gameState.getCurrentTick(), this.selected.piece, row, col)) {
                 this.unselect();
@@ -403,6 +410,8 @@ export default class GameBoard extends Component {
     }
 
     handleMove(event) {
+        this.dragging = true;
+
         const { row, col, piece } = this.getClickedPiece(event.data.originalEvent);
 
         if (this.selected) {
