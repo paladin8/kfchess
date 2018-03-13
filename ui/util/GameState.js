@@ -18,14 +18,23 @@ export default class GameState {
         this.handleMessage = this.handleMessage.bind(this);
         this.onMove = this.onMove.bind(this);
 
+        this.connect();
+    }
+
+    connect() {
         this.socket = openSocket();
+        this.socket.on('disconnect', () => {
+            this.socket.close();
+            this.connect();
+        });
+
         this.socket.on('joinack', this.handleMessage);
         this.socket.on('readyack', this.handleMessage);
         this.socket.on('update', this.handleMessage);
         this.socket.on('moveack', this.handleMessage);
         this.socket.on('resetack', this.handleMessage);
 
-        this.socket.emit('join', JSON.stringify({ gameId, playerKey }));
+        this.socket.emit('join', JSON.stringify({ gameId: this.gameId, playerKey: this.playerKey }));
     }
 
     handleMessage(data) {
