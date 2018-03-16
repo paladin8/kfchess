@@ -5,10 +5,10 @@ import ReactModal from 'react-modal';
 
 import App from './containers/App';
 
-require('./styles/index.less');
+import 'react-tippy/dist/tippy.css';
+import './styles/index.less';
 
 amplitude.getInstance().init(AMPLITUDE_API_KEY);
-amplitude.getInstance().options.logLevel = 'INFO';
 
 ReactDOM.render(<App />, document.getElementById('app'));
 

@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import { BrowserRouter, Route } from 'react-router-dom';
-import 'react-tippy/dist/tippy.css';
 
 import About from './About.js';
+import Alert from './Alert.js';
 import Game from './Game.js';
 import Header from './Header.js';
 import Home from './Home.js';
@@ -17,7 +17,7 @@ export default class App extends Component {
             user: null,
             knownUsers: {},
             playerKeys: null,
-            error: null,  // TODO: show error in butter bar
+            error: null,
         };
 
         this.fetchUserInfo = this.fetchUserInfo.bind(this);
@@ -82,9 +82,7 @@ export default class App extends Component {
                         knownUsers,
                     });
                 } else {
-                    this.setState({
-                        error: data.message
-                    });
+                    this.setError(data.message);
                 }
                 callback();
             });
@@ -93,9 +91,7 @@ export default class App extends Component {
 
     uploadProfilePic(data, callback) {
         if (data.length > 1024 * 64) {
-            this.setState({
-                error: 'File is too large (max size 64KB).',
-            });
+            this.setError('File is too large (max size 64KB).');
             callback();
 
             return;
@@ -119,9 +115,7 @@ export default class App extends Component {
                         knownUsers,
                     });
                 } else {
-                    this.setState({
-                        error: data.message
-                    });
+                    this.setError(data.message);
                 }
                 callback();
             });
@@ -129,8 +123,9 @@ export default class App extends Component {
     }
 
     setError(message) {
+        // add a random id to the error so alert knows when it updated
         this.setState({
-            error: message,
+            error: { message, id: Math.random() },
         });
     }
 
@@ -139,12 +134,13 @@ export default class App extends Component {
     }
 
     render() {
-        const { user, knownUsers, playerKeys } = this.state;
+        const { user, knownUsers, playerKeys, error } = this.state;
 
         return (
             <BrowserRouter>
                 <div>
                     <Header user={user} />
+                    <Alert error={error} />
                     <Route exact path='/' render={props => {
                         return <Home setPlayerKeys={this.setPlayerKeys} {...props} />
                     }} />
