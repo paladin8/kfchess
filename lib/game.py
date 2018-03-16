@@ -88,15 +88,6 @@ class Game(object):
                 print 'move failed: original position'
             return None
 
-
-        # check if piece can move to destination
-        move_seq = self._compute_move_seq(piece, to_row, to_col)
-        if not move_seq:
-            if self.debug:
-                print 'move failed: piece cannot move to destination or is blocked'
-            return None
-        move_seq.insert(0, (piece.row, piece.col))
-
         # check if piece is already moving
         if self._already_moving(piece):
             if self.debug:
@@ -109,10 +100,30 @@ class Game(object):
                 print 'move failed: piece is on cooldown'
             return None
 
+        # check if piece can move to destination
+        move_seq_res = self._compute_move_seq(piece, to_row, to_col)
+        if not move_seq_res:
+            if self.debug:
+                print 'move failed: piece cannot move to destination or is blocked'
+            return None
+
+        move_seq, extra_move = move_seq_res
+        move_seq.insert(0, (piece.row, piece.col))
+
         # move is valid, add to active moves and game log
         move = Move(piece, move_seq, self.current_tick + 1)
         self.active_moves.append(move)
         self.move_log.append(move)
+        piece.moved = True
+
+        # check extra move (for castling)
+        if extra_move:
+            if self.debug:
+                print 'castling %s' % piece
+
+            self.active_moves.append(extra_move)
+            self.move_log.append(extra_move)
+            extra_move.piece.moved = True
 
         if self.debug:
             print 'moving %s along %s from tick %s' % (piece, move_seq, self.current_tick)
@@ -167,7 +178,7 @@ class Game(object):
         if move_seq is None:
             return None
 
-        return [(float(to_row + piece.row) / 2, float(to_col + piece.col) / 2), (to_row, to_col)]
+        return [(float(to_row + piece.row) / 2, float(to_col + piece.col) / 2), (to_row, to_col)], None
 
     # bishops take N movements to get to their destination
     def _get_bishop_move_seq(self, piece, to_row, to_col):
@@ -205,6 +216,20 @@ class Game(object):
         # make sure we are moving at most one space in each direction
         row_delta, col_delta = abs(to_row - piece.row), abs(to_col - piece.col)
         if row_delta > 1 or col_delta > 1:
+            # check for castling
+            if not piece.moved and row_delta == 0 and (to_col == 6 or to_col == 2):
+                rook_col = 0 if to_col == 2 else 7
+                rook_to_col = 3 if to_col == 2 else 5
+                rook_piece = self.board.get_piece_by_location(piece.row, rook_col)
+                if rook_piece and not rook_piece.moved:
+                    king_move_seq = self._get_rook_move_seq(piece, to_row, to_col)[0]
+                    rook_move_seq = self._get_rook_move_seq(rook_piece, to_row, rook_to_col)[0]
+                    if king_move_seq and rook_move_seq:
+                        # this is a nasty special case where we return an extra move for the castle
+                        rook_move = Move(rook_piece, rook_move_seq, self.current_tick + 1)
+                        rook_move_seq.insert(0, (rook_piece.row, rook_piece.col))
+                        return king_move_seq, rook_move
+
             return None
 
         return self._get_queen_move_seq(piece, to_row, to_col)
@@ -242,7 +267,7 @@ class Game(object):
                 if i_row == row and i_col == col:
                     return None
 
-        return moves
+        return moves, None
 
     # whether piece is part of an active move
     def _already_moving(self, piece):

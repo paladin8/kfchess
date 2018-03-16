@@ -150,6 +150,18 @@ class BasicBot(object):
                     else:
                         break
 
+        if piece.type == 'K' and not piece.moved:
+            for col in [2, 6]:
+                rook_col = 0 if col == 2 else 7
+                rook_to_col = 3 if col == 2 else 5
+                rook_piece = game.board.get_piece_by_location(piece.row, rook_col)
+                if (
+                    rook_piece and not rook_piece.moved and
+                    game._get_rook_move_seq(piece, piece.row, col) is not None and
+                    game._get_rook_move_seq(rook_piece, rook_piece.row, rook_to_col) is not None
+                ):
+                    moves.append((piece, piece.row, col))
+
         return moves
 
     def _get_score(self, game, current_pressures, location_to_piece_map, move):
@@ -257,7 +269,7 @@ if __name__ == '__main__':
     yappi.set_clock_type('wall')
     yappi.start()
 
-    bot = get_bot('novice')
+    bot = get_bot('advanced')
     game = Game(10, 10)
     for i in xrange(1000):
         if game.finished:

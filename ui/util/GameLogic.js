@@ -164,6 +164,18 @@ function isQueenLegalMove(game, currentTick, piece, toRow, toCol) {
 function isKingLegalMove(game, currentTick, piece, toRow, toCol) {
 	const rowDelta = Math.abs(toRow - piece.row), colDelta = Math.abs(toCol - piece.col);
 	if (rowDelta > 1 || colDelta > 1) {
+        // check for castling
+        if (!piece.moved && rowDelta === 0 && (toCol === 2 || toCol === 6)) {
+            const rookCol = toCol === 2 ? 0 : 7;
+            const rookToCol = toCol === 2 ? 3 : 5;
+            const rookPiece = getPieceByLocation(game, piece.row, rookCol);
+            if (rookPiece && !rookPiece.moved) {
+                const isKingLegal = isRookLegalMove(game, currentTick, piece, toRow, toCol);
+                const isRookLegal = isRookLegalMove(game, currentTick, rookPiece, toRow, rookToCol);
+                return isKingLegal && isRookLegal;
+            }
+        }
+
 		return false;
 	}
 

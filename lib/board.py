@@ -11,7 +11,7 @@ class Piece(object):
     KING = 'K'
     ALL_TYPES = [PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING]
 
-    def __init__(self, type, player, row, col, captured=False, id=None):
+    def __init__(self, type, player, row, col, captured=False, moved=False, id=None):
         if type not in Piece.ALL_TYPES:
             raise ValueError('Invalid piece type: ' + type)
 
@@ -20,10 +20,14 @@ class Piece(object):
         self.row = row
         self.col = col
         self.captured = captured
+        self.moved = moved
         self.id = id or str(uuid.uuid4())
 
     def at_position(self, row, col):
-        return Piece(self.type, self.player, row, col, captured=self.captured, id=self.id)
+        return Piece(
+            self.type, self.player, row, col,
+            captured=self.captured, moved=self.moved, id=self.id
+        )
 
     def to_json_obj(self):
         return {
@@ -32,6 +36,7 @@ class Piece(object):
             'row': self.row,
             'col': self.col,
             'captured': self.captured,
+            'moved': self.moved,
             'id': self.id,
         }
 
