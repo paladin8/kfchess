@@ -1,4 +1,10 @@
+boto3==1.6.9
 Flask==0.12.2
+Flask-Login==0.4.1
+Flask-OAuth==0.12
 Flask-SocketIO==2.9.4
 eventlet==0.22.1
+psycopg2==2.7.4
+requests_oauthlib==0.8.0
+SQLAlchemy==1.2.5
 yappi==0.98

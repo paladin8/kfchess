@@ -8,17 +8,34 @@ import uuid
 
 import eventlet
 from flask import Flask, request
+from flask_login import LoginManager
 from flask_socketio import SocketIO, join_room, leave_room, emit
 
+import config
+from db import db_service
 from lib import ai
 from lib.game import Game, GameState
+from web.user import user
 
+
+TICK_PERIOD = 0.1
 
 eventlet.monkey_patch()
+
 app = Flask(__name__)
+app.secret_key = config.FLASK_SECRET_KEY
+app.register_blueprint(user)
 socketio = SocketIO(app)
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+
 game_states = {}
-tick_period = 0.1
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return db_service.get_user_by_id(user_id)
 
 
 @app.route('/', methods=['GET'])
@@ -157,7 +174,7 @@ def tick():
     tick_number = 0
     while True:
         tick_number += 1
-        next_tick = start + tick_period * tick_number
+        next_tick = start + TICK_PERIOD * tick_number
         sleep_amount = next_tick - time.time()
         if sleep_amount > 0:
             eventlet.sleep(sleep_amount)
