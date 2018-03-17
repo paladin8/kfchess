@@ -1,3 +1,6 @@
+import json
+
+
 class User(object):
 
     def __init__(self, user_id, email, username, picture_url, ratings, join_time):
@@ -26,6 +29,9 @@ class User(object):
             'ratings': self.ratings,
             'joinTime': str(self.join_time),
         }
+
+    def __str__(self):
+        return json.dumps(self.to_json_obj())
 
     @staticmethod
     def from_row(row):

@@ -6,7 +6,7 @@ import traceback
 import uuid
 
 from flask import Blueprint, abort, request, redirect, session, url_for
-from flask_login import current_user, login_user
+from flask_login import current_user, login_user, logout_user
 from flask_oauth import OAuth
 from sqlalchemy.exc import IntegrityError
 
@@ -41,6 +41,8 @@ user = Blueprint('user', __name__)
 
 @user.route('/login', methods=['GET'])
 def login():
+    print 'login'
+
     if current_user.is_authenticated:
         return redirect(url_for('index'))
 
@@ -79,6 +81,20 @@ def authorized(data):
         print 'error getting google info', response.status_code, response.text
 
     return redirect(url_for('index'))
+
+
+@user.route('/logout', methods=['POST'])
+def logout():
+    print 'logout', current_user
+
+    logout_user()
+
+    csrf_token = generate_csrf_token()
+
+    return json.dumps({
+        'loggedIn': False,
+        'csrfToken': csrf_token,
+    })
 
 
 @user.route('/api/user/info', methods=['GET'])

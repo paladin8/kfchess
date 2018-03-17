@@ -1,3 +1,4 @@
+import amplitude from 'amplitude-js';
 import React, { Component } from 'react';
 
 import ProfilePic from './ProfilePic.js';
@@ -35,6 +36,16 @@ export default class Profile extends Component {
                 this.setState({ fetching: false });
             });
         }
+    }
+
+    componentDidMount() {
+        const { match, user } = this.props;
+        const isSelf = Boolean(user && match.params.userId === user.userId);
+
+        amplitude.getInstance().logEvent('Visit Profile Page', {
+            userId: match.params.userId,
+            isSelf,
+        });
     }
 
     saveUsername() {

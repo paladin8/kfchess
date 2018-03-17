@@ -1,3 +1,4 @@
+import amplitude from 'amplitude-js';
 import React, { Component } from 'react';
 import { BrowserRouter, Route } from 'react-router-dom';
 
@@ -25,31 +26,35 @@ export default class App extends Component {
         this.updateUser = this.updateUser.bind(this);
         this.uploadProfilePic = this.uploadProfilePic.bind(this);
         this.createNewGame = this.createNewGame.bind(this);
+        this.logout = this.logout.bind(this);
 
         this.router = null;
     }
 
     componentDidMount() {
-        fetch('/api/user/info', {
-            credentials: 'same-origin',
-            method: 'GET',
-        }).then(response => {
-            response.json().then(data => {
-                if (data.loggedIn) {
-                    let knownUsers = this.state.knownUsers;
-                    knownUsers[data.userId] = data;
+        this.getRequest(
+            '/api/user/info',
+            response => {
+                response.json().then(data => {
+                    if (data.loggedIn) {
+                        let knownUsers = this.state.knownUsers;
+                        knownUsers[data.user.userId] = data.user;
+
+                        this.setState({
+                            user: data.user,
+                            knownUsers,
+                        });
+
+                        amplitude.getInstance().setUserId(data.user.userId);
+                    }
 
                     this.setState({
-                        user: data.user,
-                        knownUsers,
+                        csrfToken: data.csrfToken,
                     });
-                }
-
-                this.setState({
-                    csrfToken: data.csrfToken,
                 });
-            });
-        });
+            },
+            () => this.setError('Error logging in.')
+        );
     }
 
     getRequest(path, callback, errorCallback) {
@@ -158,7 +163,7 @@ export default class App extends Component {
             JSON.stringify({
                 moveTicks,
                 cooldownTicks,
-                bots: isBot ? {2: difficulty} : {}
+                bots: isBot ? { 2: difficulty } : {}
             }),
             response => {
                 response.json().then(data => {
@@ -167,6 +172,19 @@ export default class App extends Component {
                 });
             },
             () => this.setError('Error creating new game.')
+        );
+    }
+
+    logout() {
+        this.postRequest(
+            '/logout',
+            '',
+            response => {
+                response.json().then(() => {
+                    window.location.reload();
+                });
+            },
+            () => this.setError('Error logging out.')
         );
     }
 
@@ -183,7 +201,7 @@ export default class App extends Component {
         return (
             <BrowserRouter ref={router => this.router = router}>
                 <div>
-                    <Header user={user} />
+                    <Header user={user} router={this.router} logout={this.logout} />
                     <Alert error={error} />
                     <Route exact path='/' render={props => {
                         return (

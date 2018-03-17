@@ -25,6 +25,10 @@ module.exports = merge(common, {
                 target: 'http://localhost:5000/',
                 secure: false,
             },
+            '/logout': {
+                target: 'http://localhost:5000/',
+                secure: false,
+            },
             '/socket.io': {
                 target: 'http://localhost:5000/',
                 secure: false,
