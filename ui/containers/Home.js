@@ -1,8 +1,7 @@
 import amplitude from 'amplitude-js';
 import React, { Component } from 'react';
-import { withRouter } from 'react-router'
 
-class Home extends Component {
+export default class Home extends Component {
 
     constructor(props) {
         super(props);
@@ -11,28 +10,10 @@ class Home extends Component {
             difficulty: 'novice',
             friendlySpeed: 'standard',
         };
-
-        this.createNewGame = this.createNewGame.bind(this);
     }
 
     componentDidMount() {
         amplitude.getInstance().logEvent('Visit Home Page');
-    }
-
-    createNewGame(moveTicks, cooldownTicks, isBot, difficulty) {
-        fetch('/api/game/new', {
-            body: JSON.stringify({ moveTicks, cooldownTicks, bots: isBot ? {2: difficulty} : {} }),
-            credentials: 'same-origin',
-            headers: {
-                'content-type': 'application/json',
-            },
-            method: 'POST',
-        }).then(response => {
-            response.json().then(data => {
-                this.props.setPlayerKeys(data.playerKeys);
-                this.props.history.push(`/game/${data.id}?key=${data.playerKeys['1']}`);
-            });
-        });
     }
 
     changeDifficulty(difficulty) {
@@ -76,7 +57,7 @@ class Home extends Component {
                                     isBot: true,
                                     difficulty,
                                 });
-                                this.createNewGame(10, 100, true, difficulty);
+                                this.props.createNewGame(10, 100, true, difficulty);
                             }}
                         >
                             Play vs AI
@@ -117,7 +98,7 @@ class Home extends Component {
                                     moveTicks = 2;
                                     cooldownTicks = 20;
                                 }
-                                this.createNewGame(moveTicks, cooldownTicks, false);
+                                this.props.createNewGame(moveTicks, cooldownTicks, false);
                             }).bind(this)}
                         >
                             Play vs Friend
@@ -142,5 +123,3 @@ class Home extends Component {
         );
     }
 };
-
-export default withRouter(Home);

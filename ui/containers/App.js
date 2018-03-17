@@ -14,6 +14,7 @@ export default class App extends Component {
         super(props);
 
         this.state = {
+            csrfToken: null,
             user: null,
             knownUsers: {},
             playerKeys: null,
@@ -21,9 +22,11 @@ export default class App extends Component {
         };
 
         this.fetchUserInfo = this.fetchUserInfo.bind(this);
-        this.setPlayerKeys = this.setPlayerKeys.bind(this);
         this.updateUser = this.updateUser.bind(this);
         this.uploadProfilePic = this.uploadProfilePic.bind(this);
+        this.createNewGame = this.createNewGame.bind(this);
+
+        this.router = null;
     }
 
     componentDidMount() {
@@ -37,56 +40,85 @@ export default class App extends Component {
                     knownUsers[data.userId] = data;
 
                     this.setState({
-                        user: data,
+                        user: data.user,
                         knownUsers,
                     });
                 }
-            });
-        });
-    }
 
-    fetchUserInfo(userIds, callback) {
-        fetch('/api/user/info?' + userIds.map(userId => 'userId=' + encodeURIComponent(userId)).join('&'), {
-            credentials: 'same-origin',
-            method: 'GET',
-        }).then(response => {
-            response.json().then(data => {
                 this.setState({
-                    knownUsers: {
-                        ...this.state.knownUsers,
-                        ...data,
-                    },
-                }, () => {
-                    callback(this.state.knownUsers);
+                    csrfToken: data.csrfToken,
                 });
             });
         });
     }
 
-    updateUser(username, callback) {
-        fetch('/api/user/update', {
-            body: JSON.stringify({ username }),
+    getRequest(path, callback, errorCallback) {
+        fetch(path, {
+            credentials: 'same-origin',
+            method: 'GET',
+        }).then(callback).catch(errorCallback);
+    }
+
+    postRequest(path, data, callback, errorCallback) {
+        fetch(path, {
+            'body': data,
             credentials: 'same-origin',
             headers: {
                 'content-type': 'application/json',
+                'X-CSRF-Token': this.state.csrfToken,
             },
             method: 'POST',
-        }).then(response => {
-            response.json().then(data => {
-                if (data.success) {
-                    let knownUsers = this.state.knownUsers;
-                    knownUsers[data.user.userId] = data.user;
+        }).then(callback).catch(errorCallback);
+    }
 
+    fetchUserInfo(userIds, callback) {
+        const path = '/api/user/info?' + userIds.map(userId => 'userId=' + encodeURIComponent(userId)).join('&');
+        this.getRequest(
+            path,
+            response => {
+                response.json().then(data => {
                     this.setState({
-                        user: data.user,
-                        knownUsers,
+                        knownUsers: {
+                            ...this.state.knownUsers,
+                            ...data,
+                        },
+                    }, () => {
+                        callback(this.state.knownUsers);
                     });
-                } else {
-                    this.setError(data.message);
-                }
-                callback();
-            });
-        }).catch(() => callback());
+                });
+            },
+            () => {
+                this.setError('Error fetching user information.');
+                callback(this.state.knownUsers);
+            }
+        );
+    }
+
+    updateUser(username, callback) {
+        this.postRequest(
+            '/api/user/update',
+            JSON.stringify({ username }),
+            response => {
+                response.json().then(data => {
+                    if (data.success) {
+                        let knownUsers = this.state.knownUsers;
+                        knownUsers[data.user.userId] = data.user;
+
+                        this.setState({
+                            user: data.user,
+                            knownUsers,
+                        });
+                    } else {
+                        this.setError(data.message);
+                    }
+                    callback();
+                });
+            },
+            () => {
+                this.setError('Error updating user information.');
+                callback()
+            }
+        );
     }
 
     uploadProfilePic(data, callback) {
@@ -97,29 +129,45 @@ export default class App extends Component {
             return;
         }
 
-        fetch('/api/user/uploadPic', {
-            body: data,
-            credentials: 'same-origin',
-            headers: {
-                'content-type': 'application/json',
-            },
-            method: 'POST',
-        }).then(response => {
-            response.json().then(data => {
-                if (data.success) {
-                    let knownUsers = this.state.knownUsers;
-                    knownUsers[data.user.userId] = data.user;
+        this.postRequest(
+            '/api/user/uploadPic',
+            data,
+            response => {
+                response.json().then(data => {
+                    if (data.success) {
+                        let knownUsers = this.state.knownUsers;
+                        knownUsers[data.user.userId] = data.user;
 
-                    this.setState({
-                        user: data.user,
-                        knownUsers,
-                    });
-                } else {
-                    this.setError(data.message);
-                }
-                callback();
-            });
-        }).catch(() => callback());
+                        this.setState({
+                            user: data.user,
+                            knownUsers,
+                        });
+                    } else {
+                        this.setError(data.message);
+                    }
+                    callback();
+                });
+            },
+            () => callback()
+        );
+    }
+
+    createNewGame(moveTicks, cooldownTicks, isBot, difficulty) {
+        this.postRequest(
+            '/api/game/new',
+            JSON.stringify({
+                moveTicks,
+                cooldownTicks,
+                bots: isBot ? {2: difficulty} : {}
+            }),
+            response => {
+                response.json().then(data => {
+                    this.setState({ playerKeys: data.playerKeys });
+                    this.router.history.push(`/game/${data.id}?key=${data.playerKeys['1']}`);
+                });
+            },
+            () => this.setError('Error creating new game.')
+        );
     }
 
     setError(message) {
@@ -129,20 +177,21 @@ export default class App extends Component {
         });
     }
 
-    setPlayerKeys(playerKeys) {
-        this.setState({ playerKeys });
-    }
-
     render() {
-        const { user, knownUsers, playerKeys, error } = this.state;
+        const { csrfToken, user, knownUsers, playerKeys, error } = this.state;
 
         return (
-            <BrowserRouter>
+            <BrowserRouter ref={router => this.router = router}>
                 <div>
                     <Header user={user} />
                     <Alert error={error} />
                     <Route exact path='/' render={props => {
-                        return <Home setPlayerKeys={this.setPlayerKeys} {...props} />
+                        return (
+                            <Home
+                                createNewGame={this.createNewGame}
+                                {...props}
+                            />
+                        );
                     }} />
                     <Route path='/about' component={About} />
                     <Route path='/profile/:userId' render={props => {

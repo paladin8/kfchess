@@ -1,8 +1,9 @@
 import json
 import random
 import requests
-import uuid
+import string
 import traceback
+import uuid
 
 from flask import Blueprint, abort, request, redirect, session, url_for
 from flask_login import current_user, login_user
@@ -86,15 +87,22 @@ def info():
     print 'user info', user_ids
 
     if not user_ids:
+        csrf_token = generate_csrf_token()
+
         # look up my info
         if not current_user.is_authenticated:
             return json.dumps({
                 'loggedIn': False,
+                'csrfToken': csrf_token,
             })
 
-        response = current_user.to_json_obj()
-        response['loggedIn'] = True
-        return json.dumps(response)
+        csrf_token = generate_csrf_token()
+
+        return json.dumps({
+            'loggedIn': True,
+            'csrfToken': csrf_token,
+            'user': current_user.to_json_obj(),
+        });
 
     # look up other user info
     response = {}
@@ -199,3 +207,9 @@ def upload_pic():
 
 def random_username():
     return random.choice(ANIMALS) + ' ' + random.choice(CHESS_PIECES) + ' ' + str(random.randint(100, 999))
+
+
+def generate_csrf_token():
+    if '_csrf_token' not in session:
+        session['_csrf_token'] = ''.join(random.choice(string.ascii_uppercase + string.digits) for i in xrange(24))
+    return session['_csrf_token']

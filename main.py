@@ -7,7 +7,7 @@ import traceback
 import uuid
 
 import eventlet
-from flask import Flask, request
+from flask import Flask, abort, request, session
 from flask_login import LoginManager
 from flask_socketio import SocketIO, join_room, leave_room, emit
 
@@ -36,6 +36,14 @@ game_states = {}
 @login_manager.user_loader
 def load_user(user_id):
     return db_service.get_user_by_id(user_id)
+
+
+@app.before_request
+def csrf_protect():
+    if request.method == 'POST':
+        token = session.get('_csrf_token')
+        if not token or token != request.headers.get('X-CSRF-Token'):
+            abort(403)
 
 
 @app.route('/', methods=['GET'])
