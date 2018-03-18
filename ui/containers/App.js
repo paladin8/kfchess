@@ -28,6 +28,7 @@ export default class App extends Component {
         this.createNewGame = this.createNewGame.bind(this);
         this.checkGame = this.checkGame.bind(this);
         this.inviteUser = this.inviteUser.bind(this);
+        this.getUserGameHistory = this.getUserGameHistory.bind(this);
         this.logout = this.logout.bind(this);
 
         this.router = null;
@@ -104,7 +105,7 @@ export default class App extends Component {
                     this.setState({
                         knownUsers: {
                             ...this.state.knownUsers,
-                            ...data,
+                            ...data.users,
                         },
                     }, () => {
                         callback();
@@ -246,6 +247,25 @@ export default class App extends Component {
         );
     }
 
+    getUserGameHistory(userId, offset, count, callback) {
+        this.getRequest(
+            `/api/user/history?userId=${userId}&offset=${offset}&count=${count}`,
+            response => {
+                response.json().then(data => {
+                    this.setState({
+                        knownUsers: {
+                            ...this.state.knownUsers,
+                            ...data.users,
+                        },
+                    }, () => {
+                        callback(data.history);
+                    });
+                });
+            },
+            () => this.setError('Error fetching user game history.')
+        );
+    }
+
     logout() {
         this.postRequest(
             '/logout',
@@ -291,6 +311,7 @@ export default class App extends Component {
                                 fetchUserInfo={this.fetchUserInfo}
                                 updateUser={this.updateUser}
                                 uploadProfilePic={this.uploadProfilePic}
+                                getUserGameHistory={this.getUserGameHistory}
                                 {...props}
                             />
                         );

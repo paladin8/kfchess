@@ -3,7 +3,7 @@ import json
 
 from sqlalchemy.engine import create_engine
 
-from db.user import User
+from db.models import User, UserGameHistory
 
 
 class DbService(object):
@@ -22,6 +22,16 @@ class DbService(object):
                 int(user_id)
             ).fetchone()
             return row and User.from_row(row)
+
+    def get_users_by_id(self, user_ids):
+        with self.engine.connect() as conn:
+            rows = conn.execute(
+                "SELECT * "
+                "FROM users "
+                "WHERE id IN %s",
+                ((tuple(user_id for user_id in user_ids),),)
+            ).fetchall()
+            return {row.id: User.from_row(row) for row in rows}
 
     def get_user_by_email(self, email):
         with self.engine.connect() as conn:
@@ -122,6 +132,18 @@ class DbService(object):
                 "VALUES (%s, %s, %s)",
                 user_id, game_time, json.dumps(game_info)
             )
+
+    def get_user_game_history(self, user_id, offset, count):
+        with self.engine.connect() as conn:
+            rows = conn.execute(
+                "SELECT * "
+                "FROM user_game_history "
+                "WHERE user_id = %s "
+                "ORDER BY game_time DESC "
+                "OFFSET %s LIMIT %s",
+                user_id, offset, count
+            ).fetchall()
+            return [UserGameHistory.from_row(row) for row in rows]
 
     # game history
 

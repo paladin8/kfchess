@@ -1,8 +1,10 @@
 import amplitude from 'amplitude-js';
 import React, { Component } from 'react';
+import { Link } from 'react-router-dom';
 
 import ProfilePic from './ProfilePic.js';
 import Spinner from './Spinner.js';
+import * as Speed from '../util/Speed.js';
 
 const RATING_TYPES = ['standard', 'lightning'];
 
@@ -13,10 +15,12 @@ export default class Profile extends Component {
 
         this.state = {
             fetching: true,
+            historyFetching: true,
             username: null,
             showEditUsername: false,
             editingUsername: false,
             showEditProfilePic: false,
+            history: null,
         };
 
         this.usernameInput = null;
@@ -36,12 +40,19 @@ export default class Profile extends Component {
     }
 
     componentDidMount() {
-        const { match, user } = this.props;
+        const { match, user, getUserGameHistory } = this.props;
         const isSelf = Boolean(user && match.params.userId === user.userId);
 
         amplitude.getInstance().logEvent('Visit Profile Page', {
             userId: match.params.userId,
             isSelf,
+        });
+
+        getUserGameHistory(match.params.userId, 0, 100, history => {
+            this.setState({
+                history,
+                historyFetching: false,
+            });
         });
     }
 
@@ -105,11 +116,15 @@ export default class Profile extends Component {
 
     renderProfile(currUser, isMe) {
         const {
+            fetching,
+            historyFetching,
             username,
             showEditUsername,
             editingUsername,
             showEditProfilePic,
+            history,
         } = this.state;
+        const { knownUsers } = this.props;
 
         return (
             <div className='profile-content'>
@@ -194,12 +209,62 @@ export default class Profile extends Component {
                         </div>
                     </div>
                 </div>
-                <div className='profile-history'>
-                    <div className='profile-history-title'>Game History</div>
-                    <div className='profile-history-table'>
-                        <div className='profile-history-no-games'>No games played yet!</div>
+                {!fetching &&
+                    <div className='profile-history'>
+                        <div className='profile-history-title'>Game History</div>
+                        {historyFetching ?
+                            <Spinner />
+                            :
+                            <div className='profile-history-table-wrapper'>
+                                {history.length === 0 &&
+                                    <div className='profile-history-no-games'>No games played yet!</div>
+                                }
+                                {history.length > 0 &&
+                                    <table className='profile-history-table'>
+                                        <tbody>
+                                            {history.map(h => {
+                                                const gameInfo = h.gameInfo;
+                                                const minutes = Math.floor(gameInfo.ticks / 600);
+                                                const seconds = Math.floor((gameInfo.ticks % 600) / 10);
+                                                return (
+                                                    <tr className='profile-history-row' key={h.historyId}>
+                                                        <td className='profile-history-speed'>
+                                                            {Speed.getDisplayName(gameInfo.speed)}
+                                                        </td>
+                                                        <td className='profile-history-player'>
+                                                            {gameInfo.player === 1 ? 'White' : 'Black'}
+                                                        </td>
+                                                        <td className='profile-history-opponent'>
+                                                            {'vs ' + gameInfo.opponents.map(o => {
+                                                                if (o === 'b') {
+                                                                    return 'AI';
+                                                                }
+                                                                return knownUsers[o.substring(2)].username;
+                                                            }).join(', ')}
+                                                        </td>
+                                                        <td className='profile-history-result'>
+                                                            {gameInfo.winner === 0 ? 'Draw' : (
+                                                                gameInfo.player === gameInfo.winner ? 'Won' : 'Lost'
+                                                            )}
+                                                        </td>
+                                                        <td className='profile-history-length'>
+                                                            {minutes.toString() + ':' + seconds.toString()}
+                                                        </td>
+                                                        <td className='profile-history-replay'>
+                                                            <Link to={`/replay/${gameInfo.historyId}`}>
+                                                                <i className='fas fa-eye' />
+                                                            </Link>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
+                                }
+                            </div>
+                        }
                     </div>
-                </div>
+                }
             </div>
         );
     }

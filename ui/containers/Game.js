@@ -56,8 +56,11 @@ class Game extends Component {
 
     componentDidMount() {
         const { gameState } = this.state;
+        const { user } = this.props;
 
-        this.props.checkGame(gameState.gameId);
+        if (user) {
+            this.props.checkGame(gameState.gameId);
+        }
     }
 
     componentWillUnmount() {

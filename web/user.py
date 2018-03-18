@@ -119,11 +119,13 @@ def info():
         });
 
     # look up other user info
-    response = {}
-    for user_id in user_ids:
-        user = db_service.get_user_by_id(user_id)
-        response[user_id] = user.to_json_obj()
-    return json.dumps(response)
+    users = db_service.get_users_by_id(user_ids)
+    return json.dumps({
+        'users': {
+            user_id: user.to_json_obj()
+            for user_id, user in users.iteritems()
+        },
+    })
 
 
 @user.route('/api/user/update', methods=['POST'])
@@ -217,6 +219,35 @@ def upload_pic():
         }
 
     return json.dumps(response)
+
+
+@user.route('/api/user/history', methods=['GET'])
+def history():
+    user_id = int(request.args['userId'])
+    offset = int(request.args['offset'])
+    count = int(request.args['count'])
+    print 'history', request.args
+
+    history = db_service.get_user_game_history(user_id, offset, count)
+
+    user_ids = set()
+    for h in history:
+        for value in h.game_info['opponents']:
+            if value.startswith('u:'):
+                user_ids.add(int(value[2:]))
+
+    if user_ids:
+        users = db_service.get_users_by_id(list(user_ids))
+    else:
+        users = {}
+
+    return json.dumps({
+        'history': [h.to_json_obj() for h in history],
+        'users': {
+            user_id: user.to_json_obj()
+            for user_id, user in users.iteritems()
+        },
+    })
 
 
 def random_username():

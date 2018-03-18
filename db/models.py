@@ -49,3 +49,24 @@ class User(object):
             row.last_online,
             row.current_game
         )
+
+
+class UserGameHistory(object):
+
+    def __init__(self, history_id, user_id, game_time, game_info):
+        self.history_id = history_id
+        self.user_id = user_id
+        self.game_time = game_time
+        self.game_info = game_info
+
+    def to_json_obj(self):
+        return {
+            'historyId': self.history_id,
+            'userId': str(self.user_id),
+            'gameTime': str(self.game_time),
+            'gameInfo': self.game_info,
+        }
+
+    @staticmethod
+    def from_row(row):
+        return UserGameHistory(row.id, row.user_id, row.game_time, row.game_info)

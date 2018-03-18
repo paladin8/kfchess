@@ -27,8 +27,6 @@
             .profile-header {
                 display: flex;
 
-                width: 100%;
-
                 padding: 20px;
 
                 background-color: @white;
@@ -108,7 +106,7 @@
 
                         height: 45px;
 
-                        margin-bottom: 20px;
+                        margin-bottom: 10px;
 
                         font-size: 30px;
                         font-weight: 700;
@@ -171,17 +169,40 @@
                     font-weight: 700;
                 }
 
-                .profile-history-table {
+                .profile-history-table-wrapper {
                     display: flex;
                     flex-direction: column;
                     align-items: center;
-
-                    width: 100%;
 
                     margin-top: 20px;
 
                     .profile-history-no-games {
                         color: @font-light-grey;
+                    }
+
+                    .profile-history-table {
+                        width: 100%;
+
+                        font-size: 15px;
+
+                        .profile-history-row {
+                            width: 100%;
+
+                            margin-bottom: 10px;
+
+                            td {
+                                padding: 5px;
+                            }
+
+                            .profile-history-replay {
+
+                                a {
+                                    color: @dull-blue;
+
+                                    cursor: pointer;
+                                }
+                            }
+                        }
                     }
                 }
             }

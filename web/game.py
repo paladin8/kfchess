@@ -38,7 +38,7 @@ def new():
 
     # if logged in, add current user to game
     players = {i: 'b' for i in bots}
-    if current_user is not None:
+    if current_user.is_authenticated:
         players[1] = 'u:%s' % current_user.user_id
         db_service.update_user_current_game(current_user.user_id, game_id, player_keys[1])
 
@@ -228,11 +228,14 @@ def initialize(init_socketio):
                                 continue
 
                             user_id = int(value[2:])
+                            opponents = [v for k, v in game.players.iteritems() if k != player]
                             db_service.add_user_game_history(user_id, game.start_time, {
+                                'speed': game.speed.value,
                                 'player': player,
                                 'winner': game.finished,
                                 'historyId': history_id,
                                 'ticks': game.current_tick,
+                                'opponents': opponents,
                             })
                 except:
                     traceback.print_exc()
