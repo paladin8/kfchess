@@ -101,7 +101,7 @@
     }
 
     &--before-close {
-        transition: opacity 500ms ease-in-out;
+        transition: opacity 200ms ease-in-out;
         opacity: 0;
     }
 }
@@ -111,7 +111,7 @@
     justify-content: center;
     align-items: center;
 
-    width: 400px;
+    min-width: 400px;
 
     position: absolute;
     top: 50%;
@@ -119,6 +119,8 @@
     right: auto;
     bottom: auto;
     transform: translate(-50%, -50%);
+
+    padding: 10px;
 
     color: @font-black;
     background-color: @beige;
@@ -143,15 +145,41 @@
         justify-content: space-evenly;
         align-items: center;
 
-        padding-bottom: 40px;
+        padding-bottom: 30px;
 
         width: 100%;
         height: 100%;
 
         .game-ready-text {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+
             margin: 40px 0px;
 
-            font-weight: 700;
+            .game-ready-text-speed {
+                margin-bottom: 10px;
+
+                color: @font-light-grey;
+
+                font-size: 15px;
+            }
+
+            .game-ready-text-players {
+                display: flex;
+                align-items: center;
+
+                .game-ready-text-vs-player {
+                    display: flex;
+                    align-items: center;
+
+                    padding: 5px;
+
+                    .game-ready-text-vs {
+                        margin-right: 10px;
+                    }
+                }
+            }
         }
 
         .game-friend-link {
@@ -225,7 +253,7 @@
         justify-content: space-evenly;
         align-items: center;
 
-        padding-bottom: 40px;
+        padding-bottom: 30px;
 
         width: 100%;
         height: 100%;
@@ -256,8 +284,8 @@
 
     .game-cancel-button {
         position: absolute;
-        bottom: 15px;
-        left: 20px;
+        bottom: 5px;
+        left: 10px;
 
         color: @font-light-grey;
 

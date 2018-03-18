@@ -45,8 +45,24 @@ export default class Header extends Component {
                                 interactive={false}
                                 theme='light'
                                 className='header-profile-dropdown-tooltip'
+                                onShow={() => {
+                                    amplitude.getInstance().logEvent('Click Profile Pic');
+                                    this.props.loadMyInfo();
+                                }}
                                 html={
                                     <div className='header-profile-dropdown'>
+                                        {user.currentGame &&
+                                            <div className='header-profile-dropdown-option'>
+                                                <a
+                                                    onClick={() => {
+                                                        const { gameId, playerKey } = user.currentGame;
+                                                        this.props.router.history.push(`/game/${gameId}?key=${playerKey}`);
+                                                    }}
+                                                >
+                                                    In Game!
+                                                </a>
+                                            </div>
+                                        }
                                         <div className='header-profile-dropdown-option'>
                                             <a
                                                 onClick={() => {
@@ -57,7 +73,15 @@ export default class Header extends Component {
                                             </a>
                                         </div>
                                         <div className='header-profile-dropdown-option'>
-                                            <a onClick={this.props.logout}>Logout</a>
+                                            <a
+                                                onClick={() => {
+                                                    amplitude.getInstance().logEvent('Logout');
+
+                                                    this.props.logout();
+                                                }}
+                                            >
+                                                Logout
+                                            </a>
                                         </div>
                                     </div>
                                 }

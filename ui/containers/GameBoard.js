@@ -386,7 +386,7 @@ export default class GameBoard extends Component {
     getPosition(row, col) {
         const { player } = this.props.gameState;
 
-        if (player === 1) {
+        if (player === 1 || player === 0) {
             return {
                 x: Math.round(this.border + col * this.cellDim + this.cellPadding - this.shift),
                 y: Math.round(TOP_EDGE_PADDING + row * this.cellDim + this.cellPadding - this.shift),

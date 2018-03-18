@@ -22,6 +22,7 @@ export default class App extends Component {
             error: null,
         };
 
+        this.loadMyInfo = this.loadMyInfo.bind(this);
         this.fetchUserInfo = this.fetchUserInfo.bind(this);
         this.updateUser = this.updateUser.bind(this);
         this.uploadProfilePic = this.uploadProfilePic.bind(this);
@@ -35,6 +36,29 @@ export default class App extends Component {
     }
 
     componentDidMount() {
+        this.loadMyInfo();
+    }
+
+    getRequest(path, callback, errorCallback) {
+        fetch(path, {
+            credentials: 'same-origin',
+            method: 'GET',
+        }).then(callback).catch(errorCallback);
+    }
+
+    postRequest(path, data, callback, errorCallback) {
+        fetch(path, {
+            'body': data,
+            credentials: 'same-origin',
+            headers: {
+                'content-type': 'application/json',
+                'X-CSRF-Token': this.state.csrfToken,
+            },
+            method: 'POST',
+        }).then(callback).catch(errorCallback);
+    }
+
+    loadMyInfo() {
         this.getRequest(
             '/api/user/info',
             response => {
@@ -67,25 +91,6 @@ export default class App extends Component {
             },
             () => this.setError('Error logging in.')
         );
-    }
-
-    getRequest(path, callback, errorCallback) {
-        fetch(path, {
-            credentials: 'same-origin',
-            method: 'GET',
-        }).then(callback).catch(errorCallback);
-    }
-
-    postRequest(path, data, callback, errorCallback) {
-        fetch(path, {
-            'body': data,
-            credentials: 'same-origin',
-            headers: {
-                'content-type': 'application/json',
-                'X-CSRF-Token': this.state.csrfToken,
-            },
-            method: 'POST',
-        }).then(callback).catch(errorCallback);
     }
 
     fetchUserInfo(userIds, callback) {
@@ -292,7 +297,12 @@ export default class App extends Component {
         return (
             <BrowserRouter ref={router => this.router = router}>
                 <div>
-                    <Header user={user} router={this.router} logout={this.logout} />
+                    <Header
+                        user={user}
+                        router={this.router}
+                        loadMyInfo={this.loadMyInfo}
+                        logout={this.logout}
+                    />
                     <Alert error={error} />
                     <Route exact path='/' render={props => {
                         return (

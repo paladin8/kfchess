@@ -1,9 +1,11 @@
 import amplitude from 'amplitude-js';
 import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
+import moment from 'moment';
 
 import ProfilePic from './ProfilePic.js';
 import Spinner from './Spinner.js';
+import UserDisplay from './UserDisplay.js';
 import * as Speed from '../util/Speed.js';
 
 const RATING_TYPES = ['standard', 'lightning'];
@@ -31,16 +33,27 @@ export default class Profile extends Component {
     }
 
     componentWillMount() {
-        const { match, knownUsers, fetchUserInfo } = this.props;
-        const userId = match.params.userId;
-
-        fetchUserInfo([userId], () => {
-            this.setState({ fetching: false });
-        });
+        this.fetchUser(this.props);
     }
 
     componentDidMount() {
-        const { match, user, getUserGameHistory } = this.props;
+        this.fetchHistory(this.props);
+    }
+
+    componentWillReceiveProps(nextProps) {
+        const userId = this.props.match.params.userId;
+        const nextUserId = nextProps.match.params.userId;
+        if (userId === nextUserId) {
+            return;
+        }
+
+        this.fetchUser(nextProps);
+        this.fetchHistory(nextProps);
+    }
+
+    fetchUser(nextProps) {
+        const { match, user, knownUsers, fetchUserInfo } = nextProps;
+        const userId = match.params.userId;
         const isSelf = Boolean(user && match.params.userId === user.userId);
 
         amplitude.getInstance().logEvent('Visit Profile Page', {
@@ -48,6 +61,16 @@ export default class Profile extends Component {
             isSelf,
         });
 
+        this.setState({ fetching: true });
+        fetchUserInfo([userId], () => {
+            this.setState({ fetching: false });
+        });
+    }
+
+    fetchHistory(nextProps) {
+        const { match, user, getUserGameHistory } = nextProps;
+
+        this.setState({ historyFetching: true });
         getUserGameHistory(match.params.userId, 0, 100, history => {
             this.setState({
                 history,
@@ -223,32 +246,50 @@ export default class Profile extends Component {
                                     <table className='profile-history-table'>
                                         <tbody>
                                             {history.map(h => {
+                                                const gameTime = moment.utc(h.gameTime);
                                                 const gameInfo = h.gameInfo;
+
                                                 const minutes = Math.floor(gameInfo.ticks / 600);
                                                 const seconds = Math.floor((gameInfo.ticks % 600) / 10);
+
+                                                const result = gameInfo.winner === 0 ? 'Draw' : (
+                                                    gameInfo.player === gameInfo.winner ? 'Won' : 'Lost'
+                                                );
+
+                                                let resultColor = '';
+                                                if (result === 'Won') {
+                                                    resultColor = '#7bcc70';
+                                                } else if (result === 'Lost') {
+                                                    resultColor = 'red';
+                                                }
+
                                                 return (
                                                     <tr className='profile-history-row' key={h.historyId}>
+                                                        <td
+                                                            className='profile-history-time'
+                                                            title={gameTime.format('YYYY-MM-DD HH:mm:ss')}
+                                                        >
+                                                            {gameTime.fromNow()}
+                                                        </td>
                                                         <td className='profile-history-speed'>
                                                             {Speed.getDisplayName(gameInfo.speed)}
                                                         </td>
-                                                        <td className='profile-history-player'>
-                                                            {gameInfo.player === 1 ? 'White' : 'Black'}
-                                                        </td>
                                                         <td className='profile-history-opponent'>
-                                                            {'vs ' + gameInfo.opponents.map(o => {
-                                                                if (o === 'b') {
-                                                                    return 'AI';
-                                                                }
-                                                                return knownUsers[o.substring(2)].username;
-                                                            }).join(', ')}
+                                                            <div>vs</div>
+                                                            {gameInfo.opponents.map(o => {
+                                                                return <UserDisplay value={o} knownUsers={knownUsers} />;
+                                                            })[0]}
                                                         </td>
-                                                        <td className='profile-history-result'>
+                                                        <td
+                                                            className='profile-history-result'
+                                                            style={{ color: resultColor }}
+                                                        >
                                                             {gameInfo.winner === 0 ? 'Draw' : (
                                                                 gameInfo.player === gameInfo.winner ? 'Won' : 'Lost'
                                                             )}
                                                         </td>
                                                         <td className='profile-history-length'>
-                                                            {minutes.toString() + ':' + seconds.toString()}
+                                                            {minutes.toString() + ':' + ('00' + seconds.toString()).substr(-2, 2)}
                                                         </td>
                                                         <td className='profile-history-replay'>
                                                             <Link to={`/replay/${gameInfo.historyId}`}>

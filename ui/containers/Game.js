@@ -8,6 +8,7 @@ import { Link } from 'react-router-dom';
 import { Tooltip } from 'react-tippy';
 
 import GameBoard from './GameBoard.js';
+import UserDisplay from './UserDisplay.js';
 import GameState from '../util/GameState.js';
 import * as Speed from '../util/Speed.js';
 
@@ -182,31 +183,6 @@ class Game extends Component {
             }
         }
 
-        let readyTitleText = '';
-        if (game) {
-            for (let player in game.players) {
-                const value = game.players[player];
-                let name = 'Unknown';
-                if (value.startsWith('u:')) {
-                    const userId = value.substring(2);
-                    if (userId in knownUsers) {
-                        name = knownUsers[userId].username;
-                    } else {
-                        name = 'User ' + userId.toString();
-                    }
-                } else if (value === 'b') {
-                    name = 'AI';
-                }
-
-                if (readyTitleText.length === 0) {
-                    readyTitleText += name;
-                } else {
-                    readyTitleText += ' vs ' + name;
-                }
-            }
-            readyTitleText += ' (' + Speed.getDisplayName(game.speed) + ')';
-        }
-
         let readyText = 'Waiting for opponent...';
         let readyAction = null;
         if (player === 0) {
@@ -240,7 +216,6 @@ class Game extends Component {
                     inviteUsername,
                     friendLink,
                     invited,
-                    readyTitleText,
                     readyText,
                     readyAction,
                     endGameText,
@@ -347,7 +322,6 @@ class Game extends Component {
         inviteUsername,
         friendLink,
         invited,
-        readyTitleText,
         readyText,
         readyAction,
         endGameText
@@ -361,11 +335,11 @@ class Game extends Component {
                 shouldCloseOnOverlayClick={modalType !== 'ready'}
                 shouldCloseOnEsc={modalType !== 'ready'}
                 className='game-modal'
-                closeTimeoutMS={500}
+                closeTimeoutMS={200}
             >
                 {modalType === 'ready' &&
                     <div className='game-ready'>
-                        <div className='game-ready-text'>{readyTitleText}</div>
+                        {this.renderReadyTitle(gameState.game)}
                         {friendLink && !invited &&
                             <Tooltip
                                 title='Copied to clipboard!'
@@ -486,6 +460,39 @@ class Game extends Component {
                     </div>
                 }
             </Modal>
+        );
+    }
+
+    renderReadyTitle(game) {
+        const { knownUsers } = this.props;
+
+        const players = Object.keys(game.players).sort();
+
+        return (
+            <div className='game-ready-text'>
+                <div className='game-ready-text-speed'>
+                    {Speed.getDisplayName(game.speed) + ' Speed'}
+                </div>
+                <div className='game-ready-text-players'>
+                    {players.map((player, index) => {
+                        const value = game.players[player];
+                        if (index === 0) {
+                            return (
+                                <div className='game-ready-text-vs-player' key={index}>
+                                    <UserDisplay value={value} knownUsers={knownUsers} />
+                                </div>
+                            );
+                        }
+
+                        return (
+                            <div className='game-ready-text-vs-player' key={index}>
+                                <div className='game-ready-text-vs'>vs</div>
+                                <UserDisplay value={value} knownUsers={knownUsers} />
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
         );
     }
 };
