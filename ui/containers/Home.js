@@ -50,15 +50,7 @@ export default class Home extends Component {
                     <div className='home-play-button-wrapper'>
                         <div
                             className='home-play-button home-play-vs-ai-button'
-                            onClick={() => {
-                                amplitude.getInstance().logEvent('Create New Game', {
-                                    moveTicks: 10,
-                                    cooldownticks: 100,
-                                    isBot: true,
-                                    difficulty,
-                                });
-                                this.props.createNewGame(10, 100, true, difficulty);
-                            }}
+                            onClick={() => this.props.createNewGame('standard', true, difficulty)}
                         >
                             Play vs AI
                         </div>
@@ -86,20 +78,7 @@ export default class Home extends Component {
                     <div className='home-play-button-wrapper'>
                         <div
                             className='home-play-button home-create-game-button'
-                            onClick={(() => {
-                                amplitude.getInstance().logEvent('Create New Game', {
-                                    moveTicks: 10,
-                                    cooldownticks: 100,
-                                    isBot: false,
-                                });
-
-                                let moveTicks = 10, cooldownTicks = 100;
-                                if (friendlySpeed === 'lightning') {
-                                    moveTicks = 2;
-                                    cooldownTicks = 20;
-                                }
-                                this.props.createNewGame(moveTicks, cooldownTicks, false);
-                            }).bind(this)}
+                            onClick={() => this.props.createNewGame(friendlySpeed, false)}
                         >
                             Play vs Friend
                         </div>

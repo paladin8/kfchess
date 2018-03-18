@@ -361,7 +361,7 @@ export default class GameBoard extends Component {
                 this.unselect();
             } else {
                 if (!piece || this.selected.piece.player !== piece.player) {
-                    gameState.onMove(this.selected.piece.id, this.selected.piece.player, row, col);
+                    gameState.move(this.selected.piece.id, this.selected.piece.player, row, col);
                 }
                 this.unselect();
                 shouldSelect = false;

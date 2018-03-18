@@ -26,6 +26,8 @@ export default class App extends Component {
         this.updateUser = this.updateUser.bind(this);
         this.uploadProfilePic = this.uploadProfilePic.bind(this);
         this.createNewGame = this.createNewGame.bind(this);
+        this.checkGame = this.checkGame.bind(this);
+        this.inviteUser = this.inviteUser.bind(this);
         this.logout = this.logout.bind(this);
 
         this.router = null;
@@ -46,6 +48,15 @@ export default class App extends Component {
                         });
 
                         amplitude.getInstance().setUserId(data.user.userId);
+                        amplitude.getInstance().setUserProperties({
+                            username: data.user.username,
+                            pictureUrl: data.user.pictureUrl,
+                        });
+
+                        if (data.user.currentGame) {
+                            const { gameId, playerKey } = data.user.currentGame;
+                            this.router.history.push(`/game/${gameId}?key=${playerKey}`);
+                        }
                     }
 
                     this.setState({
@@ -77,6 +88,14 @@ export default class App extends Component {
     }
 
     fetchUserInfo(userIds, callback) {
+        const { knownUsers } = this.state;
+
+        userIds = userIds.filter(userId => !(userId in knownUsers));
+        if (userIds.length === 0) {
+            callback();
+            return;
+        }
+
         const path = '/api/user/info?' + userIds.map(userId => 'userId=' + encodeURIComponent(userId)).join('&');
         this.getRequest(
             path,
@@ -88,18 +107,22 @@ export default class App extends Component {
                             ...data,
                         },
                     }, () => {
-                        callback(this.state.knownUsers);
+                        callback();
                     });
                 });
             },
             () => {
                 this.setError('Error fetching user information.');
-                callback(this.state.knownUsers);
+                callback();
             }
         );
     }
 
     updateUser(username, callback) {
+        amplitude.getInstance().logEvent('Update User', {
+            username,
+        });
+
         this.postRequest(
             '/api/user/update',
             JSON.stringify({ username }),
@@ -127,6 +150,8 @@ export default class App extends Component {
     }
 
     uploadProfilePic(data, callback) {
+        amplitude.getInstance().logEvent('Upload Profile Pic');
+
         if (data.length > 1024 * 64) {
             this.setError('File is too large (max size 64KB).');
             callback();
@@ -157,21 +182,67 @@ export default class App extends Component {
         );
     }
 
-    createNewGame(moveTicks, cooldownTicks, isBot, difficulty) {
+    createNewGame(speed, isBot, difficulty) {
+        amplitude.getInstance().logEvent('Create New Game', {
+            speed,
+            isBot,
+            difficulty,
+        });
+
         this.postRequest(
             '/api/game/new',
             JSON.stringify({
-                moveTicks,
-                cooldownTicks,
+                speed,
                 bots: isBot ? { 2: difficulty } : {}
             }),
             response => {
                 response.json().then(data => {
                     this.setState({ playerKeys: data.playerKeys });
-                    this.router.history.push(`/game/${data.id}?key=${data.playerKeys['1']}`);
+                    this.router.history.push(`/game/${data.gameId}?key=${data.playerKeys['1']}`);
                 });
             },
             () => this.setError('Error creating new game.')
+        );
+    }
+
+    checkGame(gameId) {
+        this.getRequest(
+            `/api/game/check?gameId=${gameId}`,
+            response => {
+                response.json().then(data => {
+                    if (!data.success) {
+                        // game did not exist, update user and go to home page
+                        this.setState({
+                            user: data.user,
+                        });
+
+                        this.router.history.push('/');
+                    }
+                });
+            },
+            () => this.setError('Error checking game.')
+        );
+    }
+
+    inviteUser(gameId, username, callback) {
+        amplitude.getInstance().logEvent('Invite User', {
+            gameId,
+            username,
+        });
+
+        this.postRequest(
+            '/api/game/invite',
+            JSON.stringify({ gameId, player: 2, username }),
+            response => {
+                response.json().then(data => {
+                    if (data.success) {
+                        callback();
+                    } else {
+                        this.setError(data.message);
+                    }
+                });
+            },
+            () => this.setError('Error inviting user.')
         );
     }
 
@@ -225,7 +296,17 @@ export default class App extends Component {
                         );
                     }} />
                     <Route path='/game/:gameId' render={props => {
-                        return <Game playerKeys={playerKeys} {...props} />
+                        return (
+                            <Game
+                                user={user}
+                                checkGame={this.checkGame}
+                                knownUsers={knownUsers}
+                                fetchUserInfo={this.fetchUserInfo}
+                                inviteUser={this.inviteUser}
+                                playerKeys={playerKeys}
+                                {...props}
+                            />
+                        )
                     }} />
                 </div>
             </BrowserRouter>

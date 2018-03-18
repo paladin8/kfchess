@@ -15,44 +15,63 @@
 
             .game-meta-section {
                 margin-bottom: 20px;
-            }
 
-            .game-ready-button {
-                .light-green-button;
+                &.game-ready-section {
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: flex-start;
+                    align-items: center;
 
-                width: 100%;
-                height: 40px;
-
-                font-size: 15px;
-
-                &:hover {
-                    cursor: default;
+                    height: 80px;
                 }
 
-                &.clickable:hover {
-                    cursor: pointer;
-                }
-            }
+                .game-ready-button {
+                    .light-green-button;
 
-            .game-id {
-                padding-top: 20px;
-            }
+                    width: 100%;
+                    height: 40px;
 
-            .game-friend-link {
-                display: flex;
+                    font-size: 15px;
 
-                cursor: pointer;
+                    &:hover {
+                        cursor: default;
+                    }
 
-                .game-friend-link-text {
-                    margin-right: 10px;
-
-                    a {
-                        font-weight: 700;
+                    &.clickable:hover {
+                        cursor: pointer;
                     }
                 }
 
-                .game-friend-link-icon {
-                    color: #5b91c6;
+                .game-cancel-button {
+                    margin-top: 10px;
+
+                    color: @font-light-grey;
+
+                    font-size: 13px;
+
+                    cursor: pointer;
+                }
+
+                .game-id {
+                    padding-top: 20px;
+                }
+
+                .game-friend-link {
+                    display: flex;
+
+                    cursor: pointer;
+
+                    .game-friend-link-text {
+                        margin-right: 10px;
+
+                        a {
+                            font-weight: 700;
+                        }
+                    }
+
+                    .game-friend-link-icon {
+                        color: #5b91c6;
+                    }
                 }
             }
         }
@@ -93,7 +112,6 @@
     align-items: center;
 
     width: 400px;
-    height: 200px;
 
     position: absolute;
     top: 50%;
@@ -118,21 +136,32 @@
     }
 
     .game-ready {
+        position: relative;
+
         display: flex;
         flex-direction: column;
         justify-content: space-evenly;
         align-items: center;
 
+        padding-bottom: 40px;
+
         width: 100%;
         height: 100%;
+
+        .game-ready-text {
+            margin: 40px 0px;
+
+            font-weight: 700;
+        }
 
         .game-friend-link {
             display: flex;
 
+            margin: 20px 0px;
+
             cursor: pointer;
 
             .game-friend-link-text {
-                margin-right: 10px;
 
                 a {
                     font-weight: 700;
@@ -140,7 +169,31 @@
             }
 
             .game-friend-link-icon {
+                margin-left: 10px;
+
                 color: #5b91c6;
+            }
+        }
+
+        .game-invite {
+            display: flex;
+
+            margin: 20px 0px;
+
+            input {
+                width: 250px;
+
+                font-size: 18px;
+                font-family: 'Karla', sans-serif;
+            }
+
+            .game-invite-submit {
+                margin-left: 10px;
+                margin-top: 5px;
+
+                font-size: 18px;
+
+                cursor: pointer;
             }
         }
 
@@ -149,6 +202,8 @@
 
             width: 200px;
             height: 40px;
+
+            margin: 20px 0px;
 
             font-size: 15px;
 
@@ -163,16 +218,22 @@
     }
 
     .game-finished {
+        position: relative;
+
         display: flex;
         flex-direction: column;
         justify-content: space-evenly;
         align-items: center;
+
+        padding-bottom: 40px;
 
         width: 100%;
         height: 100%;
 
         .game-finished-text {
             height: 80px;
+
+            margin: 20px 0px;
 
             line-height: 80px;
         }
@@ -183,11 +244,25 @@
             width: 120px;
             height: 40px;
 
+            margin: 20px 0px;
+
             margin-bottom: 20px;
 
             font-size: 15px;
 
             cursor: pointer;
         }
+    }
+
+    .game-cancel-button {
+        position: absolute;
+        bottom: 15px;
+        left: 20px;
+
+        color: @font-light-grey;
+
+        font-size: 13px;
+
+        cursor: pointer;
     }
 }

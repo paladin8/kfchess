@@ -270,7 +270,7 @@ if __name__ == '__main__':
     yappi.start()
 
     bot = get_bot('advanced')
-    game = Game(10, 10)
+    game = Game(Speed('lightning'), {})
     for i in xrange(1000):
         if game.finished:
             break

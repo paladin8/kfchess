@@ -112,8 +112,6 @@ def info():
                 'csrfToken': csrf_token,
             })
 
-        csrf_token = generate_csrf_token()
-
         return json.dumps({
             'loggedIn': True,
             'csrfToken': csrf_token,
@@ -134,43 +132,43 @@ def update():
     print 'user update', data
 
     if not current_user.is_authenticated:
-        response = {
+        return json.dumps({
             'success': False,
             'message': 'User is not logged in.',
-        }
-    else:
-        user_id = current_user.user_id
-        user = db_service.get_user_by_id(user_id)
-        if user is None:
-            response = {
-                'success': False,
-                'message': 'User does not exist.',
-            }
-        else:
-            user.username = data.get('username', user.username)
+        })
 
-            if len(user.username) < 3:
-                response = {
-                    'success': False,
-                    'message': 'Username too short.',
-                }
-            elif len(user.username) > 24:
-                response = {
-                    'success': False,
-                    'message': 'Username too long.',
-                }
-            else:
-                try:
-                    user = db_service.update_user(user_id, user.username, user.picture_url)
-                    response = {
-                        'success': True,
-                        'user': user.to_json_obj(),
-                    }
-                except IntegrityError:
-                    response = {
-                        'success': False,
-                        'message': 'Username already taken.',
-                    }
+    user_id = current_user.user_id
+    user = db_service.get_user_by_id(user_id)
+    if user is None:
+        return json.dumps({
+            'success': False,
+            'message': 'User does not exist.',
+        })
+
+    user.username = data.get('username', user.username)
+
+    if len(user.username) < 3:
+        return json.dumps({
+            'success': False,
+            'message': 'Username too short.',
+        })
+    elif len(user.username) > 24:
+        return json.dumps({
+            'success': False,
+            'message': 'Username too long.',
+        })
+
+    try:
+        user = db_service.update_user(user_id, user.username, user.picture_url)
+        response = {
+            'success': True,
+            'user': user.to_json_obj(),
+        }
+    except IntegrityError:
+        response = {
+            'success': False,
+            'message': 'Username already taken.',
+        }
 
     return json.dumps(response)
 
@@ -181,42 +179,42 @@ def upload_pic():
     print 'upload pic', len(file_bytes)
 
     if not current_user.is_authenticated:
-        response = {
+        return json.dumps({
             'success': False,
             'message': 'User is not logged in.',
-        }
-    else:
-        user_id = current_user.user_id
-        user = db_service.get_user_by_id(user_id)
-        if user is None:
-            response = {
-                'success': False,
-                'message': 'User does not exist.',
-            }
-        else:
-            if len(file_bytes) > PROFILE_PIC_SIZE_LIMIT:
-                response = {
-                    'success': False,
-                    'message': 'File is too large (max size 64KB).',
-                }
-            else:
-                try:
-                    key = 'profile-pics/' + str(uuid.uuid4())
-                    s3.upload_data('com-kfchess-public', key, file_bytes, ACL='public-read')
-                    url = s3.get_public_url('com-kfchess-public', key)
-                    print key, url
+        })
 
-                    user = db_service.update_user(user_id, user.username, url)
-                    response = {
-                        'success': True,
-                        'user': user.to_json_obj(),
-                    }
-                except:
-                    traceback.print_exc()
-                    response = {
-                        'success': False,
-                        'message': 'Failed to upload profile picture.',
-                    }
+    user_id = current_user.user_id
+    user = db_service.get_user_by_id(user_id)
+    if user is None:
+        return json.dumps({
+            'success': False,
+            'message': 'User does not exist.',
+        })
+
+    if len(file_bytes) > PROFILE_PIC_SIZE_LIMIT:
+        return json.dumps({
+            'success': False,
+            'message': 'File is too large (max size 64KB).',
+        })
+
+    try:
+        key = 'profile-pics/' + str(uuid.uuid4())
+        s3.upload_data('com-kfchess-public', key, file_bytes, ACL='public-read')
+        url = s3.get_public_url('com-kfchess-public', key)
+        print 's3 upload', key, url
+
+        user = db_service.update_user(user_id, user.username, url)
+        response = {
+            'success': True,
+            'user': user.to_json_obj(),
+        }
+    except:
+        traceback.print_exc()
+        response = {
+            'success': False,
+            'message': 'Failed to upload profile picture.',
+        }
 
     return json.dumps(response)
 

@@ -12,7 +12,7 @@ export default class Profile extends Component {
         super(props);
 
         this.state = {
-            fetching: false,
+            fetching: true,
             username: null,
             showEditUsername: false,
             editingUsername: false,
@@ -30,12 +30,9 @@ export default class Profile extends Component {
         const { match, knownUsers, fetchUserInfo } = this.props;
         const userId = match.params.userId;
 
-        if (!(userId in knownUsers)) {
-            this.setState({ fetching: true });
-            fetchUserInfo([userId], () => {
-                this.setState({ fetching: false });
-            });
-        }
+        fetchUserInfo([userId], () => {
+            this.setState({ fetching: false });
+        });
     }
 
     componentDidMount() {
@@ -126,7 +123,11 @@ export default class Profile extends Component {
                         {showEditProfilePic &&
                             <div
                                 className='profile-pic-edit'
-                                onClick={() => this.profilePicInput.click()}
+                                onClick={() => {
+                                    amplitude.getInstance().logEvent('Click Edit Profile Pic');
+
+                                    this.profilePicInput.click()
+                                }}
                             >
                                 <i className='fas fa-camera' />
                             </div>
@@ -146,6 +147,8 @@ export default class Profile extends Component {
                             onMouseLeave={() => isMe && this.setState({ showEditUsername: false })}
                             onClick={() => {
                                 if (isMe && !editingUsername) {
+                                    amplitude.getInstance().logEvent('Click Edit Username');
+
                                     this.setState({
                                         editingUsername: true,
                                         username: currUser.username,

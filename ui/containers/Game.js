@@ -9,6 +9,7 @@ import { Tooltip } from 'react-tippy';
 
 import GameBoard from './GameBoard.js';
 import GameState from '../util/GameState.js';
+import * as Speed from '../util/Speed.js';
 
 class Game extends Component {
 
@@ -20,12 +21,17 @@ class Game extends Component {
         const { key } = qs.parse(props.location.search);
         const playerKey = props.playerKey || key;
 
-        const gameState = new GameState(gameId, playerKey);
+        const gameState = new GameState(gameId, playerKey, props.fetchUserInfo, () => {
+            this.props.history.push('/');
+        });
 
         this.state = {
             gameState,
-            playerKeys: props.playerKeys,
+
             modalType: null,
+            showReady: true,
+            inviteUsername: '',
+
             game: null,
             player: null,
             isReady: false,
@@ -48,6 +54,12 @@ class Game extends Component {
         window.addEventListener('resize', this.resize);
     }
 
+    componentDidMount() {
+        const { gameState } = this.state;
+
+        this.props.checkGame(gameState.gameId);
+    }
+
     componentWillUnmount() {
         window.removeEventListener('resize', this.resize);
         this.state.gameState.unregisterListener(this.update);
@@ -65,7 +77,10 @@ class Game extends Component {
     }
 
     update(gameState) {
+        const { playerKeys } = this.props;
+
         let modalType = this.state.modalType;
+        let showReady = this.state.showReady;
         if (gameState.game) {
             // various modal triggers
             if (modalType === null && gameState.game.finished) {
@@ -88,11 +103,16 @@ class Game extends Component {
 
             if (!gameState.game.started && gameState.player !== 0) {
                 modalType = 'ready';
+                showReady = (
+                    playerKeys === null || !('2' in playerKeys) ||
+                    !(Object.values(gameState.game.players).includes('o'))
+                );
             }
         }
 
         this.setState({
             modalType,
+            showReady,
             game: gameState.game,
             player: gameState.player,
             isReady: gameState.isReady(),
@@ -105,17 +125,28 @@ class Game extends Component {
         });
     }
 
+    inviteUser() {
+        const { gameState, inviteUsername } = this.state;
+
+        this.props.inviteUser(gameState.gameId, inviteUsername, () => {
+            this.setState({ showReady: true });
+        });
+    }
+
     render () {
         const {
             gameState,
-            playerKeys,
             modalType,
+            showReady,
+            inviteUsername,
             game,
             player,
             isReady,
             windowWidth,
             windowHeight,
         } = this.state;
+        const { knownUsers, playerKeys } = this.props;
+
         const baseUrl = `${window.location.origin}${window.location.pathname}`;
 
         let started = false;
@@ -126,6 +157,11 @@ class Game extends Component {
         let friendLink = null;
         if (playerKeys && '2' in playerKeys) {
             friendLink = `${baseUrl}?key=${playerKeys['2']}`;
+        }
+
+        let invited = false;
+        if (player === 1 && game.players['2'] && game.players['2'].startsWith('u:')) {
+            invited = true;
         }
 
         let endGameText = null;
@@ -143,7 +179,32 @@ class Game extends Component {
             }
         }
 
-        let readyText = 'Waiting for friend...';
+        let readyTitleText = '';
+        if (game) {
+            for (let player in game.players) {
+                const value = game.players[player];
+                let name = 'Unknown';
+                if (value.startsWith('u:')) {
+                    const userId = value.substring(2);
+                    if (userId in knownUsers) {
+                        name = knownUsers[userId].username;
+                    } else {
+                        name = 'User ' + userId.toString();
+                    }
+                } else if (value === 'b') {
+                    name = 'AI';
+                }
+
+                if (readyTitleText.length === 0) {
+                    readyTitleText += name;
+                } else {
+                    readyTitleText += ' vs ' + name;
+                }
+            }
+            readyTitleText += ' (' + Speed.getDisplayName(game.speed) + ')';
+        }
+
+        let readyText = 'Waiting for opponent...';
         let readyAction = null;
         if (player === 0) {
             readyText = 'Waiting for players...';
@@ -168,90 +229,26 @@ class Game extends Component {
 
         return game ?
             <div className='game'>
-                <Modal
-                    isOpen={Boolean(modalType)}
-                    onRequestClose={this.closeModal}
-                    shouldCloseOnOverlayClick={true}
-                    shouldCloseOnEsc={true}
-                    className='game-modal'
-                    closeTimeoutMS={500}
-                >
-                    {modalType === 'ready' &&
-                        <div className='game-ready'>
-                            {friendLink &&
-                                <Tooltip
-                                    title='Copied to clipboard!'
-                                    distance={5}
-                                    trigger='click'
-                                >
-                                    <CopyToClipboard
-                                        text={friendLink}
-                                        onCopy={() => {
-                                            amplitude.getInstance().logEvent('Copy Friend Link', {
-                                                source: 'modal',
-                                                player,
-                                                gameId: gameState.gameId,
-                                            });
-                                        }}
-                                    >
-                                        <div className='game-friend-link'>
-                                            <div className='game-friend-link-text'>
-                                                Click to copy link and send to friend!
-                                            </div>
-                                            <div className='game-friend-link-icon'>
-                                                <i className='fas fa-link' />
-                                            </div>
-                                        </div>
-                                    </CopyToClipboard>
-                                </Tooltip>
-                            }
-                            <div
-                                className={`game-ready-button ${readyAction ? 'clickable' : ''}`}
-                                onClick={() => {
-                                    if (readyAction === 'ready') {
-                                        amplitude.getInstance().logEvent('Click Ready', {
-                                            source: 'modal',
-                                            player,
-                                            gameId: gameState.gameId,
-                                        });
-
-                                        gameState.onReady();
-                                    }
-                                }}
-                            >
-                                {readyText}
-                            </div>
-                        </div>
-                    }
-                    {modalType === 'game-finished' &&
-                        <div className='game-finished'>
-                            <div className='game-finished-text'>{endGameText}</div>
-                            {player !== 0 &&
-                                <div
-                                    className='game-finished-button-again'
-                                    onClick={() => {
-                                        amplitude.getInstance().logEvent('Click Play Again', {
-                                            source: 'modal',
-                                            player,
-                                            gameId: gameState.gameId,
-                                        });
-
-                                        gameState.newGame();
-                                    }}
-                                >
-                                    Play Again
-                                </div>
-                            }
-                        </div>
-                    }
-                </Modal>
+                {this.renderModal(
+                    gameState,
+                    player,
+                    modalType,
+                    showReady,
+                    inviteUsername,
+                    friendLink,
+                    invited,
+                    readyTitleText,
+                    readyText,
+                    readyAction,
+                    endGameText,
+                )}
                 <div className='game-content'>
                     <div className='game-board'>
                         <GameBoard gameState={gameState} />
                     </div>
                     <div className='game-meta'>
                         <div>
-                            <div className='game-meta-section'>
+                            <div className='game-meta-section game-ready-section'>
                                 <div
                                     className={`game-ready-button ${readyAction ? 'clickable' : ''}`}
                                     onClick={() => {
@@ -262,7 +259,7 @@ class Game extends Component {
                                                 gameId: gameState.gameId,
                                             });
 
-                                            gameState.onReady();
+                                            gameState.ready();
                                         } else if (readyAction === 'play-again') {
                                             amplitude.getInstance().logEvent('Click Play Again', {
                                                 source: 'sidebar',
@@ -270,12 +267,28 @@ class Game extends Component {
                                                 gameId: gameState.gameId,
                                             });
 
-                                            gameState.newGame();
+                                            gameState.reset();
                                         }
                                     }}
                                 >
                                     {readyText}
                                 </div>
+                                {!game.started &&
+                                    <div
+                                        className='game-cancel-button'
+                                        onClick={() => {
+                                            amplitude.getInstance().logEvent('Cancel Game', {
+                                                source: 'sidebar',
+                                                player,
+                                                gameId: gameState.gameId,
+                                            });
+
+                                            gameState.cancel();
+                                        }}
+                                    >
+                                        Cancel Game
+                                    </div>
+                                }
                             </div>
                             <div className='game-meta-section'>
                                 <div className='game-id'>
@@ -309,35 +322,6 @@ class Game extends Component {
                                     </CopyToClipboard>
                                 </Tooltip>
                             </div>
-                            {friendLink &&
-                                <div className='game-meta-section'>
-                                    <Tooltip
-                                        title='Copied to clipboard!'
-                                        distance={5}
-                                        trigger='click'
-                                    >
-                                        <CopyToClipboard
-                                            text={friendLink}
-                                            onCopy={() => {
-                                                amplitude.getInstance().logEvent('Copy Friend Link', {
-                                                    source: 'sidebar',
-                                                    gameId: gameState.gameId,
-                                                    player,
-                                                });
-                                            }}
-                                        >
-                                            <div className='game-friend-link'>
-                                                <div className='game-friend-link-text'>
-                                                    Copy friend link
-                                                </div>
-                                                <div className='game-friend-link-icon'>
-                                                    <i className='fas fa-link' />
-                                                </div>
-                                            </div>
-                                        </CopyToClipboard>
-                                    </Tooltip>
-                                </div>
-                            }
                         </div>
                     </div>
                 </div>
@@ -350,6 +334,156 @@ class Game extends Component {
             </div>
             :
             null;
+    }
+
+    renderModal(
+        gameState,
+        player,
+        modalType,
+        showReady,
+        inviteUsername,
+        friendLink,
+        invited,
+        readyTitleText,
+        readyText,
+        readyAction,
+        endGameText
+    ) {
+        const { user, knownUsers } = this.props;
+
+        return (
+            <Modal
+                isOpen={Boolean(modalType)}
+                onRequestClose={this.closeModal}
+                shouldCloseOnOverlayClick={modalType !== 'ready'}
+                shouldCloseOnEsc={modalType !== 'ready'}
+                className='game-modal'
+                closeTimeoutMS={500}
+            >
+                {modalType === 'ready' &&
+                    <div className='game-ready'>
+                        <div className='game-ready-text'>{readyTitleText}</div>
+                        {friendLink && !invited &&
+                            <Tooltip
+                                title='Copied to clipboard!'
+                                distance={5}
+                                trigger='click'
+                            >
+                                <CopyToClipboard
+                                    text={friendLink}
+                                    onCopy={() => {
+                                        amplitude.getInstance().logEvent('Copy Friend Link', {
+                                            source: 'modal',
+                                            player,
+                                            gameId: gameState.gameId,
+                                        });
+
+                                        this.setState({
+                                            showReady: true,
+                                        });
+                                    }}
+                                >
+                                    <div className='game-friend-link'>
+                                        <div className='game-friend-link-text'>
+                                            Click to copy link and send to friend!
+                                        </div>
+                                        <div className='game-friend-link-icon'>
+                                            <i className='fas fa-link' />
+                                        </div>
+                                    </div>
+                                </CopyToClipboard>
+                            </Tooltip>
+                        }
+                        {friendLink && !invited && user &&
+                            <div className='game-invite'>
+                                <input
+                                    placeholder='... or invite by username'
+                                    value={inviteUsername}
+                                    maxLength={24}
+                                    onChange={(e) => this.setState({ inviteUsername: e.target.value })}
+                                    onKeyPress={(e) => e.key === 'Enter' && this.inviteUser()}
+                                />
+                                <div
+                                    className='game-invite-submit'
+                                    onClick={() => this.inviteUser()}
+                                >
+                                    <i className='far fa-paper-plane' />
+                                </div>
+                            </div>
+                        }
+                        {showReady &&
+                            <div
+                                className={`game-ready-button ${readyAction ? 'clickable' : ''}`}
+                                onClick={() => {
+                                    if (readyAction === 'ready') {
+                                        amplitude.getInstance().logEvent('Click Ready', {
+                                            source: 'modal',
+                                            player,
+                                            gameId: gameState.gameId,
+                                        });
+
+                                        gameState.ready();
+                                    }
+                                }}
+                            >
+                                {readyText}
+                            </div>
+                        }
+                        <div
+                            className='game-cancel-button'
+                            onClick={() => {
+                                amplitude.getInstance().logEvent('Cancel Game', {
+                                    source: 'modal',
+                                    player,
+                                    gameId: gameState.gameId,
+                                });
+
+                                gameState.cancel();
+                            }}
+                        >
+                            Cancel
+                        </div>
+                    </div>
+                }
+                {modalType === 'game-finished' &&
+                    <div className='game-finished'>
+                        <div className='game-finished-text'>{endGameText}</div>
+                        {player !== 0 &&
+                            <div
+                                className='game-finished-button-again'
+                                onClick={() => {
+                                    amplitude.getInstance().logEvent('Click Play Again', {
+                                        source: 'modal',
+                                        player,
+                                        gameId: gameState.gameId,
+                                    });
+
+                                    gameState.reset();
+                                }}
+                            >
+                                Play Again
+                            </div>
+                        }
+                        {player !== 0 &&
+                            <div
+                                className='game-cancel-button'
+                                onClick={() => {
+                                    amplitude.getInstance().logEvent('Cancel Game', {
+                                        source: 'modal',
+                                        player,
+                                        gameId: gameState.gameId,
+                                    });
+
+                                    gameState.cancel();
+                                }}
+                            >
+                                Cancel
+                            </div>
+                        }
+                    </div>
+                }
+            </Modal>
+        );
     }
 };
 

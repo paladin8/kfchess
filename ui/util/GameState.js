@@ -4,9 +4,11 @@ const SIMULATED_DELAY = 0;
 
 export default class GameState {
 
-    constructor(gameId, playerKey) {
+    constructor(gameId, playerKey, fetchUserInfo, endCallback) {
         this.gameId = gameId;
         this.playerKey = playerKey;
+        this.fetchUserInfo = fetchUserInfo;
+        this.endCallback = endCallback;
 
         this.player = null;
         this.game = null;
@@ -17,7 +19,7 @@ export default class GameState {
         this.destroyed = false;
 
         this.handleMessage = this.handleMessage.bind(this);
-        this.onMove = this.onMove.bind(this);
+        this.handleCancel = this.handleCancel.bind(this);
 
         this.connect();
     }
@@ -32,10 +34,13 @@ export default class GameState {
         });
 
         this.socket.on('joinack', this.handleMessage);
+        this.socket.on('inviteack', this.handleMessage);
         this.socket.on('readyack', this.handleMessage);
         this.socket.on('update', this.handleMessage);
         this.socket.on('moveack', this.handleMessage);
         this.socket.on('resetack', this.handleMessage);
+
+        this.socket.on('cancelack', this.handleCancel);
 
         this.socket.emit('join', JSON.stringify({ gameId: this.gameId, playerKey: this.playerKey }));
     }
@@ -52,12 +57,25 @@ export default class GameState {
         }
     }
 
+    handleCancel() {
+        this.endCallback();
+    }
+
     update(game) {
         this.game = game;
         this.lastUpdate = new Date();
         for (let i = 0; i < this.updateListeners.length; i++) {
             this.updateListeners[i](this);
         }
+
+        const userIds = [];
+        for (let player in game.players) {
+            const value = game.players[player];
+            if (value.startsWith('u:')) {
+                userIds.push(value.substring(2));
+            }
+        }
+        this.fetchUserInfo(userIds, () => {});
     }
 
     registerListener(listener) {
@@ -110,17 +128,21 @@ export default class GameState {
         return this.game && this.player && this.game.playersReady[this.player];
     }
 
-    onReady() {
+    cancel() {
+        this.socket.emit('cancel', JSON.stringify({ gameId: this.gameId, playerKey: this.playerKey }));
+    }
+
+    ready() {
         this.socket.emit('ready', JSON.stringify({ gameId: this.gameId, playerKey: this.playerKey }));
     }
 
-    onMove(pieceId, player, toRow, toCol) {
+    move(pieceId, player, toRow, toCol) {
         this.socket.emit('move', JSON.stringify({
             gameId: this.gameId, playerKey: this.playerKey, pieceId, toRow, toCol
         }));
     }
 
-    newGame() {
+    reset() {
         this.socket.emit('reset', JSON.stringify({ gameId: this.gameId, playerKey: this.playerKey }));
     }
 

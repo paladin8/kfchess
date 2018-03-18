@@ -1,8 +1,34 @@
+import datetime
 import math
 import threading
 import time
 
 from lib.board import Board
+
+
+class Speed(object):
+
+    STANDARD = 'standard'
+    LIGHTNING = 'lightning'
+
+    def __init__(self, value):
+        self.value = value
+
+    def get_move_ticks(self):
+        if self.value == Speed.STANDARD:
+            return 10
+        elif self.value == Speed.LIGHTNING:
+            return 2
+        else:
+            raise ValueError('Unexpected speed ' + self.value)
+
+    def get_cooldown_ticks(self):
+        if self.value == Speed.STANDARD:
+            return 100
+        elif self.value == Speed.LIGHTNING:
+            return 20
+        else:
+            raise ValueError('Unexpected speed ' + self.value)
 
 
 class Move(object):
@@ -42,10 +68,14 @@ class Game(object):
 
     # move_ticks     = number of ticks to move 1 square in any direction (including diagonal)
     # cooldown_ticks = number of ticks before a piece can move again
-    def __init__(self, move_ticks, cooldown_ticks, num_players=2, debug=False):
-        self.move_ticks = move_ticks
-        self.cooldown_ticks = cooldown_ticks
+    def __init__(self, speed, players, num_players=2, debug=False):
+        self.speed = speed
+        self.players = players
         self.debug = debug
+
+        self.move_ticks = speed.get_move_ticks()
+        self.cooldown_ticks = speed.get_cooldown_ticks()
+        self.players_ready = {i + 1: False for i in xrange(num_players)}
 
         self.board = Board.initial()
         self.active_moves = []
@@ -56,7 +86,7 @@ class Game(object):
         self.last_tick_time = time.time()
         self.started = False
         self.finished = 0
-        self.players_ready = {i + 1: False for i in xrange(num_players)}
+        self.start_time = datetime.datetime.utcnow()
 
         self.piece_to_move_seq_fn = {
             'P': self._get_pawn_move_seq,
@@ -470,8 +500,13 @@ class Game(object):
 
     def to_json_obj(self):
         return {
+            'speed': self.speed.value,
+            'players': self.players,
+
             'moveTicks': self.move_ticks,
             'cooldownTicks': self.cooldown_ticks,
+            'playersReady': self.players_ready,
+
             'board': self.board.to_json_obj(),
             'activeMoves': [move.to_json_obj() for move in self.active_moves],
             'cooldowns': [cooldown.to_json_obj() for cooldown in self.cooldowns],
@@ -480,7 +515,7 @@ class Game(object):
             'timeSinceLastTick': time.time() - self.last_tick_time,
             'started': self.started,
             'finished': self.finished,
-            'playersReady': self.players_ready,
+            'startTime': str(self.start_time),
         }
 
 
