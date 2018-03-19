@@ -2,11 +2,12 @@ import amplitude from 'amplitude-js';
 import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
 import moment from 'moment';
+import { Tooltip } from 'react-tippy';
 
 import ProfilePic from './ProfilePic.js';
+import SpeedIcon from './SpeedIcon.js';
 import Spinner from './Spinner.js';
 import UserDisplay from './UserDisplay.js';
-import * as Speed from '../util/Speed.js';
 
 const RATING_TYPES = ['standard', 'lightning'];
 
@@ -267,12 +268,15 @@ export default class Profile extends Component {
                                                     <tr className='profile-history-row' key={h.historyId}>
                                                         <td
                                                             className='profile-history-time'
-                                                            title={gameTime.format('YYYY-MM-DD HH:mm:ss')}
                                                         >
-                                                            {gameTime.fromNow()}
+                                                            <Tooltip
+                                                                title={gameTime.local().format('YYYY-MM-DD hh:mm A')}
+                                                            >
+                                                                {gameTime.fromNow()}
+                                                            </Tooltip>
                                                         </td>
                                                         <td className='profile-history-speed'>
-                                                            {Speed.getDisplayName(gameInfo.speed)}
+                                                            <SpeedIcon speed={gameInfo.speed} iconOnly={true} />
                                                         </td>
                                                         <td className='profile-history-opponent'>
                                                             <div>vs</div>
@@ -292,9 +296,14 @@ export default class Profile extends Component {
                                                             {minutes.toString() + ':' + ('00' + seconds.toString()).substr(-2, 2)}
                                                         </td>
                                                         <td className='profile-history-replay'>
-                                                            <Link to={`/replay/${gameInfo.historyId}`}>
-                                                                <i className='fas fa-eye' />
-                                                            </Link>
+                                                            <Tooltip
+                                                                title='Replay'
+                                                                distance={5}
+                                                            >
+                                                                <Link to={`/replay/${gameInfo.historyId}`}>
+                                                                    <i className='fas fa-eye' />
+                                                                </Link>
+                                                            </Tooltip>
                                                         </td>
                                                     </tr>
                                                 );

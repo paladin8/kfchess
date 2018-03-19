@@ -1,6 +1,6 @@
 import amplitude from 'amplitude-js';
 import React, { Component } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import { Tooltip } from 'react-tippy';
 
 import ProfilePic from './ProfilePic.js';
@@ -22,7 +22,10 @@ export default class Header extends Component {
                 </div>
                 <div className='header-menu'>
                     <div className='header-menu-item'>
-                        <Link to='/'>Home</Link>
+                        <NavLink exact={true} activeClassName='header-link-active' to='/'>Home</NavLink>
+                    </div>
+                    <div className='header-menu-item'>
+                        <NavLink activeClassName='header-link-active' to='/live'>Live!</NavLink>
                     </div>
                     <div className='header-menu-item'>
                         <a
@@ -33,7 +36,7 @@ export default class Header extends Component {
                         </a>
                     </div>
                     <div className='header-menu-item'>
-                        <Link to='/about'>About</Link>
+                        <NavLink activeClassName='header-link-active' to='/about'>About</NavLink>
                     </div>
                     <div className='header-menu-item'>
                         {user ?

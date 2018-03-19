@@ -8,9 +8,9 @@ import { Link } from 'react-router-dom';
 import { Tooltip } from 'react-tippy';
 
 import GameBoard from './GameBoard.js';
+import SpeedIcon from './SpeedIcon.js';
 import UserDisplay from './UserDisplay.js';
 import GameState from '../util/GameState.js';
-import * as Speed from '../util/Speed.js';
 
 class Game extends Component {
 
@@ -109,7 +109,8 @@ class Game extends Component {
                 modalType = 'ready';
                 showReady = (
                     playerKeys === null || !('2' in playerKeys) ||
-                    !(Object.values(gameState.game.players).includes('o'))
+                    !(Object.values(gameState.game.players).includes('o')) ||
+                    gameState.game.playersReady['2']
                 );
             }
         }
@@ -251,7 +252,7 @@ class Game extends Component {
                                 >
                                     {readyText}
                                 </div>
-                                {!game.started &&
+                                {(player !== 0 && (!game.started || game.finished !== 0)) &&
                                     <div
                                         className='game-cancel-button'
                                         onClick={() => {
@@ -471,7 +472,7 @@ class Game extends Component {
         return (
             <div className='game-ready-text'>
                 <div className='game-ready-text-speed'>
-                    {Speed.getDisplayName(game.speed) + ' Speed'}
+                    <SpeedIcon speed={game.speed} iconOnly={false} />
                 </div>
                 <div className='game-ready-text-players'>
                     {players.map((player, index) => {

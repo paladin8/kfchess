@@ -30,6 +30,7 @@ def new():
     speed = data['speed']
     bots = data.get('bots', {})
     bots = {int(player): ai.get_bot(difficulty) for player, difficulty in bots.iteritems()}
+    username = data.get('username')
     print 'new game', data
 
     # generate game ID and player keys
@@ -41,6 +42,24 @@ def new():
     if current_user.is_authenticated:
         players[1] = 'u:%s' % current_user.user_id
         db_service.update_user_current_game(current_user.user_id, game_id, player_keys[1])
+
+    # check opponent
+    if username is not None:
+        user = db_service.get_user_by_username(username)
+        if user is None:
+            return json.dumps({
+                'success': False,
+                'message': 'User to invite does not exist.',
+            })
+
+        if user.current_game is not None:
+            return json.dumps({
+                'success': False,
+                'message': 'User to invite is already in a game.',
+            })
+
+        players[2] = 'u:%s' % user.user_id
+        db_service.update_user_current_game(user.user_id, game_id, player_keys[2])
 
     for i in xrange(1, 3):
         if i not in players:
@@ -241,6 +260,7 @@ def initialize(init_socketio):
                     traceback.print_exc()
 
             for game_id in expired_games:
+                db_service.remove_active_game(context.SERVER, game_id)
                 del game_states[game_id]
 
 

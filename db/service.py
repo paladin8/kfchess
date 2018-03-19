@@ -3,7 +3,7 @@ import json
 
 from sqlalchemy.engine import create_engine
 
-from db.models import User, UserGameHistory
+from db.models import ActiveGame, GameHistory, User, UserGameHistory
 
 
 class DbService(object):
@@ -52,6 +52,16 @@ class DbService(object):
                 username
             ).fetchone()
             return row and User.from_row(row)
+
+    def get_users_online_since(self, time):
+        with self.engine.connect() as conn:
+            rows = conn.execute(
+                "SELECT * "
+                "FROM users "
+                "WHERE last_online IS NOT NULL AND last_online > %s",
+                time
+            ).fetchall()
+            return {row.id: User.from_row(row) for row in rows}
 
     def create_user(self, email, username, picture_url, ratings):
         with self.engine.connect() as conn:
@@ -123,6 +133,14 @@ class DbService(object):
                 server, game_id
             )
 
+    def get_all_active_games(self):
+        with self.engine.connect() as conn:
+            rows = conn.execute(
+                "SELECT * "
+                "FROM active_games"
+            ).fetchall()
+            return [ActiveGame.from_row(row) for row in rows]
+
     # user game history
 
     def add_user_game_history(self, user_id, game_time, game_info):
@@ -156,3 +174,13 @@ class DbService(object):
                 json.dumps(game.to_json_obj())
             ).fetchone()
             return row and row.id
+
+    def get_game_history(self, history_id):
+        with self.engine.connect() as conn:
+            row = conn.execute(
+                "SELECT * "
+                "FROM game_history "
+                "WHERE id = %s",
+                history_id
+            ).fetchone()
+            return row and GameHistory.from_row(row)

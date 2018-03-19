@@ -10,6 +10,7 @@ from db import db_service
 from lib.game import Game
 from web import game_states, game as game_handlers
 from web.game import game as game_blueprint
+from web.live import live as live_blueprint
 from web.user import user as user_blueprint
 
 
@@ -18,6 +19,7 @@ eventlet.monkey_patch()
 app = Flask(__name__)
 app.secret_key = config.FLASK_SECRET_KEY
 app.register_blueprint(game_blueprint)
+app.register_blueprint(live_blueprint)
 app.register_blueprint(user_blueprint)
 socketio = SocketIO(app)
 

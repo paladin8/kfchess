@@ -22,7 +22,7 @@ class User(object):
     def get_id(self):
         return unicode(self.user_id)
 
-    def to_json_obj(self):
+    def to_json_obj(self, with_key=False):
         return {
             'userId': str(self.user_id),
             'email': self.email,
@@ -31,7 +31,11 @@ class User(object):
             'ratings': self.ratings,
             'joinTime': str(self.join_time),
             'lastOnline': self.last_online and str(self.last_online),
-            'currentGame': self.current_game,
+            'currentGame': {
+                key: value
+                for key, value in self.current_game.iteritems()
+                if with_key or key != 'playerKey'
+            } if self.current_game is not None else None,
         }
 
     def __str__(self):
@@ -70,3 +74,41 @@ class UserGameHistory(object):
     @staticmethod
     def from_row(row):
         return UserGameHistory(row.id, row.user_id, row.game_time, row.game_info)
+
+
+class ActiveGame(object):
+
+    def __init__(self, active_id, server, game_id, game_info):
+        self.active_id = active_id
+        self.server = server
+        self.game_id = game_id
+        self.game_info = game_info
+
+    def to_json_obj(self):
+        return {
+            'activeId': self.active_id,
+            'server': self.server,
+            'gameId': self.game_id,
+            'gameInfo': self.game_info,
+        }
+
+    @staticmethod
+    def from_row(row):
+        return ActiveGame(row.id, row.server, row.game_id, row.game_info)
+
+
+class GameHistory(object):
+
+    def __init__(self, history_id, game):
+        self.history_id = history_id
+        self.game = game
+
+    def to_json_obj():
+        return {
+            'historyId': self.history_id,
+            'game': self.game,
+        }
+
+    @staticmethod
+    def from_row(row):
+        return GameHistory(row.id, row.game)

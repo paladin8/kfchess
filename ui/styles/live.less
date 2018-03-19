@@ -1,0 +1,131 @@
+.live {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    .live-content {
+        display: flex;
+        justify-content: space-between;
+
+        width: 70%;
+        min-width: 400px;
+        max-width: 600px;
+
+        font-size: 15px;
+
+        .live-games {
+            width: 70%;
+
+            padding-right: 30px;
+
+            .live-games-title {
+                margin-bottom: 20px;
+
+                font-size: 20px;
+                font-weight: 700;
+            }
+
+            .live-games-table {
+                width: 100%;
+
+                .live-games-row {
+                    width: 100%;
+                    height: 40px;
+
+                    margin-bottom: 10px;
+
+                    td {
+                        padding: 5px 10px;
+                    }
+
+                    .live-games-players-inner {
+                        display: flex;
+                        align-items: center;
+
+                        height: 30px;
+
+                        .live-games-players-vs-player {
+                            display: flex;
+                            align-items: center;
+
+                            padding: 5px;
+
+                            .live-games-players-vs {
+                                margin-right: 10px;
+                            }
+                        }
+                    }
+
+                    .live-games-watch {
+                        font-size: 20px;
+
+                        a {
+                            color: @dull-blue;
+                        }
+                    }
+                }
+            }
+
+            .live-games-empty {
+                color: @font-light-grey;
+            }
+        }
+
+        .live-users {
+            padding-left: 30px;
+
+            border-left: 2px solid @faint-border-grey;
+
+            .live-users-title {
+                margin-bottom: 20px;
+
+                font-size: 20px;
+                font-weight: 700;
+            }
+
+            .live-users-table {
+
+                .live-users-row {
+                    height: 40px;
+
+                    td {
+                        padding: 5px 10px;
+                    }
+
+                    .live-users-challenge {
+                        padding-left: 20px;
+
+                        font-size: 20px;
+
+                        color: @dull-blue;
+
+                        cursor: pointer;
+                    }
+                }
+            }
+
+            .live-users-empty {
+                color: @font-light-grey;
+            }
+        }
+    }
+}
+
+.live-users-challenge-menu {
+
+    .live-users-challenge-menu-title {
+        margin-bottom: 10px;
+
+        font-weight: 700;
+    }
+
+    .live-users-challenge-menu-item {
+        margin-bottom: 5px;
+
+        cursor: pointer;
+
+        &:hover {
+            color: @dull-blue;
+        }
+    }
+}

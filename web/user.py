@@ -112,10 +112,13 @@ def info():
                 'csrfToken': csrf_token,
             })
 
+        # mark last online
+        db_service.update_user_last_online(current_user.user_id)
+
         return json.dumps({
             'loggedIn': True,
             'csrfToken': csrf_token,
-            'user': current_user.to_json_obj(),
+            'user': current_user.to_json_obj(with_key=True),
         });
 
     # look up other user info
@@ -242,7 +245,9 @@ def history():
         users = {}
 
     return json.dumps({
-        'history': [h.to_json_obj() for h in history],
+        'history': [
+            h.to_json_obj() for h in history
+        ],
         'users': {
             user_id: user.to_json_obj()
             for user_id, user in users.iteritems()

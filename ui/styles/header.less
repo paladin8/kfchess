@@ -49,7 +49,7 @@
 
         margin-left: 20px;
 
-        width: 30%;
+        width: 35%;
         min-width: 200px;
         height: 35px;
 
@@ -58,11 +58,19 @@
         .header-menu-item {
 
             a {
+                padding-bottom: 5px;
+
                 color: @font-black;
 
                 &:hover {
                     color: @dull-blue;
                 }
+            }
+
+            .header-link-active {
+                color: @dull-blue;
+
+                border-bottom: 2px solid @dull-blue;
             }
 
             .header-profile-pic {

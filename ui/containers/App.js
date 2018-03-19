@@ -7,6 +7,7 @@ import Alert from './Alert.js';
 import Game from './Game.js';
 import Header from './Header.js';
 import Home from './Home.js';
+import Live from './Live.js';
 import Profile from './Profile.js';
 
 export default class App extends Component {
@@ -30,6 +31,7 @@ export default class App extends Component {
         this.checkGame = this.checkGame.bind(this);
         this.inviteUser = this.inviteUser.bind(this);
         this.getUserGameHistory = this.getUserGameHistory.bind(this);
+        this.getLiveInfo = this.getLiveInfo.bind(this);
         this.logout = this.logout.bind(this);
 
         this.router = null;
@@ -37,6 +39,11 @@ export default class App extends Component {
 
     componentDidMount() {
         this.loadMyInfo();
+        this.infoTimer = setInterval(this.loadMyInfo, 1000 * 60);
+    }
+
+    componentWillUnmount() {
+        clearInterval(this.infoTimer);
     }
 
     getRequest(path, callback, errorCallback) {
@@ -188,7 +195,7 @@ export default class App extends Component {
         );
     }
 
-    createNewGame(speed, isBot, difficulty) {
+    createNewGame(speed, isBot, difficulty, username) {
         amplitude.getInstance().logEvent('Create New Game', {
             speed,
             isBot,
@@ -199,12 +206,17 @@ export default class App extends Component {
             '/api/game/new',
             JSON.stringify({
                 speed,
-                bots: isBot ? { 2: difficulty } : {}
+                bots: isBot ? { 2: difficulty } : {},
+                username,
             }),
             response => {
                 response.json().then(data => {
-                    this.setState({ playerKeys: data.playerKeys });
-                    this.router.history.push(`/game/${data.gameId}?key=${data.playerKeys['1']}`);
+                    if (data.success) {
+                        this.setState({ playerKeys: data.playerKeys });
+                        this.router.history.push(`/game/${data.gameId}?key=${data.playerKeys['1']}`);
+                    } else {
+                        this.setError(data.message);
+                    }
                 });
             },
             () => this.setError('Error creating new game.')
@@ -271,6 +283,28 @@ export default class App extends Component {
         );
     }
 
+    getLiveInfo(callback) {
+        this.getRequest(
+            '/api/live',
+            response => {
+                response.json().then(data => {
+                    this.setState({
+                        knownUsers: {
+                            ...this.state.knownUsers,
+                            ...data.users,
+                        },
+                    }, () => {
+                        callback(data);
+                    });
+                });
+            },
+            () => {
+                this.setError('Error fetching live info.');
+                callback();
+            }
+        );
+    }
+
     logout() {
         this.postRequest(
             '/logout',
@@ -309,6 +343,16 @@ export default class App extends Component {
                             <Home
                                 createNewGame={this.createNewGame}
                                 {...props}
+                            />
+                        );
+                    }} />
+                    <Route path='/live' render={props => {
+                        return (
+                            <Live
+                                user={user}
+                                knownUsers={knownUsers}
+                                createNewGame={this.createNewGame}
+                                getLiveInfo={this.getLiveInfo}
                             />
                         );
                     }} />

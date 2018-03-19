@@ -9,6 +9,8 @@ CREATE TABLE users (
     current_game  JSONB
 );
 
+CREATE INDEX users_last_online_idx ON users (last_online);
+
 
 CREATE TABLE user_game_history (
     id           BIGSERIAL PRIMARY KEY,
