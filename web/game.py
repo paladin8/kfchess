@@ -14,6 +14,7 @@ import context
 from db import db_service
 from lib import ai
 from lib.game import Game, GameState, Speed
+from lib.replay import Replay
 from web import game_states
 
 
@@ -22,6 +23,10 @@ TICK_PERIOD = 0.1
 game = Blueprint('game', __name__)
 
 socketio = None  # populated by initialize()
+
+
+def generate_game_id():
+    return ''.join(random.choice(string.ascii_uppercase + string.digits) for i in xrange(6))
 
 
 @game.route('/api/game/new', methods=['POST'])
@@ -34,7 +39,7 @@ def new():
     print 'new game', data
 
     # generate game ID and player keys
-    game_id = ''.join(random.choice(string.ascii_uppercase + string.digits) for i in xrange(6))
+    game_id = generate_game_id()
     player_keys = {i: str(uuid.uuid4()) for i in xrange(1, 3) if i not in bots}
 
     # if logged in, add current user to game
@@ -75,7 +80,6 @@ def new():
     return json.dumps({
         'success': True,
         'gameId': game_id,
-        'game': game.to_json_obj(),
         'playerKeys': player_keys,
     })
 
@@ -165,6 +169,34 @@ def invite():
     })
 
 
+@game.route('/api/replay/start', methods=['POST'])
+def replay_start():
+    data = json.loads(request.data)
+    history_id = data['historyId']
+    print 'replay start', data
+
+    game_history = db_service.get_game_history(history_id)
+    if game_history is None:
+        return json.dumps({
+            'success': False,
+            'message': 'Replay does not exist.',
+        })
+
+    # create game and add to game states
+    replay = Replay.from_json_obj(game_history.replay)
+    game = Game(Speed(replay.speed), replay.players)
+    for player in replay.players:
+        game.mark_ready(player)
+
+    game_id = generate_game_id()
+    game_states[game_id] = GameState(game_id, game, {}, {}, replay)
+
+    return json.dumps({
+        'success': True,
+        'gameId': game_id,
+    })
+
+
 def initialize(init_socketio):
     global socketio
     socketio = init_socketio
@@ -184,6 +216,8 @@ def initialize(init_socketio):
             if sleep_amount > 0:
                 eventlet.sleep(sleep_amount)
 
+            randnum = random.randint(0, 9999)
+
             current_time = time.time()
             expired_games = set()
             for game_id, game_state in game_states.iteritems():
@@ -198,7 +232,7 @@ def initialize(init_socketio):
 
                 try:
                     # add to active games
-                    if game.current_tick == 0:
+                    if game.current_tick == 0 and game_state.replay is None:
                         db_service.add_active_game(context.SERVER, game_id, {
                             'players': game.players,
                             'speed': game.speed.value,
@@ -211,7 +245,7 @@ def initialize(init_socketio):
                     # check for bot moves
                     moved = False
                     for player, bot in game_state.bots.iteritems():
-                        move = bot.get_move(game, player)
+                        move = bot.get_move(game, player, randnum)
                         if move:
                             piece, row, col = move
                             game.move(piece.id, player, row, col)
@@ -222,6 +256,22 @@ def initialize(init_socketio):
                             'game': game_state.game.to_json_obj(),
                             'success': True,
                         }, room=game_id, json=True)
+                except:
+                    traceback.print_exc()
+
+                try:
+                    # check for replay moves
+                    if game_state.replay:
+                        moved = False
+                        for replay_move in game_state.replay.moves_by_tick[game.current_tick]:
+                            game.move(replay_move.piece_id, replay_move.player, replay_move.row, replay_move.col)
+                            moved = True
+
+                        if moved:
+                            socketio.emit('moveack', {
+                                'game': game_state.game.to_json_obj(),
+                                'success': True,
+                            }, room=game_id, json=True)
                 except:
                     traceback.print_exc()
 
@@ -238,10 +288,10 @@ def initialize(init_socketio):
 
                 try:
                     # remove from active games and add to history
-                    if game.finished:
+                    if game.finished and game_state.replay is None:
                         db_service.remove_active_game(context.SERVER, game_id)
 
-                        history_id = db_service.add_game_history(game)
+                        history_id = db_service.add_game_history(Replay.from_game(game))
                         for player, value in game.players.iteritems():
                             if not value.startswith('u:'):
                                 continue
@@ -259,6 +309,7 @@ def initialize(init_socketio):
                 except:
                     traceback.print_exc()
 
+            # remove expired games
             for game_id in expired_games:
                 db_service.remove_active_game(context.SERVER, game_id)
                 del game_states[game_id]

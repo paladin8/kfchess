@@ -99,16 +99,16 @@ class ActiveGame(object):
 
 class GameHistory(object):
 
-    def __init__(self, history_id, game):
+    def __init__(self, history_id, replay):
         self.history_id = history_id
-        self.game = game
+        self.replay = replay
 
     def to_json_obj():
         return {
             'historyId': self.history_id,
-            'game': self.game,
+            'replay': self.replay,
         }
 
     @staticmethod
     def from_row(row):
-        return GameHistory(row.id, row.game)
+        return GameHistory(row.id, row.replay)

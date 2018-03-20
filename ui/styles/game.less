@@ -23,37 +23,35 @@
                     align-items: center;
 
                     height: 80px;
-                }
 
-                .game-ready-button {
-                    .light-green-button;
+                    margin-bottom: 40px;
 
-                    width: 100%;
-                    height: 40px;
+                    .game-ready-button {
+                        .light-green-button;
 
-                    font-size: 15px;
+                        width: 100%;
+                        height: 40px;
 
-                    &:hover {
-                        cursor: default;
+                        font-size: 15px;
+
+                        &:hover {
+                            cursor: default;
+                        }
+
+                        &.clickable:hover {
+                            cursor: pointer;
+                        }
                     }
 
-                    &.clickable:hover {
+                    .game-cancel-button {
+                        margin-top: 10px;
+
+                        color: @font-light-grey;
+
+                        font-size: 13px;
+
                         cursor: pointer;
                     }
-                }
-
-                .game-cancel-button {
-                    margin-top: 10px;
-
-                    color: @font-light-grey;
-
-                    font-size: 13px;
-
-                    cursor: pointer;
-                }
-
-                .game-id {
-                    padding-top: 20px;
                 }
 
                 .game-friend-link {
@@ -72,6 +70,28 @@
                     .game-friend-link-icon {
                         color: #5b91c6;
                     }
+                }
+
+                &.game-meta-players {
+                    margin-top: 40px;
+
+                    .game-meta-player {
+
+                        td {
+                            padding-bottom: 10px;
+                        }
+
+                        .game-meta-player-color {
+                            padding-right: 10px;
+                        }
+                    }
+                }
+
+                &.game-time {
+                    padding: 5px;
+
+                    font-size: 18px;
+                    font-weight: 700;
                 }
             }
         }

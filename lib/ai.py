@@ -54,9 +54,9 @@ class BasicBot(object):
         self.ticks_per_move = ticks_per_move
         self.top_n_moves = top_n_moves
 
-    def get_move(self, game, player):
+    def get_move(self, game, player, randnum):
         # moves approx every ticks_per_move (with randomness)
-        if game.current_tick % self.ticks_per_move != random.randint(0, self.ticks_per_move - 1):
+        if game.current_tick % self.ticks_per_move != randnum % self.ticks_per_move:
             return None
 
         # precompute location -> piece map for performance
@@ -275,12 +275,12 @@ if __name__ == '__main__':
         if game.finished:
             break
 
-        move = bot.get_move(game, 1)
+        move = bot.get_move(game, 1, random.randint(0, 9999))
         if move:
             piece, row, col = move
             game.move(piece.id, piece.player, row, col)
 
-        move = bot.get_move(game, 2)
+        move = bot.get_move(game, 2, random.randint(0, 9999))
         if move:
             piece, row, col = move
             game.move(piece.id, piece.player, row, col)

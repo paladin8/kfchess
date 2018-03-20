@@ -301,6 +301,20 @@ class Game extends Component {
                                     </CopyToClipboard>
                                 </Tooltip>
                             </div>
+                            <div className='game-meta-section game-meta-players'>
+                                <table>
+                                    <tbody>
+                                        <tr className='game-meta-player'>
+                                            <td className='game-meta-player-color'>White:</td>
+                                            <td><UserDisplay value={game.players[1]} knownUsers={knownUsers} /></td>
+                                        </tr>
+                                        <tr className='game-meta-player'>
+                                            <td className='game-meta-player-color'>Black:</td>
+                                            <td><UserDisplay value={game.players[2]} knownUsers={knownUsers} /></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>

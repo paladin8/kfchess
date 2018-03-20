@@ -12,6 +12,7 @@ export default class GameState {
 
         this.player = null;
         this.game = null;
+        this.ticks = null;
         this.lastUpdate = new Date();
         this.lastCurrentTick = 0;
         this.lastCurrentTime = new Date();
@@ -48,6 +49,10 @@ export default class GameState {
     handleMessage(data) {
         if (data.player !== undefined) {
             this.player = data.player;
+        }
+
+        if (data.ticks !== undefined) {
+            this.ticks = data.ticks;
         }
 
         if (SIMULATED_DELAY > 0) {
@@ -91,6 +96,10 @@ export default class GameState {
     }
 
     getCurrentTick() {
+        if (!this.game) {
+            return 0;
+        }
+
         if (this.game.finished) {
             return this.game.currentTick;
         }

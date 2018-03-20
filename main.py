@@ -76,6 +76,7 @@ def join(data):
     emit('joinack', {
         'game': game_state.game.to_json_obj(),
         'player': auth_player,
+        'ticks': game_state.replay.ticks if game_state.replay is not None else None,
     }, json=True)
 
 

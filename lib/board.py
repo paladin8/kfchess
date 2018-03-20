@@ -21,7 +21,7 @@ class Piece(object):
         self.col = col
         self.captured = captured
         self.moved = moved
-        self.id = id or str(uuid.uuid4())
+        self.id = id or '%s:%s:%s:%s' % (type, player, row, col)
 
     def at_position(self, row, col):
         return Piece(

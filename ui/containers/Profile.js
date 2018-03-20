@@ -8,6 +8,7 @@ import ProfilePic from './ProfilePic.js';
 import SpeedIcon from './SpeedIcon.js';
 import Spinner from './Spinner.js';
 import UserDisplay from './UserDisplay.js';
+import * as Time from '../util/Time.js';
 
 const RATING_TYPES = ['standard', 'lightning'];
 
@@ -141,12 +142,10 @@ export default class Profile extends Component {
     renderProfile(currUser, isMe) {
         const {
             fetching,
-            historyFetching,
             username,
             showEditUsername,
             editingUsername,
             showEditProfilePic,
-            history,
         } = this.state;
         const { knownUsers } = this.props;
 
@@ -233,89 +232,99 @@ export default class Profile extends Component {
                         </div>
                     </div>
                 </div>
-                {!fetching &&
-                    <div className='profile-history'>
-                        <div className='profile-history-title'>Game History</div>
-                        {historyFetching ?
-                            <Spinner />
-                            :
-                            <div className='profile-history-table-wrapper'>
-                                {history.length === 0 &&
-                                    <div className='profile-history-no-games'>No games played yet!</div>
-                                }
-                                {history.length > 0 &&
-                                    <table className='profile-history-table'>
-                                        <tbody>
-                                            {history.map(h => {
-                                                const gameTime = moment.utc(h.gameTime);
-                                                const gameInfo = h.gameInfo;
-
-                                                const minutes = Math.floor(gameInfo.ticks / 600);
-                                                const seconds = Math.floor((gameInfo.ticks % 600) / 10);
-
-                                                const result = gameInfo.winner === 0 ? 'Draw' : (
-                                                    gameInfo.player === gameInfo.winner ? 'Won' : 'Lost'
-                                                );
-
-                                                let resultColor = '';
-                                                if (result === 'Won') {
-                                                    resultColor = '#7bcc70';
-                                                } else if (result === 'Lost') {
-                                                    resultColor = 'red';
-                                                }
-
-                                                return (
-                                                    <tr className='profile-history-row' key={h.historyId}>
-                                                        <td
-                                                            className='profile-history-time'
-                                                        >
-                                                            <Tooltip
-                                                                title={gameTime.local().format('YYYY-MM-DD hh:mm A')}
-                                                            >
-                                                                {gameTime.fromNow()}
-                                                            </Tooltip>
-                                                        </td>
-                                                        <td className='profile-history-speed'>
-                                                            <SpeedIcon speed={gameInfo.speed} iconOnly={true} />
-                                                        </td>
-                                                        <td className='profile-history-opponent'>
-                                                            <div>vs</div>
-                                                            {gameInfo.opponents.map(o => {
-                                                                return <UserDisplay value={o} knownUsers={knownUsers} />;
-                                                            })[0]}
-                                                        </td>
-                                                        <td
-                                                            className='profile-history-result'
-                                                            style={{ color: resultColor }}
-                                                        >
-                                                            {gameInfo.winner === 0 ? 'Draw' : (
-                                                                gameInfo.player === gameInfo.winner ? 'Won' : 'Lost'
-                                                            )}
-                                                        </td>
-                                                        <td className='profile-history-length'>
-                                                            {minutes.toString() + ':' + ('00' + seconds.toString()).substr(-2, 2)}
-                                                        </td>
-                                                        <td className='profile-history-replay'>
-                                                            <Tooltip
-                                                                title='Replay'
-                                                                distance={5}
-                                                            >
-                                                                <Link to={`/replay/${gameInfo.historyId}`}>
-                                                                    <i className='fas fa-eye' />
-                                                                </Link>
-                                                            </Tooltip>
-                                                        </td>
-                                                    </tr>
-                                                );
-                                            })}
-                                        </tbody>
-                                    </table>
-                                }
-                            </div>
-                        }
-                    </div>
-                }
+                {!fetching && this.renderHistory()}
             </div>
+        );
+    }
+
+    renderHistory() {
+        const { historyFetching, history } = this.state;
+        const { knownUsers } = this.props;
+
+        return (
+            <div className='profile-history'>
+            <div className='profile-history-title'>Game History</div>
+            {historyFetching ?
+                <Spinner />
+                :
+                <div className='profile-history-table-wrapper'>
+                    {history.length === 0 &&
+                        <div className='profile-history-no-games'>No games played yet!</div>
+                    }
+                    {history.length > 0 &&
+                        <table className='profile-history-table'>
+                            <tbody>
+                                {history.map(h => {
+                                    const gameTime = moment.utc(h.gameTime);
+                                    const gameInfo = h.gameInfo;
+
+                                    const result = gameInfo.winner === 0 ? 'Draw' : (
+                                        gameInfo.player === gameInfo.winner ? 'Won' : 'Lost'
+                                    );
+
+                                    let resultColor = '';
+                                    if (result === 'Won') {
+                                        resultColor = '#7bcc70';
+                                    } else if (result === 'Lost') {
+                                        resultColor = 'red';
+                                    }
+
+                                    return (
+                                        <tr className='profile-history-row' key={h.historyId}>
+                                            <td
+                                                className='profile-history-time'
+                                            >
+                                                <Tooltip
+                                                    title={gameTime.local().format('YYYY-MM-DD hh:mm A')}
+                                                >
+                                                    {gameTime.fromNow()}
+                                                </Tooltip>
+                                            </td>
+                                            <td className='profile-history-speed'>
+                                                <SpeedIcon speed={gameInfo.speed} iconOnly={true} />
+                                            </td>
+                                            <td className='profile-history-opponent'>
+                                                <div>vs</div>
+                                                {gameInfo.opponents.map(o => {
+                                                    return <UserDisplay value={o} knownUsers={knownUsers} />;
+                                                })[0]}
+                                            </td>
+                                            <td
+                                                className='profile-history-result'
+                                                style={{ color: resultColor }}
+                                            >
+                                                {gameInfo.winner === 0 ? 'Draw' : (
+                                                    gameInfo.player === gameInfo.winner ? 'Won' : 'Lost'
+                                                )}
+                                            </td>
+                                            <td className='profile-history-length'>
+                                                {Time.renderGameTime(gameInfo.ticks)}
+                                            </td>
+                                            <td className='profile-history-replay'>
+                                                <Tooltip
+                                                    title='Replay'
+                                                    distance={5}
+                                                >
+                                                    <div
+                                                        onClick={() => {
+                                                            this.props.startReplay(gameInfo.historyId, data => {
+                                                                this.props.history.push(`/replay/${data.gameId}`);
+                                                            });
+                                                        }}
+                                                    >
+                                                        <i className='fas fa-eye' />
+                                                    </div>
+                                                </Tooltip>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    }
+                </div>
+            }
+        </div>
         );
     }
 };

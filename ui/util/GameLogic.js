@@ -32,7 +32,7 @@ export function getPieceByLocation(game, toRow, toCol) {
 export function isMoving(game, piece) {
 	for (let i = 0; i < game.activeMoves.length; i++) {
 		const move = game.activeMoves[i];
-		if (move.piece.id === piece.id) {
+		if (move.pieceId === piece.id) {
 			return true;
 		}
 	}
@@ -42,7 +42,7 @@ export function isMoving(game, piece) {
 export function isCooldown(game, piece) {
 	for (let i = 0; i < game.cooldowns.length; i++) {
 		const cooldown = game.cooldowns[i];
-		if (cooldown.piece.id === piece.id) {
+		if (cooldown.pieceId === piece.id) {
 			return true;
 		}
 	}
@@ -63,7 +63,7 @@ function isLegalMoveNoCross(game, currentTick, piece, rowDir, colDir, steps, cap
 		for (let j = 0; j < game.activeMoves.length; j++) {
 			const move = game.activeMoves[j];
 			const endPos = move.moveSeq[move.moveSeq.length - 1];
-			if (move.piece.player === piece.player && endPos[0] === iRow && endPos[1] === iCol) {
+			if (move.player === piece.player && endPos[0] === iRow && endPos[1] === iCol) {
 				return false;
 			}
 		}
@@ -73,7 +73,7 @@ function isLegalMoveNoCross(game, currentTick, piece, rowDir, colDir, steps, cap
 	const eRow = piece.row + rowDir * steps, eCol = piece.col + colDir * steps;
 	for (let i = 0; i < game.activeMoves.length; i++) {
 		const move = game.activeMoves[i];
-		if (move.piece.player !== piece.player) {
+		if (move.player !== piece.player) {
 			continue;
 		}
 

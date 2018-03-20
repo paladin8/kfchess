@@ -165,13 +165,13 @@ class DbService(object):
 
     # game history
 
-    def add_game_history(self, game):
+    def add_game_history(self, replay):
         with self.engine.connect() as conn:
             row = conn.execute(
-                "INSERT INTO game_history (game) "
+                "INSERT INTO game_history (replay) "
                 "VALUES (%s) "
                 "RETURNING id",
-                json.dumps(game.to_json_obj())
+                json.dumps(replay.to_json_obj())
             ).fetchone()
             return row and row.id
 

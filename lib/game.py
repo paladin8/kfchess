@@ -40,7 +40,8 @@ class Move(object):
 
     def to_json_obj(self):
         return {
-            'piece': self.piece.to_json_obj(),
+            'pieceId': self.piece.id,
+            'player': self.piece.player,
             'moveSeq': self.move_seq,
             'startingTick': self.starting_tick,
         }
@@ -54,7 +55,8 @@ class Cooldown(object):
 
     def to_json_obj(self):
         return {
-            'piece': self.piece.to_json_obj(),
+            'pieceId': self.piece.id,
+            'player': self.piece.player,
             'startingTick': self.starting_tick,
         }
 
@@ -521,8 +523,9 @@ class Game(object):
 
 class GameState(object):
 
-    def __init__(self, game_id, game, player_keys, bots):
+    def __init__(self, game_id, game, player_keys, bots, replay=None):
         self.game_id = game_id
         self.game = game
         self.player_keys = player_keys
         self.bots = bots
+        self.replay = replay

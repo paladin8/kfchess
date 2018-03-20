@@ -150,20 +150,20 @@ export default class GameBoard extends Component {
             const move = game.moveLog[i];
             const totalMoveTicks = (move.moveSeq.length - 1) * game.moveTicks;
             if (currentTick <= move.startingTick + totalMoveTicks + 10) {
-                movingPieces[move.piece.id] = move;
+                movingPieces[move.pieceId] = move;
             }
         }
 
         for (let i = 0; i < game.activeMoves.length; i++) {
             const move = game.activeMoves[i];
-            movingPieces[move.piece.id] = move;
+            movingPieces[move.pieceId] = move;
         }
 
         const cooldownPieces = {};
         for (let i = 0; i < game.cooldowns.length; i++) {
             const cooldown = game.cooldowns[i];
             if (currentTick >= cooldown.startingTick) {
-                cooldownPieces[cooldown.piece.id] = cooldown;
+                cooldownPieces[cooldown.pieceId] = cooldown;
             }
         }
 
@@ -302,17 +302,19 @@ export default class GameBoard extends Component {
         for (let pieceId in this.pieceSprites) {
             const pieceSprite = this.pieceSprites[pieceId];
             if (pieceId in cooldownPieces) {
-
                 const cooldown = cooldownPieces[pieceId];
                 const interp = Math.max(0, Math.min(1, (currentTick - cooldown.startingTick) / game.cooldownTicks));
-                this.updateCooldownGraphics(pieceSprite.cooldownGraphics, cooldown.piece.row, cooldown.piece.col, interp);
+                const piece = gameLogic.getPieceById(game, cooldown.pieceId);
+
+                this.updateCooldownGraphics(pieceSprite.cooldownGraphics, piece.row, piece.col, interp);
             } else {
                 pieceSprite.cooldownGraphics.visible = false;
 
                 if (pieceId in movingPieces) {
                     // special case for the end of a move, start rendering cooldown even if server hasn't updated us yet
                     const move = movingPieces[pieceId];
-                    if (!move.piece.captured) {
+                    const piece = gameLogic.getPieceById(game, move.pieceId);
+                    if (!piece.captured) {
                         const totalMoveTicks = (move.moveSeq.length - 1) * game.moveTicks;
                         if (currentTick - move.startingTick >= totalMoveTicks) {
                             const lastMove = move.moveSeq[move.moveSeq.length - 1];

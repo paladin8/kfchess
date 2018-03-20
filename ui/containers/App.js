@@ -9,6 +9,7 @@ import Header from './Header.js';
 import Home from './Home.js';
 import Live from './Live.js';
 import Profile from './Profile.js';
+import Replay from './Replay.js';
 
 export default class App extends Component {
 
@@ -32,6 +33,7 @@ export default class App extends Component {
         this.inviteUser = this.inviteUser.bind(this);
         this.getUserGameHistory = this.getUserGameHistory.bind(this);
         this.getLiveInfo = this.getLiveInfo.bind(this);
+        this.startReplay = this.startReplay.bind(this);
         this.logout = this.logout.bind(this);
 
         this.router = null;
@@ -305,6 +307,23 @@ export default class App extends Component {
         );
     }
 
+    startReplay(historyId, callback) {
+        this.postRequest(
+            '/api/replay/start',
+            JSON.stringify({ historyId }),
+            response => {
+                response.json().then(data => {
+                    if (data.success) {
+                        callback(data);
+                    } else {
+                        this.setError(data.message);
+                    }
+                });
+            },
+            () => this.setError('Error starting replay.')
+        );
+    }
+
     logout() {
         this.postRequest(
             '/logout',
@@ -366,6 +385,7 @@ export default class App extends Component {
                                 updateUser={this.updateUser}
                                 uploadProfilePic={this.uploadProfilePic}
                                 getUserGameHistory={this.getUserGameHistory}
+                                startReplay={this.startReplay}
                                 {...props}
                             />
                         );
@@ -379,6 +399,15 @@ export default class App extends Component {
                                 fetchUserInfo={this.fetchUserInfo}
                                 inviteUser={this.inviteUser}
                                 playerKeys={playerKeys}
+                                {...props}
+                            />
+                        )
+                    }} />
+                    <Route path='/replay/:gameId' render={props => {
+                        return (
+                            <Replay
+                                knownUsers={knownUsers}
+                                fetchUserInfo={this.fetchUserInfo}
                                 {...props}
                             />
                         )

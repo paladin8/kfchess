@@ -23,8 +23,8 @@ CREATE INDEX user_game_history_user_id_game_time_idx ON user_game_history (user_
 
 
 CREATE TABLE game_history (
-    id    BIGSERIAL PRIMARY KEY,
-    game  JSONB
+    id      BIGSERIAL PRIMARY KEY,
+    replay  JSONB
 );
 
 
