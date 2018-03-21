@@ -58,7 +58,7 @@ export default class GameState {
         if (SIMULATED_DELAY > 0) {
             setTimeout(() => this.update(data.game), Math.random() * SIMULATED_DELAY);
         } else {
-            this.update(data.game);
+            this.update(data.game, data.updates);
         }
     }
 
@@ -66,11 +66,11 @@ export default class GameState {
         this.endCallback();
     }
 
-    update(game) {
+    update(game, updates) {
         this.game = game;
         this.lastUpdate = new Date();
         for (let i = 0; i < this.updateListeners.length; i++) {
-            this.updateListeners[i](this);
+            this.updateListeners[i](this, updates);
         }
 
         const userIds = [];

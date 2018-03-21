@@ -38,11 +38,18 @@ class Game extends Component {
             isReady: false,
             windowWidth: window.innerWidth,
             windowHeight: window.innerHeight,
+
+            musicVolume: (window.localStorage && window.localStorage.musicVolume) || 0,
+            soundVolume: (window.localStorage && window.localStorage.soundVolume) || 0,
         };
 
         this.resize = this.resize.bind(this);
         this.update = this.update.bind(this);
         this.closeModal = this.closeModal.bind(this);
+
+        this.music = null;
+        this.captureSounds = [];
+        this.finishSound = null;
     }
 
     componentWillMount() {
@@ -80,7 +87,8 @@ class Game extends Component {
         });
     }
 
-    update(gameState) {
+    update(gameState, updates) {
+        const { soundVolume } = this.state;
         const { playerKeys } = this.props;
 
         let modalType = this.state.modalType;
@@ -92,6 +100,11 @@ class Game extends Component {
                     gameId: gameState.gameId,
                     player: gameState.player,
                 });
+
+                if (this.finishSound) {
+                    this.finishSound.volume = soundVolume / 100;
+                    this.finishSound.play();
+                }
 
                 modalType = 'game-finished';
             } else if (modalType === 'game-finished' && !gameState.game.finished) {
@@ -110,9 +123,17 @@ class Game extends Component {
                 showReady = (
                     playerKeys === null || !('2' in playerKeys) ||
                     !(Object.values(gameState.game.players).includes('o')) ||
-                    gameState.game.playersReady['2']
+                    gameState.game.playersReady['1'] || gameState.game.playersReady['2']
                 );
             }
+        }
+
+        const hasCapture = updates && updates.some(u => u.type === 'capture');
+        if (hasCapture && this.captureSounds.length > 0) {
+            const soundIndex = Math.floor(Math.random() * this.captureSounds.length);
+            const randomSound = this.captureSounds[soundIndex];
+            randomSound.volume = soundVolume / 100;
+            randomSound.play();
         }
 
         this.setState({
@@ -149,7 +170,10 @@ class Game extends Component {
             isReady,
             windowWidth,
             windowHeight,
+            musicVolume,
+            soundVolume,
         } = this.state;
+
         const { knownUsers, playerKeys } = this.props;
 
         const baseUrl = `${window.location.origin}${window.location.pathname}`;
@@ -207,6 +231,15 @@ class Game extends Component {
 
         const isPortrait = windowHeight > 1.5 * windowWidth;
 
+        if (this.music) {
+            if (game && game.started && !game.finished) {
+                this.music.play();
+            } else {
+                this.music.pause();
+                this.music.currentTime = 0;
+            }
+        }
+
         return game ?
             <div className='game'>
                 {this.renderModal(
@@ -222,6 +255,7 @@ class Game extends Component {
                     endGameText,
                 )}
                 <div className='game-content'>
+                    {this.renderAudio()}
                     <div className='game-board'>
                         <GameBoard gameState={gameState} />
                     </div>
@@ -316,6 +350,50 @@ class Game extends Component {
                                 </table>
                             </div>
                         </div>
+                        <div className='game-audio-controls'>
+                            <table>
+                                <tbody>
+                                    <tr className='game-audio-control'>
+                                        <td className='game-audio-control-label'>Music:</td>
+                                        <td>
+                                            <input
+                                                className='game-music-volume'
+                                                type='range'
+                                                min='0'
+                                                max='100'
+                                                value={musicVolume}
+                                                onChange={() => {}}
+                                                onInput={e => {
+                                                    this.setState({ musicVolume : e.target.value });
+                                                    if (window.localStorage) {
+                                                        window.localStorage.musicVolume = e.target.value;
+                                                    }
+                                                }}
+                                            />
+                                        </td>
+                                    </tr>
+                                    <tr className='game-audio-control'>
+                                        <td className='game-audio-control-label'>Sound:</td>
+                                        <td>
+                                            <input
+                                                className='game-sound-volume'
+                                                type='range'
+                                                min='0'
+                                                max='100'
+                                                value={soundVolume}
+                                                onChange={() => {}}
+                                                onInput={e => {
+                                                    this.setState({ soundVolume : e.target.value });
+                                                    if (window.localStorage) {
+                                                        window.localStorage.soundVolume = e.target.value;
+                                                    }
+                                                }}
+                                            />
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
                 {isPortrait &&
@@ -327,6 +405,53 @@ class Game extends Component {
             </div>
             :
             null;
+    }
+
+    renderAudio() {
+        const { musicVolume } = this.state;
+
+        return (
+            <div>
+                <audio
+                    ref={music => {
+                        this.music = music;
+                        if (this.music) {
+                            this.music.volume = musicVolume / 100;
+                        }
+                    }}
+                    loop
+                >
+                    <source src='/static/kfchess-music.mp3' type='audio/mp3' />
+                </audio>
+                <audio ref={sound => this.captureSounds[0] = sound}>
+                    <source src='/static/kfchess-sound1.mp3' type='audio/mp3' />
+                </audio>
+                <audio ref={sound => this.captureSounds[1] = sound}>
+                    <source src='/static/kfchess-sound2.mp3' type='audio/mp3' />
+                </audio>
+                <audio ref={sound => this.captureSounds[2] = sound}>
+                    <source src='/static/kfchess-sound3.mp3' type='audio/mp3' />
+                </audio>
+                <audio ref={sound => this.captureSounds[3] = sound}>
+                    <source src='/static/kfchess-sound4.mp3' type='audio/mp3' />
+                </audio>
+                <audio ref={sound => this.captureSounds[4] = sound}>
+                    <source src='/static/kfchess-sound5.mp3' type='audio/mp3' />
+                </audio>
+                <audio ref={sound => this.captureSounds[5] = sound}>
+                    <source src='/static/kfchess-sound6.mp3' type='audio/mp3' />
+                </audio>
+                <audio ref={sound => this.captureSounds[6] = sound}>
+                    <source src='/static/kfchess-sound7.mp3' type='audio/mp3' />
+                </audio>
+                <audio ref={sound => this.captureSounds[7] = sound}>
+                    <source src='/static/kfchess-sound8.mp3' type='audio/mp3' />
+                </audio>
+                <audio ref={sound => this.finishSound = sound}>
+                    <source src='/static/kfchess-gong.mp3' type='audio/mp3' />
+                </audio>
+            </div>
+        );
     }
 
     renderModal(

@@ -10,8 +10,13 @@
         justify-content: space-around;
 
         .game-meta {
+            display: flex;
+            flex-direction: column;
+
             width: 200px;
             min-width: 200px;
+
+            padding-bottom: 40px;
 
             .game-meta-section {
                 margin-bottom: 20px;
@@ -75,6 +80,10 @@
                 &.game-meta-players {
                     margin-top: 40px;
 
+                    table {
+                        border-spacing: 0px;
+                    }
+
                     .game-meta-player {
 
                         td {
@@ -92,6 +101,28 @@
 
                     font-size: 18px;
                     font-weight: 700;
+                }
+            }
+
+            .game-audio-controls {
+                display: flex;
+                flex-grow: 1;
+                flex-direction: column;
+                justify-content: flex-end;
+
+                table {
+                    border-spacing: 0px;
+                }
+
+                .game-audio-control {
+
+                    td {
+                        padding-bottom: 10px;
+                    }
+
+                    .game-audio-control-label {
+                        padding-right: 10px;
+                    }
                 }
             }
         }
@@ -231,15 +262,13 @@
             input {
                 width: 250px;
 
-                font-size: 18px;
+                font-size: 15px;
                 font-family: 'Karla', sans-serif;
             }
 
             .game-invite-submit {
                 margin-left: 10px;
                 margin-top: 5px;
-
-                font-size: 18px;
 
                 cursor: pointer;
             }
