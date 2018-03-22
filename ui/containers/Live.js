@@ -62,7 +62,7 @@ export default class Live extends Component {
                                 return (
                                     <tr className='live-games-row' key={index}>
                                         <td className='live-games-speed'>
-                                            <SpeedIcon speed={gameInfo.speed} iconOnly={true} />
+                                            <SpeedIcon speed={gameInfo.speed} iconOnly={true} rated={false} />
                                         </td>
                                         <td className='live-games-players'>
                                             {this.renderGamePlayers(gameInfo.players)}

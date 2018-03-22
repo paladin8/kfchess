@@ -82,7 +82,14 @@ class DbService(object):
                 username, picture_url, user_id
             )
 
-        return self.get_user_by_id(user_id)
+    def update_user_ratings(self, user_id, ratings):
+        with self.engine.connect() as conn:
+            conn.execute(
+                "UPDATE users "
+                "SET ratings = %s "
+                "WHERE id = %s",
+                json.dumps(ratings), user_id
+            )
 
     def update_user_last_online(self, user_id):
         with self.engine.connect() as conn:
@@ -93,8 +100,6 @@ class DbService(object):
                 datetime.datetime.utcnow(), user_id
             )
 
-        return self.get_user_by_id(user_id)
-
     def update_user_current_game(self, user_id, game_id, player_key):
         current_game = json.dumps({'gameId': game_id, 'playerKey': player_key}) if game_id is not None else None
         with self.engine.connect() as conn:
@@ -104,8 +109,6 @@ class DbService(object):
                 "WHERE id = %s",
                 current_game, user_id
             )
-
-        return self.get_user_by_id(user_id)
 
     # active games
 

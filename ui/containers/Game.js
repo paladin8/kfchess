@@ -24,6 +24,8 @@ class Game extends Component {
 
         const gameState = new GameState(gameId, playerKey, props.fetchUserInfo, () => {
             this.props.history.push('/');
+        }, (oldRating, newRating) => {
+            this.setState({ oldRating, newRating });
         });
 
         this.state = {
@@ -38,6 +40,9 @@ class Game extends Component {
             isReady: false,
             windowWidth: window.innerWidth,
             windowHeight: window.innerHeight,
+
+            oldRating: null,
+            newRating: null,
 
             musicVolume: (window.localStorage && window.localStorage.musicVolume) || 0,
             soundVolume: (window.localStorage && window.localStorage.soundVolume) || 0,
@@ -466,6 +471,7 @@ class Game extends Component {
         readyAction,
         endGameText
     ) {
+        const { oldRating, newRating } = this.state;
         const { user, knownUsers } = this.props;
 
         return (
@@ -564,7 +570,14 @@ class Game extends Component {
                 }
                 {modalType === 'game-finished' &&
                     <div className='game-finished'>
-                        <div className='game-finished-text'>{endGameText}</div>
+                        <div className='game-finished-text'>
+                            {endGameText}
+                        </div>
+                        {oldRating &&
+                            <div className='game-finished-rating'>
+                                {`New rating: ${newRating} (${newRating >= oldRating ? '+' + (newRating - oldRating) : newRating - oldRating})`}
+                            </div>
+                        }
                         {player !== 0 &&
                             <div
                                 className='game-finished-button-again'
@@ -606,12 +619,13 @@ class Game extends Component {
     renderReadyTitle(game) {
         const { knownUsers } = this.props;
 
+        const rated = Object.values(game.players).every(v => v.startsWith('u:'));
         const players = Object.keys(game.players).sort();
 
         return (
             <div className='game-ready-text'>
                 <div className='game-ready-text-speed'>
-                    <SpeedIcon speed={game.speed} iconOnly={false} />
+                    <SpeedIcon speed={game.speed} iconOnly={false} rated={rated} />
                 </div>
                 <div className='game-ready-text-players'>
                     {players.map((player, index) => {

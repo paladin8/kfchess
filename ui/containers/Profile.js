@@ -281,7 +281,7 @@ export default class Profile extends Component {
                                                 </Tooltip>
                                             </td>
                                             <td className='profile-history-speed'>
-                                                <SpeedIcon speed={gameInfo.speed} iconOnly={true} />
+                                                <SpeedIcon speed={gameInfo.speed} iconOnly={true} rated={false} />
                                             </td>
                                             <td className='profile-history-opponent'>
                                                 <div>vs</div>

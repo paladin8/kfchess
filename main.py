@@ -88,6 +88,7 @@ def cancel(data):
     print 'cancel', data
 
     if game_id not in game_states:
+        emit('cancelack', {}, room=game_id, json=True)
         return
 
     game_state = game_states[game_id]

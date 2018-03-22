@@ -12,13 +12,14 @@ from flask_login import current_user
 
 import context
 from db import db_service
-from lib import ai
+from lib import ai, elo
 from lib.game import Game, GameState, Speed
 from lib.replay import Replay
 from web import game_states
 
 
 TICK_PERIOD = 0.1
+DEFAULT_RATING = 1200
 
 game = Blueprint('game', __name__)
 
@@ -100,7 +101,9 @@ def check():
             'success': True,
         })
 
-    user = db_service.update_user_current_game(current_user.user_id, None, None)
+    db_service.update_user_current_game(current_user.user_id, None, None)
+    user = db_service.get_user_by_id(current_user.user_id)
+
     return json.dumps({
         'success': False,
         'user': user.to_json_obj(),
@@ -292,11 +295,17 @@ def initialize(init_socketio):
                         db_service.remove_active_game(context.SERVER, game_id)
 
                         history_id = db_service.add_game_history(Replay.from_game(game))
+                        user_id1, user_id2 = None, None
                         for player, value in game.players.iteritems():
                             if not value.startswith('u:'):
                                 continue
 
                             user_id = int(value[2:])
+                            if player == 1:
+                                user_id1 = user_id
+                            elif player == 2:
+                                user_id2 = user_id
+
                             opponents = [v for k, v in game.players.iteritems() if k != player]
                             db_service.add_user_game_history(user_id, game.start_time, {
                                 'speed': game.speed.value,
@@ -306,6 +315,31 @@ def initialize(init_socketio):
                                 'ticks': game.current_tick,
                                 'opponents': opponents,
                             })
+
+                        # update elo if two logged in users
+                        if user_id1 and user_id2:
+                            user1 = db_service.get_user_by_id(user_id1)
+                            user2 = db_service.get_user_by_id(user_id2)
+
+                            r1 = user1.ratings.get(game.speed.value, DEFAULT_RATING)
+                            r2 = user2.ratings.get(game.speed.value, DEFAULT_RATING)
+                            nr1, nr2 = elo.update_ratings(r1, r2, game.finished)
+
+                            user1.ratings[game.speed.value] = nr1
+                            user2.ratings[game.speed.value] = nr2
+                            db_service.update_user_ratings(user_id1, user1.ratings)
+                            db_service.update_user_ratings(user_id2, user2.ratings)
+
+                            socketio.emit('newratings', {
+                                '1': {
+                                    'oldRating': r1,
+                                    'newRating': nr1,
+                                },
+                                '2': {
+                                    'oldRating': r2,
+                                    'newRating': nr2,
+                                },
+                            }, room=game_id, json=True)
                 except:
                     traceback.print_exc()
 

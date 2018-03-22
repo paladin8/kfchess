@@ -164,7 +164,8 @@ def update():
         })
 
     try:
-        user = db_service.update_user(user_id, user.username, user.picture_url)
+        db_service.update_user(user_id, user.username, user.picture_url)
+        user = db_service.get_user_by_id(user_id)
         response = {
             'success': True,
             'user': user.to_json_obj(),
@@ -209,7 +210,8 @@ def upload_pic():
         url = s3.get_public_url('com-kfchess-public', key)
         print 's3 upload', key, url
 
-        user = db_service.update_user(user_id, user.username, url)
+        db_service.update_user(user_id, user.username, url)
+        user = db_service.get_user_by_id(user_id)
         response = {
             'success': True,
             'user': user.to_json_obj(),
