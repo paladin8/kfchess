@@ -1,5 +1,7 @@
 import openSocket from 'socket.io-client';
 
+const PING_INTERVAL = 1000 * 60 * 5;  // 5 min
+
 export default class Listener {
 
     constructor(userId, inviteCallback) {
@@ -23,9 +25,19 @@ export default class Listener {
         this.socket.on('invite', this.inviteCallback);
 
         this.socket.emit('listen', JSON.stringify({ userId: this.userId }));
+
+        if (this.interval) {
+            cancelInterval(this.interval);
+        }
+
+        this.interval = setInterval(() => {
+            this.socket.emit('uping', JSON.stringify({ userId: this.userId }));
+        }, PING_INTERVAL);
     }
 
     destroy() {
+        cancelInterval(this.interval);
+
         this.destroyed = true;
         this.socket.close();
     }

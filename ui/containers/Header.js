@@ -30,6 +30,7 @@ export default class Header extends Component {
                     <div className='header-menu-item'>
                         <a
                             href='https://www.reddit.com/r/kfchess/'
+                            target='_new'
                             onClick={() => amplitude.getInstance().logEvent('Click Reddit Link')}
                         >
                             Reddit

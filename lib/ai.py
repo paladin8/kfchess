@@ -1,7 +1,7 @@
 import collections
 import random
 
-from lib.game import Game
+from lib.game import Game, Speed
 
 
 KNIGHT_DIRS = [
@@ -265,27 +265,36 @@ class BasicBot(object):
 
 
 if __name__ == '__main__':
-    import yappi
-    yappi.set_clock_type('wall')
-    yappi.start()
+    profile = False
+
+    if profile:
+        import yappi
+        yappi.set_clock_type('wall')
+        yappi.start()
 
     bot = get_bot('advanced')
-    game = Game(Speed('lightning'), {})
-    for i in xrange(1000):
+    game = Game(Speed('standard'), {})
+    for i in xrange(10000):
         if game.finished:
             break
 
         move = bot.get_move(game, 1, random.randint(0, 9999))
         if move:
             piece, row, col = move
-            game.move(piece.id, piece.player, row, col)
+            if not game.move(piece.id, piece.player, row, col):
+                print piece, row, col
 
         move = bot.get_move(game, 2, random.randint(0, 9999))
         if move:
             piece, row, col = move
-            game.move(piece.id, piece.player, row, col)
+            if not game.move(piece.id, piece.player, row, col):
+                print piece, row, col
 
         game.tick()
 
-    yappi.stop()
-    yappi.get_func_stats().print_all()
+        if i % 100 == 0:
+            print i
+
+    if profile:
+        yappi.stop()
+        yappi.get_func_stats().print_all()

@@ -56,7 +56,18 @@ def listen(data):
     user_id = data['userId']
     print 'listen', data
 
+    db_service.update_user_last_online(user_id)
+
     join_room(user_id)
+
+
+@socketio.on('uping')
+def uping(data):
+    data = json.loads(data)
+    user_id = data['userId']
+    print 'uping', data
+
+    db_service.update_user_last_online(user_id)
 
 
 def get_auth_player(game_state, player_key):

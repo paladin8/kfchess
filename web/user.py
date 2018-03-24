@@ -112,9 +112,6 @@ def info():
                 'csrfToken': csrf_token,
             })
 
-        # mark last online
-        db_service.update_user_last_online(current_user.user_id)
-
         return json.dumps({
             'loggedIn': True,
             'csrfToken': csrf_token,
