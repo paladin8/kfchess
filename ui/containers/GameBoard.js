@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import * as PIXI from 'pixi.js';
 
 import chessboardImg from '../assets/chessboard.png';
+import chessboardBlackImg from '../assets/chessboard-black.png';
 import * as gameLogic from '../util/GameLogic.js';
 import sprites from '../util/Sprites.js';
 
@@ -18,6 +19,10 @@ export default class GameBoard extends Component {
 
     constructor(props) {
         super(props);
+
+        this.state = {
+            player: null,
+        };
 
         this.resize = this.resize.bind(this);
         this.update = this.update.bind(this);
@@ -141,6 +146,15 @@ export default class GameBoard extends Component {
         const { game } = gameState;
         if (!game) {
             return;
+        }
+
+        if (gameState.player !== this.state.player) {
+            this.setState({ player: gameState.player });
+
+            if (gameState.player === 2) {
+                const chessboardTexture = PIXI.Texture.fromImage(chessboardBlackImg);
+                this.chessboardSprite.setTexture(chessboardTexture);
+            }
         }
 
         const currentTick = gameState.getCurrentTick();
