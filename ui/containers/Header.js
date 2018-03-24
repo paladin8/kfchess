@@ -17,7 +17,7 @@ export default class Header extends Component {
                         <img src='/static/logo.png' />
                     </div>
                     <div className='header-logo-text'>
-                        Kung Fu Chess <sup>Alpha</sup>
+                        Kung Fu Chess <sup>Beta</sup>
                     </div>
                 </div>
                 <div className='header-menu'>
