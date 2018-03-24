@@ -305,7 +305,15 @@ export default class Profile extends Component {
                                                     title='Replay'
                                                     distance={5}
                                                 >
-                                                    <Link to={`/replay/${gameInfo.historyId}`}>
+                                                    <Link
+                                                        to={`/replay/${gameInfo.historyId}`}
+                                                        onClick={() => {
+                                                            amplitude.getInstance().logEvent('Click Watch Replay', {
+                                                                source: 'profile',
+                                                                historyId: gameInfo.historyId,
+                                                            });
+                                                        }}
+                                                    >
                                                         <i className='fas fa-eye' />
                                                     </Link>
                                                 </Tooltip>

@@ -33,6 +33,11 @@ export default class Live extends Component {
         });
     }
 
+
+    componentDidMount() {
+        amplitude.getInstance().logEvent('Visit Live Page');
+    }
+
     render() {
         const { fetching, activeGames, onlineUsers } = this.state;
 
@@ -71,7 +76,16 @@ export default class Live extends Component {
                                             <Tooltip
                                                 title='Spectate'
                                             >
-                                                <Link to={`/game/${g.gameId}`}>
+                                                <Link
+                                                    to={`/game/${g.gameId}`}
+                                                    onClick={() => {
+                                                        amplitude.getInstance().logEvent('Click Spectate Game', {
+                                                            source: 'live',
+                                                            players: gameInfo.players,
+                                                            gameId: g.gameId,
+                                                        });
+                                                    }}
+                                                >
                                                     <i className='fas fa-eye' />
                                                 </Link>
                                             </Tooltip>

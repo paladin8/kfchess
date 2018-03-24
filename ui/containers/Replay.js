@@ -52,6 +52,15 @@ export default class Replay extends Component {
         }
     }
 
+    componentDidMount() {
+        const { match } = this.props;
+        const historyId = match.params.historyId;
+
+        amplitude.getInstance().logEvent('Watch Replay', {
+            historyId,
+        });
+    }
+
     initGameState(gameId) {
         const gameState = new GameState(gameId, undefined, this.props.fetchUserInfo, () => {});
         this.setState({ gameState });
