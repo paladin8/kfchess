@@ -67,6 +67,8 @@ def new():
         players[2] = 'u:%s' % user.user_id
         db_service.update_user_current_game(user.user_id, game_id, player_keys[2])
 
+        socketio.emit('invite', '', room=str(user.user_id))
+
     for i in xrange(1, 3):
         if i not in players:
             players[i] = 'o'
@@ -162,6 +164,8 @@ def invite():
     game_state.player_keys[player] = new_key
     game.players[player] = 'u:%s' % user.user_id
     db_service.update_user_current_game(user.user_id, game_id, new_key)
+
+    socketio.emit('invite', '', room=str(user.user_id))
 
     socketio.emit('inviteack', {
         'game': game.to_json_obj(),

@@ -305,15 +305,9 @@ export default class Profile extends Component {
                                                     title='Replay'
                                                     distance={5}
                                                 >
-                                                    <div
-                                                        onClick={() => {
-                                                            this.props.startReplay(gameInfo.historyId, data => {
-                                                                this.props.history.push(`/replay/${data.gameId}`);
-                                                            });
-                                                        }}
-                                                    >
+                                                    <Link to={`/replay/${gameInfo.historyId}`}>
                                                         <i className='fas fa-eye' />
-                                                    </div>
+                                                    </Link>
                                                 </Tooltip>
                                             </td>
                                         </tr>

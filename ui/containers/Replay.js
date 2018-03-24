@@ -1,5 +1,8 @@
 import amplitude from 'amplitude-js';
+import qs from 'query-string';
 import React, { Component } from 'react';
+import { CopyToClipboard } from 'react-copy-to-clipboard';
+import { Tooltip } from 'react-tippy';
 
 import GameBoard from './GameBoard.js';
 import SpeedIcon from './SpeedIcon.js';
@@ -12,12 +15,8 @@ export default class Replay extends Component {
     constructor(props) {
         super(props);
 
-        const gameId = props.match.params.gameId;
-
-        const gameState = new GameState(gameId, undefined, props.fetchUserInfo, () => {});
-
         this.state = {
-            gameState,
+            gameState: null,
 
             currentTick: 0,
             gameFinished: true,
@@ -38,22 +37,35 @@ export default class Replay extends Component {
     }
 
     componentWillMount() {
-        const { gameState } = this.state;
+        const { match, location, history } = this.props;
+        const historyId = match.params.historyId;
+
+        const { gameId } = qs.parse(location.search);
+
+        if (gameId) {
+            this.initGameState(gameId);
+        } else {
+            this.props.startReplay(historyId, data => {
+                history.push(`/replay/${historyId}?gameId=${data.gameId}`);
+                this.initGameState(data.gameId);
+            });
+        }
+    }
+
+    initGameState(gameId) {
+        const gameState = new GameState(gameId, undefined, this.props.fetchUserInfo, () => {});
+        this.setState({ gameState });
 
         // listen for updates
         gameState.registerListener(this.update);
 
         // listen for resizes
         window.addEventListener('resize', this.resize);
-    }
 
-    componentDidMount() {
         this.interval = setInterval(() => {
-            const { gameState } = this.state;
-
             this.setState({
                 currentTick: gameState.getCurrentTick(),
-            })
+            });
         }, 1000);
     }
 
@@ -61,9 +73,9 @@ export default class Replay extends Component {
         clearInterval(this.interval);
 
         window.removeEventListener('resize', this.resize);
-        this.state.gameState.unregisterListener(this.update);
 
         if (this.state.gameState) {
+            this.state.gameState.unregisterListener(this.update);
             this.state.gameState.destroy();
         }
     }
@@ -111,9 +123,12 @@ export default class Replay extends Component {
             soundVolume,
         } = this.state;
 
-        const { knownUsers } = this.props;
+        const { match, knownUsers } = this.props;
 
-        const totalTicks = gameState.ticks;
+        const historyId = match.params.historyId;
+        const baseUrl = `${window.location.origin}${window.location.pathname}`;
+
+        const totalTicks = gameState ? gameState.ticks : 0;
 
         const isPortrait = windowHeight > 1.5 * windowWidth;
 
@@ -137,6 +152,33 @@ export default class Replay extends Component {
                         <div>
                             <div className='game-meta-section game-time'>
                                 {Time.renderGameTime(currentTick) + ' / ' + Time.renderGameTime(totalTicks)}
+                            </div>
+                            <div className='game-meta-section'>
+                                <Tooltip
+                                    title='Copied to clipboard!'
+                                    distance={5}
+                                    trigger='click'
+                                >
+                                    <CopyToClipboard
+                                        text={baseUrl}
+                                        onCopy={() => {
+                                            amplitude.getInstance().logEvent('Copy Replay Link', {
+                                                source: 'sidebar',
+                                                gameId: gameState.gameId,
+                                                historyId,
+                                            });
+                                        }}
+                                    >
+                                        <div className='game-friend-link'>
+                                            <div className='game-friend-link-text'>
+                                                Copy permanent link
+                                            </div>
+                                            <div className='game-friend-link-icon'>
+                                                <i className='fas fa-link' />
+                                            </div>
+                                        </div>
+                                    </CopyToClipboard>
+                                </Tooltip>
                             </div>
                             <div className='game-meta-section game-meta-players'>
                                 <table>

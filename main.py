@@ -50,6 +50,15 @@ def index():
 # socket.io functions
 
 
+@socketio.on('listen')
+def listen(data):
+    data = json.loads(data)
+    user_id = data['userId']
+    print 'listen', data
+
+    join_room(user_id)
+
+
 def get_auth_player(game_state, player_key):
     if player_key is not None:
         for player, key in game_state.player_keys.iteritems():
@@ -88,7 +97,7 @@ def cancel(data):
     print 'cancel', data
 
     if game_id not in game_states:
-        emit('cancelack', {}, room=game_id, json=True)
+        emit('cancelack', {}, json=True)
         return
 
     game_state = game_states[game_id]

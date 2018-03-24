@@ -8,7 +8,9 @@ import App from './containers/App';
 import 'react-tippy/dist/tippy.css';
 import './styles/index.less';
 
-amplitude.getInstance().init(AMPLITUDE_API_KEY);
+amplitude.getInstance().init(AMPLITUDE_API_KEY, {
+    includeReferrer: true,
+});
 
 ReactDOM.render(<App />, document.getElementById('app'));
 

@@ -10,6 +10,7 @@ import Home from './Home.js';
 import Live from './Live.js';
 import Profile from './Profile.js';
 import Replay from './Replay.js';
+import Listener from '../util/Listener.js';
 
 export default class App extends Component {
 
@@ -17,6 +18,7 @@ export default class App extends Component {
         super(props);
 
         this.state = {
+            initialLoadDone: false,
             csrfToken: null,
             user: null,
             knownUsers: {},
@@ -40,12 +42,18 @@ export default class App extends Component {
     }
 
     componentDidMount() {
-        this.loadMyInfo();
-        this.infoTimer = setInterval(this.loadMyInfo, 1000 * 60);
+        this.loadMyInfo(() => {
+            this.setState({ initialLoadDone: true });
+            if (this.state.user) {
+                this.listener = new Listener(this.state.user.userId, () => this.loadMyInfo());
+            }
+        });
     }
 
     componentWillUnmount() {
-        clearInterval(this.infoTimer);
+        if (this.listener) {
+            this.listener.destroy();
+        }
     }
 
     getRequest(path, callback, errorCallback) {
@@ -67,7 +75,7 @@ export default class App extends Component {
         }).then(callback).catch(errorCallback);
     }
 
-    loadMyInfo() {
+    loadMyInfo(callback) {
         this.getRequest(
             '/api/user/info',
             response => {
@@ -89,6 +97,7 @@ export default class App extends Component {
 
                         if (data.user.currentGame) {
                             const { gameId, playerKey } = data.user.currentGame;
+                            this.setState({ playerKeys: null });
                             this.router.history.push(`/game/${gameId}?key=${playerKey}`);
                         }
                     }
@@ -96,6 +105,10 @@ export default class App extends Component {
                     this.setState({
                         csrfToken: data.csrfToken,
                     });
+
+                    if (callback) {
+                        callback();
+                    }
                 });
             },
             () => this.setError('Error logging in.')
@@ -345,9 +358,9 @@ export default class App extends Component {
     }
 
     render() {
-        const { csrfToken, user, knownUsers, playerKeys, error } = this.state;
+        const { initialLoadDone, csrfToken, user, knownUsers, playerKeys, error } = this.state;
 
-        return (
+        return (initialLoadDone ?
             <BrowserRouter ref={router => this.router = router}>
                 <div>
                     <Header
@@ -385,7 +398,6 @@ export default class App extends Component {
                                 updateUser={this.updateUser}
                                 uploadProfilePic={this.uploadProfilePic}
                                 getUserGameHistory={this.getUserGameHistory}
-                                startReplay={this.startReplay}
                                 {...props}
                             />
                         );
@@ -403,17 +415,20 @@ export default class App extends Component {
                             />
                         )
                     }} />
-                    <Route path='/replay/:gameId' render={props => {
+                    <Route path='/replay/:historyId' render={props => {
                         return (
                             <Replay
                                 knownUsers={knownUsers}
                                 fetchUserInfo={this.fetchUserInfo}
+                                startReplay={this.startReplay}
                                 {...props}
                             />
                         )
                     }} />
                 </div>
             </BrowserRouter>
+            :
+            null
         );
     }
 };
