@@ -33,6 +33,7 @@
     "babel-preset-react": "^6.24.1",
     "babel-preset-stage-0": "^6.24.1",
     "babel-register": "^6.26.0",
+    "compression-webpack-plugin": "^1.1.11",
     "css-loader": "^0.28.10",
     "file-loader": "^1.1.11",
     "image-webpack-loader": "^4.1.0",
@@ -40,8 +41,9 @@
     "less-loader": "^4.0.6",
     "style-loader": "^0.20.2",
     "webpack": "^4.0.1",
-    "webpack-dev-server": "^3.1.0",
+    "webpack-bundle-analyzer": "^2.11.1",
     "webpack-cli": "^2.0.10",
+    "webpack-dev-server": "^3.1.0",
     "webpack-merge": "^4.1.2"
   },
   "babel": {
