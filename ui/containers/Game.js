@@ -104,6 +104,7 @@ class Game extends Component {
                 amplitude.getInstance().logEvent('Finish Game', {
                     gameId: gameState.gameId,
                     player: gameState.player,
+                    won: (gameState.game.finished === gameState.player),
                 });
 
                 if (this.finishSound) {
@@ -167,6 +168,10 @@ class Game extends Component {
     changeDifficulty(difficulty) {
         const { gameState } = this.state;
 
+        amplitude.getInstance().logEvent('Change AI Difficulty', {
+            gameId: gameState.gameId,
+            difficulty,
+        });
         gameState.changeDifficulty(2, difficulty);
     }
 
@@ -381,6 +386,12 @@ class Game extends Component {
                                                 value={musicVolume}
                                                 onChange={() => {}}
                                                 onInput={e => {
+                                                    amplitude.getInstance().logEvent('Change Volume', {
+                                                        source: 'game',
+                                                        type: 'music',
+                                                        volume: e.target.value,
+                                                    });
+
                                                     this.setState({ musicVolume : e.target.value });
                                                     if (window.localStorage) {
                                                         window.localStorage.musicVolume = e.target.value;
@@ -400,6 +411,12 @@ class Game extends Component {
                                                 value={soundVolume}
                                                 onChange={() => {}}
                                                 onInput={e => {
+                                                    amplitude.getInstance().logEvent('Change Volume', {
+                                                        source: 'game',
+                                                        type: 'sound',
+                                                        volume: e.target.value,
+                                                    });
+
                                                     this.setState({ soundVolume : e.target.value });
                                                     if (window.localStorage) {
                                                         window.localStorage.soundVolume = e.target.value;

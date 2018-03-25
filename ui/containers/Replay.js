@@ -218,6 +218,12 @@ export default class Replay extends Component {
                                                 value={musicVolume}
                                                 onChange={() => {}}
                                                 onInput={e => {
+                                                    amplitude.getInstance().logEvent('Change Volume', {
+                                                        source: 'replay',
+                                                        type: 'music',
+                                                        volume: e.target.value,
+                                                    });
+
                                                     this.setState({ musicVolume : e.target.value });
                                                     if (window.localStorage) {
                                                         window.localStorage.musicVolume = e.target.value;
@@ -237,6 +243,12 @@ export default class Replay extends Component {
                                                 value={soundVolume}
                                                 onChange={() => {}}
                                                 onInput={e => {
+                                                    amplitude.getInstance().logEvent('Change Volume', {
+                                                        source: 'replay',
+                                                        type: 'sound',
+                                                        volume: e.target.value,
+                                                    });
+
                                                     this.setState({ soundVolume : e.target.value });
                                                     if (window.localStorage) {
                                                         window.localStorage.soundVolume = e.target.value;
