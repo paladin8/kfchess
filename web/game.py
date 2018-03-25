@@ -237,6 +237,8 @@ def initialize(init_socketio):
                 if not game.started or game.finished:
                     continue
 
+                moved = False
+
                 try:
                     # add to active games
                     if game.current_tick == 0 and game_state.replay is None:
@@ -250,42 +252,28 @@ def initialize(init_socketio):
 
                 try:
                     # check for bot moves
-                    moved = False
                     for player, bot in game_state.bots.iteritems():
                         move = bot.get_move(game, player, randnum)
                         if move:
                             piece, row, col = move
                             game.move(piece.id, player, row, col)
                             moved = True
-
-                    if moved:
-                        socketio.emit('moveack', {
-                            'game': game_state.game.to_json_obj(),
-                            'success': True,
-                        }, room=game_id, json=True)
                 except:
                     traceback.print_exc()
 
                 try:
                     # check for replay moves
                     if game_state.replay:
-                        moved = False
                         for replay_move in game_state.replay.moves_by_tick[game.current_tick]:
                             game.move(replay_move.piece_id, replay_move.player, replay_move.row, replay_move.col)
                             moved = True
-
-                        if moved:
-                            socketio.emit('moveack', {
-                                'game': game_state.game.to_json_obj(),
-                                'success': True,
-                            }, room=game_id, json=True)
                 except:
                     traceback.print_exc()
 
                 try:
-                    # tick game; if there are updates, emit to room
+                    # tick game; if there are updates (or a bot/replay move), emit to room
                     status, updates = game.tick()
-                    if updates:
+                    if updates or moved:
                         socketio.emit('update', {
                             'game': game.to_json_obj(),
                             'updates': updates,
