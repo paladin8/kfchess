@@ -39,6 +39,7 @@ export default class GameState {
         this.socket.on('joinack', this.handleMessage);
         this.socket.on('inviteack', this.handleMessage);
         this.socket.on('readyack', this.handleMessage);
+        this.socket.on('difficultyack', this.handleMessage);
         this.socket.on('update', this.handleMessage);
         this.socket.on('moveack', this.handleMessage);
         this.socket.on('resetack', this.handleMessage);
@@ -156,9 +157,22 @@ export default class GameState {
         this.socket.emit('ready', JSON.stringify({ gameId: this.gameId, playerKey: this.playerKey }));
     }
 
+    changeDifficulty(player, difficulty) {
+        this.socket.emit('difficulty', JSON.stringify({
+            gameId: this.gameId,
+            playerKey: this.playerKey,
+            player,
+            difficulty,
+        }));
+    }
+
     move(pieceId, player, toRow, toCol) {
         this.socket.emit('move', JSON.stringify({
-            gameId: this.gameId, playerKey: this.playerKey, pieceId, toRow, toCol
+            gameId: this.gameId,
+            playerKey: this.playerKey,
+            pieceId,
+            toRow,
+            toCol,
         }));
     }
 

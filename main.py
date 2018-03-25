@@ -7,6 +7,7 @@ from flask_socketio import SocketIO, join_room, leave_room, emit
 
 import config
 from db import db_service
+from lib import ai
 from lib.game import Game
 from web import game_states, game as game_handlers
 from web.game import game as game_blueprint
@@ -145,6 +146,34 @@ def ready(data):
         game_state.game.mark_ready(auth_player)
 
         emit('readyack', {
+            'game': game_state.game.to_json_obj(),
+        }, room=game_id, json=True)
+
+
+@socketio.on('difficulty')
+def difficulty(data):
+    data = json.loads(data)
+    game_id = data['gameId']
+    player_key = data['playerKey']
+    player = data['player']
+    difficulty = data['difficulty']
+    print 'difficulty', data
+
+    if game_id not in game_states:
+        return
+
+    game_state = game_states[game_id]
+    auth_player = get_auth_player(game_state, player_key)
+
+    # only authenticated players can change difficulty
+    if auth_player is not None:
+        if not game_state.game.players[player].startswith('b'):
+            return
+
+        game_state.bots[player] = ai.get_bot(difficulty)
+        game_state.game.players[player] = 'b:%s' % difficulty
+
+        emit('difficultyack', {
             'game': game_state.game.to_json_obj(),
         }, room=game_id, json=True)
 

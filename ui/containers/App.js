@@ -360,9 +360,9 @@ export default class App extends Component {
     render() {
         const { initialLoadDone, csrfToken, user, knownUsers, playerKeys, error } = this.state;
 
-        return (initialLoadDone ?
+        return (
             <BrowserRouter ref={router => this.router = router}>
-                <div>
+                {initialLoadDone ? <div>
                     <Header
                         user={user}
                         router={this.router}
@@ -426,9 +426,10 @@ export default class App extends Component {
                         )
                     }} />
                 </div>
+                :
+                null
+            }
             </BrowserRouter>
-            :
-            null
         );
     }
 };

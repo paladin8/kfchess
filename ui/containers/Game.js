@@ -164,6 +164,12 @@ class Game extends Component {
         });
     }
 
+    changeDifficulty(difficulty) {
+        const { gameState } = this.state;
+
+        gameState.changeDifficulty(2, difficulty);
+    }
+
     render () {
         const {
             gameState,
@@ -196,6 +202,11 @@ class Game extends Component {
         let invited = false;
         if (player === 1 && game.players['2'] && game.players['2'].startsWith('u:')) {
             invited = true;
+        }
+
+        let difficulty = null;
+        if (player === 1 && game.players['2'] && game.players['2'].startsWith('b')) {
+            difficulty = game.players['2'].substring(2);
         }
 
         let endGameText = null;
@@ -255,6 +266,7 @@ class Game extends Component {
                     inviteUsername,
                     friendLink,
                     invited,
+                    difficulty,
                     readyText,
                     readyAction,
                     endGameText,
@@ -467,6 +479,7 @@ class Game extends Component {
         inviteUsername,
         friendLink,
         invited,
+        difficulty,
         readyText,
         readyAction,
         endGameText
@@ -531,6 +544,28 @@ class Game extends Component {
                                     onClick={() => this.inviteUser()}
                                 >
                                     <i className='far fa-paper-plane' />
+                                </div>
+                            </div>
+                        }
+                        {difficulty &&
+                            <div className='game-difficulty-wrapper'>
+                                <div
+                                    className={`game-difficulty-option ${difficulty === 'novice' ? 'selected' : ''}`}
+                                    onClick={() => this.changeDifficulty('novice')}
+                                >
+                                    Novice
+                                </div>
+                                <div
+                                    className={`game-difficulty-option ${difficulty === 'intermediate' ? 'selected' : ''}`}
+                                    onClick={() => this.changeDifficulty('intermediate')}
+                                >
+                                    Intermediate
+                                </div>
+                                <div
+                                    className={`game-difficulty-option ${difficulty === 'advanced' ? 'selected' : ''}`}
+                                    onClick={() => this.changeDifficulty('advanced')}
+                                >
+                                    Advanced
                                 </div>
                             </div>
                         }

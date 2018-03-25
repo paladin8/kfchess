@@ -277,6 +277,29 @@
             }
         }
 
+        .game-difficulty-wrapper {
+            display: flex;
+            justify-content: space-around;
+
+            margin: 20px 0px;
+
+            color: @font-light-grey;
+
+            font-size: 15px;
+
+            .game-difficulty-option {
+                margin-left: 20px;
+
+                cursor: pointer;
+
+                &.selected {
+                    color: @font-black;
+
+                    font-weight: 700;
+                }
+            }
+        }
+
         .game-ready-button {
             .light-green-button;
 

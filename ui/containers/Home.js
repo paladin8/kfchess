@@ -7,8 +7,7 @@ export default class Home extends Component {
         super(props);
 
         this.state = {
-            difficulty: 'novice',
-            friendlySpeed: 'standard',
+            friendlySpeed: (window.localStorage && window.localStorage.friendlySpeed) || 'standard',
         };
     }
 
@@ -16,18 +15,17 @@ export default class Home extends Component {
         amplitude.getInstance().logEvent('Visit Home Page');
     }
 
-    changeDifficulty(difficulty) {
-        amplitude.getInstance().logEvent('Change AI Difficulty', { difficulty });
-        this.setState({ difficulty });
-    }
-
     changeFriendlySpeed(friendlySpeed) {
         amplitude.getInstance().logEvent('Change Friendly Speed', { friendlySpeed });
-        this.setState({ friendlySpeed })
+        this.setState({ friendlySpeed });
+
+        if (window.localStorage) {
+            window.localStorage.friendlySpeed = friendlySpeed;
+        }
     }
 
     render () {
-        const { difficulty, friendlySpeed } = this.state;
+        const { friendlySpeed } = this.state;
 
         return (
             <div className='home'>
@@ -50,28 +48,22 @@ export default class Home extends Component {
                     <div className='home-play-button-wrapper'>
                         <div
                             className='home-play-button home-play-vs-ai-button'
-                            onClick={() => this.props.createNewGame('standard', true, difficulty)}
+                            onClick={() => this.props.createNewGame(friendlySpeed, true, 'novice')}
                         >
                             Play vs AI
                         </div>
                         <div className='home-play-option-wrapper'>
                             <div
-                                className={`home-play-option ${difficulty === 'novice' ? 'selected' : ''}`}
-                                onClick={() => this.changeDifficulty('novice')}
+                                className={`home-play-option ${friendlySpeed === 'standard' ? 'selected' : ''}`}
+                                onClick={() => this.changeFriendlySpeed('standard')}
                             >
-                                Novice
+                                Standard
                             </div>
                             <div
-                                className={`home-play-option ${difficulty === 'intermediate' ? 'selected' : ''}`}
-                                onClick={() => this.changeDifficulty('intermediate')}
+                                className={`home-play-option ${friendlySpeed === 'lightning' ? 'selected' : ''}`}
+                                onClick={() => this.changeFriendlySpeed('lightning')}
                             >
-                                Intermediate
-                            </div>
-                            <div
-                                className={`home-play-option ${difficulty === 'advanced' ? 'selected' : ''}`}
-                                onClick={() => this.changeDifficulty('advanced')}
-                            >
-                                Advanced
+                                Lightning
                             </div>
                         </div>
                     </div>

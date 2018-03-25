@@ -44,7 +44,7 @@ def new():
     player_keys = {i: str(uuid.uuid4()) for i in xrange(1, 3) if i not in bots}
 
     # if logged in, add current user to game
-    players = {i: 'b' for i in bots}
+    players = {i: 'b:%s' % bot.difficulty for i, bot in bots.iteritems()}
     if current_user.is_authenticated:
         players[1] = 'u:%s' % current_user.user_id
         db_service.update_user_current_game(current_user.user_id, game_id, player_keys[1])

@@ -10,8 +10,8 @@ export default class UserDisplay extends Component {
 
         let user = null;
         let text = 'Anonymous';
-        if (value === 'b') {
-            text = 'AI player';
+        if (value.startsWith('b')) {
+            text = 'AI Player';
         } else if (value.startsWith('u:')) {
             const userId = value.substring(2);
             user = knownUsers[userId];

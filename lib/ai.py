@@ -39,18 +39,19 @@ PIECE_SCORES = {
 
 def get_bot(difficulty):
     if difficulty == 'novice':
-        return BasicBot(45, 10)
+        return BasicBot(difficulty, 45, 10)
     elif difficulty == 'intermediate':
-        return BasicBot(30, 3)
+        return BasicBot(difficulty, 30, 3)
     elif difficulty == 'advanced':
-        return BasicBot(15, 1)
+        return BasicBot(difficulty, 15, 1)
     else:
         raise ValueError('Unexpected difficulty ' + difficulty)
 
 
 class BasicBot(object):
 
-    def __init__(self, ticks_per_move, top_n_moves):
+    def __init__(self, difficulty, ticks_per_move, top_n_moves):
+        self.difficulty = difficulty
         self.ticks_per_move = ticks_per_move
         self.top_n_moves = top_n_moves
 
