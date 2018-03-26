@@ -279,7 +279,12 @@ class Game(object):
                 i_piece is not None and
                 not i_piece.captured and
                 not self._already_moving(i_piece) and
-                (not capture or i != steps or i_piece.player == piece.player)
+                (
+                    not capture or
+                    i != steps or
+                    i_piece.player == piece.player or
+                    self._already_moving(i_piece)
+                )
             ):
                 return None
 

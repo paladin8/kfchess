@@ -92,7 +92,7 @@ R1N1B1Q1K1B1N1R1'''
     def __str__(self):
         board = [[None for col in xrange(8)] for row in xrange(8)]
         for p in self.pieces:
-            if p.row >= 0 and p.col >= 0:
+            if not p.captured and p.row == int(p.row) and p.col == int(p.col):
                 board[p.row][p.col] = p
         return '\n'.join(''.join(str(p) if p is not None else '00' for p in row) for row in board)
 
