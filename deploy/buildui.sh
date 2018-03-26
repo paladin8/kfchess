@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 pushd ui
 npm install .
 npm run prod
