@@ -57,11 +57,11 @@ SCORE_BUFFER = 10
 
 def get_bot(difficulty):
     if difficulty == 'novice':
-        return BasicBot(difficulty, 45, 10)
+        return BasicBot(difficulty, 40, 5)
     elif difficulty == 'intermediate':
-        return BasicBot(difficulty, 30, 3)
+        return BasicBot(difficulty, 25, 2)
     elif difficulty == 'advanced':
-        return BasicBot(difficulty, 15, 1)
+        return BasicBot(difficulty, 10, 1)
     else:
         raise ValueError('Unexpected difficulty ' + difficulty)
 
