@@ -392,7 +392,7 @@ class Game(object):
 
                 # threshold for capture
                 dist = math.hypot(row - other_row, col - other_col)
-                if dist > 0.5:
+                if dist > 0.5001:
                     continue
 
                 # pawns not moving diagonally cannot capture, so they always get captured on collision
@@ -417,14 +417,14 @@ class Game(object):
                     })
                     break
 
-                # close enough to capture; this piece captures other if ticking this makes us closer
-                n_row, n_col = self._get_interp_position(move, self.current_tick + 1)
+                # close enough to capture; this piece captures other if ticking a tiny bit makes us closer
+                n_row, n_col = self._get_interp_position(move, self.current_tick + 0.01)
                 n_dist = math.hypot(n_row - other_row, n_col - other_col)
                 if n_dist > dist:
                     continue
 
-                # if ticking other also makes us closer, then fall back to earlier piece wins
-                n_other_row, n_other_col = self._get_interp_position(other_move, self.current_tick + 1)
+                # if ticking other a tiny bit also makes us closer, then fall back to earlier piece wins
+                n_other_row, n_other_col = self._get_interp_position(other_move, self.current_tick + 0.01)
                 n_other_dist = math.hypot(row - n_other_row, col - n_other_col)
                 if n_other_dist < dist and move.starting_tick > other_move.starting_tick:
                     piece.captured = True
@@ -508,7 +508,7 @@ class Game(object):
         if move.piece.type == 'N' and tick_delta < total_move_ticks - self.move_ticks / 2:
             return -1, -1
 
-        movements = tick_delta / self.move_ticks
+        movements = int(tick_delta) / self.move_ticks
         if movements >= len(move.move_seq):
             movements = len(move.move_seq) - 1
 
