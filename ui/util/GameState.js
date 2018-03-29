@@ -1,6 +1,6 @@
 import openSocket from 'socket.io-client';
 
-const SIMULATED_DELAY = 800;
+const SIMULATED_DELAY = 0;
 
 export default class GameState {
 

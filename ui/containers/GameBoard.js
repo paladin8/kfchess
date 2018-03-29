@@ -214,6 +214,7 @@ export default class GameBoard extends Component {
                 const spriteFn = sprites[key];
                 if (spriteFn) {
                     pieceSprite = {key, sprite: spriteFn()};
+                    pieceSprite.sprite.x = -1;
                     this.mainStage.addChild(pieceSprite.sprite);
 
                     pieceSprite.cooldownGraphics = new PIXI.Graphics();
@@ -236,7 +237,7 @@ export default class GameBoard extends Component {
                     pieceSprite.sprite.height = this.cellDim * SPRITE_FACTOR;
 
                     let pRow, pCol;
-                    if (piece.id in movingPieces) {
+                    if (piece.id in movingPieces && pieceSprite.sprite.x >= 0) {
                         // moving piece sprites are re-added to stage so they appear on top
                         this.mainStage.removeChild(pieceSprite.sprite);
                         this.mainStage.addChild(pieceSprite.sprite);
@@ -247,8 +248,23 @@ export default class GameBoard extends Component {
                         const interp = Math.max(0, Math.min(1, (currentTick - move.startingTick) / totalMoveTicks));
                         const sRow = move.moveSeq[0][0], sCol = move.moveSeq[0][1];
                         const eRow = move.moveSeq[move.moveSeq.length - 1][0], eCol = move.moveSeq[move.moveSeq.length - 1][1];
-                        pRow = sRow + (eRow - sRow) * interp;
-                        pCol = sCol + (eCol - sCol) * interp;
+
+                        // compute current position's interpolation factor
+                        const sPosition = this.getPosition(sRow, sCol);
+                        const ePosition = this.getPosition(eRow, eCol);
+                        let currentInterp = 0;
+                        if (ePosition.x !== sPosition.x) {
+                            currentInterp = (pieceSprite.sprite.x - sPosition.x) / (ePosition.x - sPosition.x);
+                        } else if (ePosition.y !== sPosition.y) {
+                            currentInterp = (pieceSprite.sprite.y - sPosition.y) / (ePosition.y - sPosition.y);
+                        }
+
+                        // bound the number of ticks we skip rendering
+                        const tickLimit = 0.5;
+                        const finalInterp = Math.min(interp, currentInterp + tickLimit / totalMoveTicks);
+
+                        pRow = sRow + (eRow - sRow) * finalInterp;
+                        pCol = sCol + (eCol - sCol) * finalInterp;
                     } else {
                         pRow = piece.row;
                         pCol = piece.col;
