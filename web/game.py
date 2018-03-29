@@ -230,7 +230,8 @@ def initialize(init_socketio):
             for game_id, game_state in game_states.iteritems():
                 game = game_state.game
 
-                if current_time - min(game.last_tick_time, game.last_move_time) > 60 * 10:
+                # keep games around for 10 min
+                if current_time - game.last_tick_time > 60 * 10:
                     expired_games.add(game_id)
                     continue
 

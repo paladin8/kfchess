@@ -67,6 +67,10 @@ class Game(object):
     WHITE_WINS = -1
     BLACK_WINS = 1
     PLAYER_DIRECTION = [GAME_CONTINUES, WHITE_WINS, BLACK_WINS]
+    DRAW_LIMITS = {
+        Speed.STANDARD: 600,
+        Speed.LIGHTNING: 300,
+    }
 
     # move_ticks     = number of ticks to move 1 square in any direction (including diagonal)
     # cooldown_ticks = number of ticks before a piece can move again
@@ -89,6 +93,7 @@ class Game(object):
         self.started = False
         self.finished = 0
         self.start_time = datetime.datetime.utcnow()
+        self.last_capture_tick = 0
 
         self.piece_to_move_seq_fn = {
             'P': self._get_pawn_move_seq,
@@ -388,6 +393,7 @@ class Game(object):
                 # pawns not moving diagonally cannot capture, so they always get captured on collision
                 if piece.type == 'P' and move.move_seq[0][1] == move.move_seq[-1][1]:
                     piece.captured = True
+                    self.last_capture_tick = self.current_tick
                     updates.append({
                         'type': 'capture',
                         'piece': p.to_json_obj(),
@@ -398,6 +404,7 @@ class Game(object):
                 # if the other piece is static, capture it
                 if other_move is None:
                     p.captured = True
+                    self.last_capture_tick = self.current_tick
                     updates.append({
                         'type': 'capture',
                         'piece': piece.to_json_obj(),
@@ -416,6 +423,7 @@ class Game(object):
                 n_other_dist = math.hypot(row - n_other_row, col - n_other_col)
                 if n_other_dist < dist and move.starting_tick > other_move.starting_tick:
                     piece.captured = True
+                    self.last_capture_tick = self.current_tick
                     updates.append({
                         'type': 'capture',
                         'piece': other_move.piece.to_json_obj(),
@@ -423,6 +431,7 @@ class Game(object):
                     })
                 else:
                     other_move.piece.captured = True
+                    self.last_capture_tick = self.current_tick
                     updates.append({
                         'type': 'capture',
                         'piece': piece.to_json_obj(),
@@ -477,6 +486,11 @@ class Game(object):
             if p.type == 'K' and p.captured:
                 self.finished = 1 if p.player == 2 else 2
                 return self.finished, updates
+
+        # too long without a capture, consider it a draw
+        if self.current_tick - self.last_capture_tick > Game.DRAW_LIMITS[self.speed.value]:
+            self.finished = -1
+            return -1, updates
 
         return 0, updates
 

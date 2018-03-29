@@ -224,6 +224,8 @@ class Game extends Component {
                 }
             } else if (game.finished === gameState.player) {
                 endGameText = 'You win!';
+            } else if (game.finished === -1) {
+                endGameText = 'Draw!';
             } else {
                 endGameText = 'You lost!';
             }

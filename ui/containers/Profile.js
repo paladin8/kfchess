@@ -258,7 +258,7 @@ export default class Profile extends Component {
                                     const gameTime = moment.utc(h.gameTime);
                                     const gameInfo = h.gameInfo;
 
-                                    const result = gameInfo.winner === 0 ? 'Draw' : (
+                                    const result = gameInfo.winner <= 0 ? 'Draw' : (
                                         gameInfo.player === gameInfo.winner ? 'Won' : 'Lost'
                                     );
 
@@ -293,9 +293,7 @@ export default class Profile extends Component {
                                                 className='profile-history-result'
                                                 style={{ color: resultColor }}
                                             >
-                                                {gameInfo.winner === 0 ? 'Draw' : (
-                                                    gameInfo.player === gameInfo.winner ? 'Won' : 'Lost'
-                                                )}
+                                                {result}
                                             </td>
                                             <td className='profile-history-length'>
                                                 {Time.renderGameTime(gameInfo.ticks)}
