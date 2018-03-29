@@ -36,7 +36,7 @@ export default class Listener {
     }
 
     destroy() {
-        cancelInterval(this.interval);
+        clearInterval(this.interval);
 
         this.destroyed = true;
         this.socket.close();

@@ -274,26 +274,19 @@ export default class GameBoard extends Component {
             }
 
             const position = this.getPosition(this.selected.piece.row, this.selected.piece.col);
-            if (gameState.player === 2) {
-                position.x++;
-                position.y++;
-            }
 
             if (
-                !this.selected.graphicsX ||
-                (
-                    this.selected.graphicsX === position.x &&
-                    this.selected.graphicsY === position.y &&
-                    this.selected.cellDim === this.cellDim
-                )
+                this.selected.graphicsX !== position.x ||
+                this.selected.graphicsY !== position.y ||
+                this.selected.cellDim !== this.cellDim
             ) {
                 this.selected.graphics.clear();
                 this.selected.graphics.lineStyle(4, COOLDOWN_COLOR);
-                this.selected.graphics.drawRect(position.x, position.y, this.cellDim - 2, this.cellDim - 2);
+                this.selected.graphics.drawRect(position.x + 1, position.y + 1, this.cellDim - 2, this.cellDim - 2);
 
                 this.selected.graphicsX = position.x;
                 this.selected.graphicsY = position.y;
-                this.selected.cellDim = position.cellDim;
+                this.selected.cellDim = this.cellDim;
             }
 
             if (gameLogic.isLegalMove(game, currentTick, this.selected.piece, this.selected.row, this.selected.col)) {

@@ -67,9 +67,14 @@ class Game(object):
     WHITE_WINS = -1
     BLACK_WINS = 1
     PLAYER_DIRECTION = [GAME_CONTINUES, WHITE_WINS, BLACK_WINS]
+
+    MIN_DRAW_TICKS = {
+        Speed.STANDARD: 1200,  # 2 min
+        Speed.LIGHTNING: 600,  # 1 min
+    }
     DRAW_LIMITS = {
-        Speed.STANDARD: 600,
-        Speed.LIGHTNING: 300,
+        Speed.STANDARD: 600,   # 1 min
+        Speed.LIGHTNING: 300,  # 30 sec
     }
 
     # move_ticks     = number of ticks to move 1 square in any direction (including diagonal)
@@ -488,7 +493,10 @@ class Game(object):
                 return self.finished, updates
 
         # too long without a capture, consider it a draw
-        if self.current_tick - self.last_capture_tick > Game.DRAW_LIMITS[self.speed.value]:
+        if (
+            self.current_tick >= Game.MIN_DRAW_TICKS[self.speed.value] and
+            self.current_tick - self.last_capture_tick > Game.DRAW_LIMITS[self.speed.value]
+        ):
             self.finished = -1
             return -1, updates
 

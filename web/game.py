@@ -252,13 +252,14 @@ def initialize(init_socketio):
                     traceback.print_exc()
 
                 try:
-                    # check for bot moves
-                    for player, bot in game_state.bots.iteritems():
-                        move = bot.get_move(game, player, randnum)
-                        if move:
-                            piece, row, col = move
-                            game.move(piece.id, player, row, col)
-                            moved = True
+                    # check for bot moves (after game has been running for 1s)
+                    if game.current_tick >= 10:
+                        for player, bot in game_state.bots.iteritems():
+                            move = bot.get_move(game, player, randnum)
+                            if move:
+                                piece, row, col = move
+                                game.move(piece.id, player, row, col)
+                                moved = True
                 except:
                     traceback.print_exc()
 
@@ -274,7 +275,7 @@ def initialize(init_socketio):
                 try:
                     # tick game; if there are updates (or a bot/replay move), emit to room
                     status, updates = game.tick()
-                    if updates or moved:
+                    if status != 0 or updates or moved:
                         socketio.emit('update', {
                             'game': game.to_json_obj(),
                             'updates': updates,

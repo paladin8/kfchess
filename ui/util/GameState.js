@@ -1,6 +1,6 @@
 import openSocket from 'socket.io-client';
 
-const SIMULATED_DELAY = 0;
+const SIMULATED_DELAY = 800;
 
 export default class GameState {
 
@@ -16,7 +16,7 @@ export default class GameState {
         this.ticks = null;
         this.lastUpdate = new Date();
         this.lastCurrentTick = 0;
-        this.lastCurrentTime = new Date();
+        this.lastCurrentTime = null;
         this.updateListeners = [];
         this.destroyed = false;
 
@@ -55,7 +55,7 @@ export default class GameState {
             this.player = data.player;
         }
 
-        if (data.ticks !== undefined) {
+        if (data.ticks) {
             this.ticks = data.ticks;
         }
 
@@ -79,6 +79,11 @@ export default class GameState {
     }
 
     update(game, updates) {
+        if (this.game && game.currentTick !== 0 && game.currentTick < this.game.currentTick) {
+            // ignore updates that go back in time
+            return;
+        }
+
         this.game = game;
         this.lastUpdate = new Date();
         for (let i = 0; i < this.updateListeners.length; i++) {
@@ -120,6 +125,13 @@ export default class GameState {
         const currentTime = new Date();
         const newTick = this.game.currentTick + (currentTime - this.lastUpdate + 1000 * this.game.timeSinceLastTick) / 100;
 
+        // first call
+        if (this.lastCurrentTime === null) {
+            this.lastCurrentTick = newTick;
+            this.lastCurrentTime = currentTime;
+            return newTick;
+        }
+
         // compute the tick based on the the last tick computation and how much time has passed
         const expectedTick = this.lastCurrentTick + (currentTime - this.lastCurrentTime) / 100;
 
@@ -130,7 +142,7 @@ export default class GameState {
             return newTick;
         }
 
-        // compute speed based on difference between expected and server tick:
+        // compute speed based on difference between expected and server tick (scales exponentially):
         //   - expected ahead by 10 ticks => e times slower ticks
         //   - expected behind by 10 ticks => e times faster ticks
         const speed = Math.exp((newTick - expectedTick) / 10);
