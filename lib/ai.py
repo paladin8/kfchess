@@ -57,11 +57,11 @@ SCORE_BUFFER = 10
 
 def get_bot(difficulty):
     if difficulty == 'novice':
-        return BasicBot(difficulty, 40, 5)
+        return BasicBot(difficulty, 39, 5)
     elif difficulty == 'intermediate':
-        return BasicBot(difficulty, 25, 2)
+        return BasicBot(difficulty, 26, 2)
     elif difficulty == 'advanced':
-        return BasicBot(difficulty, 10, 1)
+        return BasicBot(difficulty, 13, 1)
     else:
         raise ValueError('Unexpected difficulty ' + difficulty)
 
@@ -235,7 +235,7 @@ class BasicBot(object):
             # vulnerable score
             if p.player != piece.player:
                 old_vuln = p in current_pressures[piece.id]
-                new_vuln = self._can_target(location_to_piece_map, p, row, col)
+                new_vuln = int(1.5 * self._can_target(location_to_piece_map, p, row, col))
                 vuln_score -= (new_vuln - old_vuln) * VULN_SCORES[piece.type]
 
             # protect score
