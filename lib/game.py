@@ -382,7 +382,7 @@ class Game(object):
 
                 # threshold for capture
                 dist = math.hypot(row - other_row, col - other_col)
-                if dist > 0.3:
+                if dist > 0.5:
                     continue
 
                 # pawns not moving diagonally cannot capture, so they always get captured on collision
