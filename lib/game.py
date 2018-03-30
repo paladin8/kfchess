@@ -69,12 +69,12 @@ class Game(object):
     PLAYER_DIRECTION = [GAME_CONTINUES, WHITE_WINS, BLACK_WINS]
 
     MIN_DRAW_TICKS = {
-        Speed.STANDARD: 1200,  # 2 min
-        Speed.LIGHTNING: 600,  # 1 min
+        Speed.STANDARD: 1800,  # 3 min
+        Speed.LIGHTNING: 900,  # 90 sec
     }
     DRAW_LIMITS = {
-        Speed.STANDARD: 600,   # 1 min
-        Speed.LIGHTNING: 300,  # 30 sec
+        Speed.STANDARD: 900,   # 90 sec
+        Speed.LIGHTNING: 450,  # 45 sec
     }
 
     # move_ticks     = number of ticks to move 1 square in any direction (including diagonal)
@@ -390,9 +390,9 @@ class Game(object):
                 else:
                     other_row, other_col = p.row, p.col
 
-                # threshold for capture
+                # threshold for considering capture (half square diagonal is max distance)
                 dist = math.hypot(row - other_row, col - other_col)
-                if dist > 0.5001:
+                if dist > 0.71:
                     continue
 
                 # pawns not moving diagonally cannot capture, so they always get captured on collision
@@ -406,44 +406,60 @@ class Game(object):
                     })
                     break
 
-                # if the other piece is static, capture it
+                # knights can only capture at the end of their move
+                if piece.type == 'N':
+                    interp = float(self.current_tick - move.starting_tick) / (2 * self.move_ticks)
+                    if interp < 0.85:
+                        continue
+
+                # if the other piece is static and we're close enough, capture it
                 if other_move is None:
-                    p.captured = True
+                    if dist < 0.4001:
+                        p.captured = True
+                        self.last_capture_tick = self.current_tick
+                        updates.append({
+                            'type': 'capture',
+                            'piece': piece.to_json_obj(),
+                            'target': p.to_json_obj(),
+                        })
+                        break
+                    else:
+                        continue
+
+                # check distance after a half-tick
+                n_row, n_col = self._get_interp_position(move, self.current_tick + 0.5)
+                n_dist = math.hypot(n_row - other_row, n_col - other_col)
+
+                # check other distince after a half-tick
+                n_other_row, n_other_col = self._get_interp_position(other_move, self.current_tick + 0.5)
+                n_other_dist = math.hypot(row - n_other_row, col - n_other_col)
+
+                # one of these has to be within the true capture threshold to consider a capture
+                if min(dist, n_dist, n_other_dist) > 0.4001:
+                    continue
+
+                captured = False
+                if n_dist < dist and n_other_dist > dist:
+                    # piece is moving closer, other piece is moving away
+                    captured = True
+                elif n_dist > dist and n_other_dist < dist:
+                    # other_piece captures, let that piece trigger it
+                    pass
+                else:
+                    # both are moving away or moving closer, the earlier moving piece wins
+                    if move.starting_tick <= other_move.starting_tick:
+                        captured = True
+
+                if captured:
                     self.last_capture_tick = self.current_tick
+                    other_move.piece.captured = True
                     updates.append({
                         'type': 'capture',
                         'piece': piece.to_json_obj(),
                         'target': p.to_json_obj(),
                     })
+
                     break
-
-                # close enough to capture; this piece captures other if ticking a tiny bit makes us closer
-                n_row, n_col = self._get_interp_position(move, self.current_tick + 0.01)
-                n_dist = math.hypot(n_row - other_row, n_col - other_col)
-                if n_dist > dist:
-                    continue
-
-                # if ticking other a tiny bit also makes us closer, then fall back to earlier piece wins
-                n_other_row, n_other_col = self._get_interp_position(other_move, self.current_tick + 0.01)
-                n_other_dist = math.hypot(row - n_other_row, col - n_other_col)
-                if n_other_dist < dist and move.starting_tick > other_move.starting_tick:
-                    piece.captured = True
-                    self.last_capture_tick = self.current_tick
-                    updates.append({
-                        'type': 'capture',
-                        'piece': other_move.piece.to_json_obj(),
-                        'target': piece.to_json_obj(),
-                    })
-                else:
-                    other_move.piece.captured = True
-                    self.last_capture_tick = self.current_tick
-                    updates.append({
-                        'type': 'capture',
-                        'piece': piece.to_json_obj(),
-                        'target': other_move.piece.to_json_obj(),
-                    })
-
-                break
 
         # remove moves that have ended
         new_active_moves = []
