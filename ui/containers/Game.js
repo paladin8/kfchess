@@ -219,8 +219,10 @@ class Game extends Component {
             if (gameState.player === 0) {
                 if (game.finished === 1) {
                     endGameText = 'White wins!';
-                } else {
+                } else if (game.finished === 2) {
                     endGameText = 'Black wins!';
+                } else {
+                    endGameText = 'Draw!';
                 }
             } else if (game.finished === gameState.player) {
                 endGameText = 'You win!';
