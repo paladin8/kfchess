@@ -52,7 +52,7 @@ VULN_SCORES = {
     'K': 100,
 }
 
-SCORE_BUFFER = 10
+SCORE_BUFFER = 2
 
 
 def get_bot(difficulty):
@@ -104,7 +104,9 @@ class BasicBot(object):
         top_n = all_moves[:self.top_n_moves]
         score_threshold = top_n[-1][1] - SCORE_BUFFER
 
-        return random.choice([m for m in all_moves if m[1] >= score_threshold])[0]
+        move = random.choice([m for m in all_moves if m[1] >= score_threshold])
+        print 'ai choosing move %s with score %s' % (move[0], move[1])
+        return move[0]
 
     def _compute_current_pressures_and_protects(self, game, location_to_piece_map):
         current_pressures = collections.defaultdict(list)
@@ -235,7 +237,7 @@ class BasicBot(object):
             # vulnerable score
             if p.player != piece.player:
                 old_vuln = p in current_pressures[piece.id]
-                new_vuln = int(1.5 * self._can_target(location_to_piece_map, p, row, col))
+                new_vuln = 1.5 * self._can_target(location_to_piece_map, p, row, col)
                 vuln_score -= (new_vuln - old_vuln) * VULN_SCORES[piece.type]
 
             # protect score
