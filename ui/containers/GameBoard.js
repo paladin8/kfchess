@@ -305,7 +305,10 @@ export default class GameBoard extends Component {
                 this.selected.cellDim = this.cellDim;
             }
 
-            if (gameLogic.isLegalMove(game, currentTick, this.selected.piece, this.selected.row, this.selected.col)) {
+            if (
+                !gameLogic.isCooldown(game, this.selected.piece) &&
+                gameLogic.isLegalMove(game, currentTick, this.selected.piece, this.selected.row, this.selected.col)
+            ) {
                 // selected piece sprite is re-added to the stage so it appears on top
                 this.mainStage.removeChild(this.selected.sprite);
                 this.mainStage.addChild(this.selected.sprite);
@@ -384,6 +387,8 @@ export default class GameBoard extends Component {
                 shouldSelect = false;
             } else if (!gameLogic.isLegalMove(gameState.game, gameState.getCurrentTick(), this.selected.piece, row, col)) {
                 this.unselect();
+            } else if (gameLogic.isCooldown(gameState.game, this.selected.piece)) {
+                shouldSelect = false;
             } else {
                 if (!piece || this.selected.piece.player !== piece.player) {
                     gameState.move(this.selected.piece.id, this.selected.piece.player, row, col);
@@ -477,8 +482,7 @@ export default class GameBoard extends Component {
             const piece = gameLogic.getPieceById(game, pieceId);
             if (
                 pieceSprite.sprite.containsPoint(point) &&
-                !gameLogic.isMoving(game, piece) &&
-                !gameLogic.isCooldown(game, piece)
+                !gameLogic.isMoving(game, piece)
             ) {
                 return { row, col, piece };
             }

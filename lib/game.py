@@ -542,6 +542,8 @@ class Game(object):
         self.players_ready[player] = True
         if all(self.players_ready.values()):
             self.started = True
+            self.last_move_time = time.time()
+            self.last_tick_time = time.time()
 
     def to_json_obj(self):
         return {
