@@ -201,7 +201,7 @@ class Game(object):
         # if it is changing column by 1, it must be capturing
         if can_capture and (piece.col + 1 == to_col or piece.col - 1 == to_col):
             dest_piece = self.board.get_piece_by_location(to_row, to_col)
-            if dest_piece is not None and dest_piece.player != piece.player:
+            if dest_piece is not None and dest_piece.player != piece.player and not self._already_moving(dest_piece):
                 move_seq = self._get_move_seq_ensuring_no_cross(piece, row_dir, to_col - piece.col, 1)
                 if move_seq is not None:
                     return move_seq
