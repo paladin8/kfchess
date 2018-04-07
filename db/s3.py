@@ -11,7 +11,6 @@ client = boto3.client(
 )
 
 
-
 def upload_data(bucket, key, data, **kwargs):
     client.put_object(Bucket=bucket, Key=key, Body=data, **kwargs)
 
