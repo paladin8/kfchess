@@ -229,11 +229,8 @@ def campaign_start():
 
     # create game and add to game states
     campaign_level = campaign.get_level(level)
-    game = Game(
-        Speed(campaign_level.speed),
-        {1: 'u:%s' % user_id, 2: 'b:campaign'},
-        board=Board.from_str(campaign_level.board)
-    )
+    players = {1: 'u:%s' % user_id, 2: 'b:campaign'}
+    game = Game(Speed(campaign_level.speed), players, board=Board.from_str(campaign_level.board))
     game.mark_ready(2)
 
     game_id = generate_game_id()

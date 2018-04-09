@@ -146,7 +146,7 @@ class Game extends Component {
                 modalType = null;
             }
 
-            if (!gameState.game.started && gameState.player !== 0) {
+            if (!gameState.game.started && gameState.player !== 0 && gameState.level === null) {
                 modalType = 'ready';
                 showReady = (
                     playerKeys === null || !('2' in playerKeys) ||
@@ -260,7 +260,11 @@ class Game extends Component {
         if (player === 0) {
             readyText = 'Waiting for players...';
         } else if (!isReady) {
-            readyText = 'I\'m ready!';
+            if (!gameState || gameState.level === null) {
+                readyText = 'I\'m ready!';
+            } else {
+                readyText = 'Start Game';
+            }
             readyAction = 'ready';
         }
 
@@ -309,50 +313,48 @@ class Game extends Component {
                     </div>
                     <div className='game-meta'>
                         <div>
-                            {gameState.level === null &&
-                                <div className='game-meta-section game-ready-section'>
+                            <div className='game-meta-section game-ready-section'>
+                                <div
+                                    className={`game-ready-button ${readyAction ? 'clickable' : ''}`}
+                                    onClick={() => {
+                                        if (readyAction === 'ready') {
+                                            amplitude.getInstance().logEvent('Click Ready', {
+                                                source: 'sidebar',
+                                                player,
+                                                gameId: gameState.gameId,
+                                            });
+
+                                            gameState.ready();
+                                        } else if (readyAction === 'play-again') {
+                                            amplitude.getInstance().logEvent('Click Play Again', {
+                                                source: 'sidebar',
+                                                player,
+                                                gameId: gameState.gameId,
+                                            });
+
+                                            gameState.reset();
+                                        }
+                                    }}
+                                >
+                                    {readyText}
+                                </div>
+                                {(player !== 0 && (!game.started || game.finished !== 0)) &&
                                     <div
-                                        className={`game-ready-button ${readyAction ? 'clickable' : ''}`}
+                                        className='game-cancel-button'
                                         onClick={() => {
-                                            if (readyAction === 'ready') {
-                                                amplitude.getInstance().logEvent('Click Ready', {
-                                                    source: 'sidebar',
-                                                    player,
-                                                    gameId: gameState.gameId,
-                                                });
+                                            amplitude.getInstance().logEvent('Cancel Game', {
+                                                source: 'sidebar',
+                                                player,
+                                                gameId: gameState.gameId,
+                                            });
 
-                                                gameState.ready();
-                                            } else if (readyAction === 'play-again') {
-                                                amplitude.getInstance().logEvent('Click Play Again', {
-                                                    source: 'sidebar',
-                                                    player,
-                                                    gameId: gameState.gameId,
-                                                });
-
-                                                gameState.reset();
-                                            }
+                                            gameState.cancel();
                                         }}
                                     >
-                                        {readyText}
+                                        Cancel Game
                                     </div>
-                                    {(player !== 0 && (!game.started || game.finished !== 0)) &&
-                                        <div
-                                            className='game-cancel-button'
-                                            onClick={() => {
-                                                amplitude.getInstance().logEvent('Cancel Game', {
-                                                    source: 'sidebar',
-                                                    player,
-                                                    gameId: gameState.gameId,
-                                                });
-
-                                                gameState.cancel();
-                                            }}
-                                        >
-                                            Cancel Game
-                                        </div>
-                                    }
-                                </div>
-                            }
+                                }
+                            </div>
                             {gameState.level !== null &&
                                 <div className='game-meta-section game-level-section'>
                                     <div className='game-level-num'>

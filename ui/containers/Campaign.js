@@ -3,6 +3,7 @@ import React, { Component } from 'react';
 import { Tooltip } from 'react-tippy';
 
 import Spinner from './Spinner.js';
+import CampaignLevels from '../util/CampaignLevels.js';
 
 const BELTS = [
     'White',
@@ -100,11 +101,11 @@ export default class Campaign extends Component {
                         <Spinner />
                         :
                         <div className='campaign-wrapper'>
-                            {belt === null ?
-                                this.renderCampaignBelts(progress)
-                                :
-                                this.renderCampaignBeltLevels(belt, progress)
-                            }
+                            <div className='campaign-title'>
+                                Campaign
+                            </div>
+                            {this.renderCampaignBeltLevels(belt, progress)}
+                            {this.renderCampaignBelts(progress)}
                         </div>
                     )
                 }
@@ -117,23 +118,16 @@ export default class Campaign extends Component {
 
         return (
             <div className='campaign-belts'>
-                <div className='campaign-belts-title'>
-                    Campaign
-                </div>
                 <div className='campaign-belts-row'>
-                    {[0, 1, 2].map(beltIdx => this.renderLargeBelt(beltIdx, currentBelt))}
-                </div>
-                <div className='campaign-belts-row'>
-                    {[3, 4, 5].map(beltIdx => this.renderLargeBelt(beltIdx, currentBelt))}
-                </div>
-                <div className='campaign-belts-row'>
-                    {[6, 7, 8].map(beltIdx => this.renderLargeBelt(beltIdx, currentBelt))}
+                    {BELTS.map((_, beltIdx) => this.renderLargeBelt(beltIdx, currentBelt))}
                 </div>
             </div>
         );
     }
 
     renderLargeBelt(beltIdx, currentBelt) {
+        const { belt } = this.state;
+
         const beltName = BELTS[beltIdx];
         if (beltIdx < currentBelt) {
             // complete belt
@@ -143,7 +137,7 @@ export default class Campaign extends Component {
                     key={beltIdx}
                     onClick={() => this.chooseBelt(beltIdx)}
                 >
-                    {beltName + ' Belt'}
+                    <img src={`/static/belt-${beltName.toLowerCase()}.png`} />
                 </div>
             );
         } else if (beltIdx > MAX_BELT) {
@@ -153,7 +147,7 @@ export default class Campaign extends Component {
                     className='campaign-belt campaign-belt-unavailable'
                     key={beltIdx}
                 >
-                    {beltName + ' Belt'}
+                    <img src={`/static/belt-${beltName.toLowerCase()}.png`} />
                 </div>
             );
         } else if (beltIdx === currentBelt) {
@@ -164,7 +158,7 @@ export default class Campaign extends Component {
                     key={beltIdx}
                     onClick={() => this.chooseBelt(beltIdx)}
                 >
-                    {beltName + ' Belt'}
+                    <img src={`/static/belt-${beltName.toLowerCase()}.png`} />
                 </div>
             );
         } else {
@@ -174,7 +168,7 @@ export default class Campaign extends Component {
                     className='campaign-belt campaign-belt-locked'
                     key={beltIdx}
                 >
-                    {beltName + ' Belt'}
+                    <img src={`/static/belt-${beltName.toLowerCase()}.png`} />
                 </div>
             );
         }
@@ -183,43 +177,74 @@ export default class Campaign extends Component {
     renderCampaignBeltLevels(belt, progress) {
         const beltName = BELTS[belt];
         const levelOffset = 8 * belt;
+        const levelClasses = [0, 1, 2, 3, 4, 5, 6, 7, 8].map(idx => {
+            let className = ''
+            if (levelOffset + idx === 0 || progress.levelsCompleted[levelOffset + idx - 1]) {
+                className += 'level-selectable hvr-pulse '
+            }
+            if (progress.levelsCompleted[levelOffset + idx]) {
+                className += 'level-complete ';
+            }
+            return className;
+        });
+        const pathClasses = [0, 1, 2, 3, 4, 5, 6, 7, 8].map(idx => {
+            return progress.levelsCompleted[levelOffset + idx] ? 'path-complete' : '';
+        });
 
         return (
             <div className='campaign-levels'>
-                <div className='campaign-levels-title'>
-                    {beltName + ' Belt'}
+                <div className='campaign-levels-row'>
+                    <div className='campaign-head' />
+                    {this.renderLevel(levelOffset + 0, levelClasses[0])}
+                    <div className={`campaign-path ${pathClasses[0]}`} />
+                    {this.renderLevel(levelOffset + 1, levelClasses[1])}
+                    <div className={`campaign-path ${pathClasses[1]}`} />
+                    {this.renderLevel(levelOffset + 2, levelClasses[2])}
+                    <div className='campaign-tail' />
                 </div>
                 <div className='campaign-levels-row'>
-                    {[0, 1, 2, 3].map(idx => this.renderLevel(levelOffset + idx, progress))}
+                    <div className='campaign-head' />
+                    {this.renderLevel(levelOffset + 3, levelClasses[3])}
+                    <div className={`campaign-path ${pathClasses[3]}`} />
+                    {this.renderLevel(levelOffset + 4, levelClasses[4])}
+                    <div className={`campaign-path ${pathClasses[4]}`} />
+                    {this.renderLevel(levelOffset + 5, levelClasses[5])}
+                    <div className={`campaign-tail campaign-tail-path ${pathClasses[2]}`} />
                 </div>
                 <div className='campaign-levels-row'>
-                    {[4, 5, 6, 7].map(idx => this.renderLevel(levelOffset + idx, progress))}
+                    <div className={`campaign-head campaign-head-path ${pathClasses[5]}`} />
+                    {this.renderLevel(levelOffset + 6, levelClasses[6])}
+                    <div className={`campaign-path ${pathClasses[6]}`} />
+                    {this.renderLevel(levelOffset + 7, levelClasses[7])}
+                    <div className={`campaign-path path-end ${pathClasses[7]}`} />
+                    <div className='campaign-end'>
+                        <img src={`/static/belt-${beltName.toLowerCase()}.png`} />
+                    </div>
                 </div>
             </div>
         );
     }
 
-    renderLevel(level, progress) {
-        if (progress[level]) {
-            return (
+    renderLevel(level, levelClass) {
+        const { progress } = this.state;
+
+        return (
+            <Tooltip
+                title={CampaignLevels[level].title}
+                trigger='mouseenter'
+            >
                 <div
-                    className='campaign-level-completed'
-                    key={level}
-                    onClick={() => this.startLevel(level)}
-                >
-                    {'Level ' + (level + 1)}
-                </div>
-            );
-        } else {
-            return (
-                <div
-                    className='campaign-level'
-                    key={level}
-                    onClick={() => this.startLevel(level)}
-                >
-                    {'Level ' + (level + 1)}
-                </div>
-            );
-        }
+                    className={`campaign-level ${levelClass}`}
+                    onClick={() => {
+                        amplitude.getInstance().logEvent('Click Level', {
+                            level,
+                            isCompleted: progress.levelsCompleted[level] === true,
+                        });
+
+                        this.props.startCampaignLevel(level);
+                    }}
+                />
+            </Tooltip>
+        );
     }
 };

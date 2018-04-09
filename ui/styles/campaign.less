@@ -24,30 +24,42 @@
         min-width: 600px;
         max-width: 800px;
 
+        .campaign-title {
+            width: 100%;
+
+            text-align: center;
+            font-size: 25px;
+            font-weight: 700;
+        }
+
         .campaign-belts {
             display: flex;
             flex-direction: column;
             align-items: center;
 
+            margin-top: 100px;
+
             width: 100%;
-
-            .campaign-belts-title {
-                margin-bottom: 40px;
-
-                font-size: 25px;
-                font-weight: 700;
-            }
 
             .campaign-belts-row {
                 display: flex;
-                justify-content: space-around;
-
-                width: 100%;
 
                 .campaign-belt {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+
+                    padding: 10px;
+
+                    height: 30px;
 
                     &.campaign-belt-completed, &.campaign-belt-next {
                         cursor: pointer;
+                    }
+
+                    img {
+                        height: 100%;
+                        width: auto;
                     }
                 }
             }
@@ -58,23 +70,89 @@
             flex-direction: column;
             align-items: center;
 
+            margin-top: -50px;
+
             width: 100%;
-
-            .campaign-levels-title {
-                margin-bottom: 40px;
-
-                font-size: 25px;
-                font-weight: 700;
-            }
 
             .campaign-levels-row {
                 display: flex;
-                justify-content: space-around;
+                align-items: flex-end;
 
-                width: 100%;
+                height: 150px;
 
                 .campaign-level {
-                    cursor: pointer;
+                    height: 14px;
+                    width: 14px;
+
+                    border-radius: 50%;
+                    border: solid 5px @path-color;
+
+                    &.level-selectable {
+                        cursor: pointer;
+                    }
+
+                    &.level-complete {
+                        background-color: @path-color;
+                    }
+                }
+
+                .campaign-path {
+                    margin: 0px 10px 8px 10px;
+
+                    width: 175px;
+
+                    border-bottom: dashed 5px @path-color;
+
+                    &.path-complete {
+                        border-style: solid;
+                    }
+
+                    &.path-end {
+                        width: 140px;
+                    }
+                }
+
+                .campaign-head {
+                    margin-right: 10px;
+                    margin-bottom: 8px;
+
+                    height: 145px;
+                    width: 60px;
+
+                    &.campaign-head-path {
+                        border: dashed 5px @path-color;
+                        border-top-left-radius: 75px;
+                        border-bottom-left-radius: 75px;
+                        border-right: 0px;
+                    }
+                }
+
+                .campaign-tail {
+                    margin-left: 10px;
+                    margin-bottom: 8px;
+
+                    height: 145px;
+                    width: 60px;
+
+                    &.campaign-tail-path {
+                        border: dashed 5px @path-color;
+                        border-top-right-radius: 75px;
+                        border-bottom-right-radius: 75px;
+                        border-left: 0px;
+                    }
+                }
+
+                .campaign-end {
+                    margin-bottom: -35px;
+                    margin-right: 45px;
+                    margin-left: 10px;
+
+                    width: 80px;
+
+                    img {
+                        height: auto;
+                        width: 100%;
+                    }
                 }
             }
         }

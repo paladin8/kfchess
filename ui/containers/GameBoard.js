@@ -22,6 +22,7 @@ export default class GameBoard extends Component {
 
         this.state = {
             player: null,
+            ready: false,
         };
 
         this.resize = this.resize.bind(this);
@@ -146,6 +147,10 @@ export default class GameBoard extends Component {
         const { game } = gameState;
         if (!game) {
             return;
+        }
+
+        if (!this.state.ready) {
+            this.setState({ ready: true });
         }
 
         if (gameState.player !== this.state.player) {
@@ -492,6 +497,8 @@ export default class GameBoard extends Component {
     }
 
     render() {
-        return <canvas ref={ref => this.canvas = ref} />;
+        const { ready } = this.state;
+
+        return <canvas ref={ref => this.canvas = ref} style={{ display: (ready ? '' : 'none')}} />
     }
 };
