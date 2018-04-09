@@ -103,7 +103,7 @@ class GameHistory(object):
         self.history_id = history_id
         self.replay = replay
 
-    def to_json_obj():
+    def to_json_obj(self):
         return {
             'historyId': self.history_id,
             'replay': self.replay,
@@ -112,3 +112,26 @@ class GameHistory(object):
     @staticmethod
     def from_row(row):
         return GameHistory(row.id, row.replay)
+
+
+class CampaignProgress(object):
+
+    def __init__(self, levels_completed, belts_completed):
+        self.levels_completed = levels_completed
+        self.belts_completed = belts_completed
+
+    def to_json_obj(self):
+        return {
+            'levelsCompleted': self.levels_completed,
+            'beltsCompleted': self.belts_completed,
+        }
+
+    @staticmethod
+    def from_row(row):
+        if row is None:
+            return CampaignProgress({}, {})
+
+        return CampaignProgress(
+            row.progress.get('levelsCompleted', {}),
+            row.progress.get('beltsCompleted', {}),
+        )

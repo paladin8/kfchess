@@ -27,7 +27,7 @@ export default class Listener {
         this.socket.emit('listen', JSON.stringify({ userId: this.userId }));
 
         if (this.interval) {
-            cancelInterval(this.interval);
+            clearInterval(this.interval);
         }
 
         this.interval = setInterval(() => {

@@ -232,6 +232,7 @@ def history():
 
     history = db_service.get_user_game_history(user_id, offset, count)
 
+    # fetch user info for all opponents in history
     user_ids = set()
     for h in history:
         for value in h.game_info['opponents']:
@@ -251,6 +252,23 @@ def history():
             user_id: user.to_json_obj()
             for user_id, user in users.iteritems()
         },
+    })
+
+
+@user.route('/api/user/campaign', methods=['GET'])
+def campaign():
+    print 'campaign'
+
+    if not current_user.is_authenticated:
+        return json.dumps({
+            'success': False,
+            'message': 'User is not logged in.',
+        })
+
+    user_id = current_user.user_id
+    progress = db_service.get_campaign_progress(user_id)
+    return json.dumps({
+        'progress': progress.to_json_obj(),
     })
 
 

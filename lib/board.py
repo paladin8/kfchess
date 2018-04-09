@@ -53,14 +53,16 @@ class Piece(object):
 
 class Board(object):
 
-    INITIAL_BOARD = '''R2N2B2Q2K2B2N2R2
-P2P2P2P2P2P2P2P2
-0000000000000000
-0000000000000000
-0000000000000000
-0000000000000000
-P1P1P1P1P1P1P1P1
-R1N1B1Q1K1B1N1R1'''
+    INITIAL_BOARD = '''
+        R2N2B2Q2K2B2N2R2
+        P2P2P2P2P2P2P2P2
+        0000000000000000
+        0000000000000000
+        0000000000000000
+        0000000000000000
+        P1P1P1P1P1P1P1P1
+        R1N1B1Q1K1B1N1R1
+    '''
 
     def __init__(self, pieces):
         self.pieces = pieces
@@ -98,7 +100,7 @@ R1N1B1Q1K1B1N1R1'''
 
     @staticmethod
     def from_str(s):
-        s = s.splitlines()
+        s = [l.strip() for l in s.splitlines() if l.strip()]
         pieces = []
         for row in xrange(8):
             for col in xrange(8):

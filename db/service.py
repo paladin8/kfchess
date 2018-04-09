@@ -3,7 +3,7 @@ import json
 
 from sqlalchemy.engine import create_engine
 
-from db.models import ActiveGame, GameHistory, User, UserGameHistory
+from db.models import ActiveGame, CampaignProgress, GameHistory, User, UserGameHistory
 
 
 class DbService(object):
@@ -187,3 +187,25 @@ class DbService(object):
                 history_id
             ).fetchone()
             return row and GameHistory.from_row(row)
+
+    # campaign progress
+
+    def get_campaign_progress(self, user_id):
+        with self.engine.connect() as conn:
+            row = conn.execute(
+                "SELECT * "
+                "FROM campaign_progress "
+                "WHERE user_id = %s",
+                user_id
+            ).fetchone()
+            return CampaignProgress.from_row(row)
+
+    def update_campaign_progress(self, user_id, progress):
+        with self.engine.connect() as conn:
+            conn.execute(
+                "INSERT INTO campaign_progress (user_id, progress) "
+                "VALUES (%s, %s) "
+                "ON CONFLICT (user_id) DO UPDATE "
+                "SET progress = excluded.progress",
+                user_id, json.dumps(progress.to_json_obj())
+            )

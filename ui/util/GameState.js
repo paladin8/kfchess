@@ -14,6 +14,7 @@ export default class GameState {
         this.player = null;
         this.game = null;
         this.ticks = null;
+        this.level = null;
         this.lastUpdate = new Date();
         this.lastCurrentTick = 0;
         this.lastCurrentTime = null;
@@ -55,8 +56,12 @@ export default class GameState {
             this.player = data.player;
         }
 
-        if (data.ticks) {
+        if (data.ticks !== undefined) {
             this.ticks = data.ticks;
+        }
+
+        if (data.level !== undefined) {
+            this.level = data.level;
         }
 
         if (SIMULATED_DELAY > 0) {

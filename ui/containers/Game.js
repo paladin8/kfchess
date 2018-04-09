@@ -10,6 +10,7 @@ import { Tooltip } from 'react-tippy';
 import GameBoard from './GameBoard.js';
 import SpeedIcon from './SpeedIcon.js';
 import UserDisplay from './UserDisplay.js';
+import CampaignLevels from '../util/CampaignLevels.js';
 import GameState from '../util/GameState.js';
 
 class Game extends Component {
@@ -17,32 +18,9 @@ class Game extends Component {
     constructor(props) {
         super(props);
 
-        const gameId = props.match.params.gameId;
-
-        const { key } = qs.parse(props.location.search);
-        const playerKey = props.playerKey || key;
-
-        const gameState = new GameState(gameId, playerKey, props.fetchUserInfo, () => {
-            this.props.history.push('/');
-        }, (oldRating, newRating) => {
-            this.setState({ oldRating, newRating });
-        });
-
         this.state = {
-            gameState,
-
-            modalType: null,
-            showReady: true,
-            inviteUsername: '',
-
-            game: null,
-            player: null,
-            isReady: false,
             windowWidth: window.innerWidth,
             windowHeight: window.innerHeight,
-
-            oldRating: null,
-            newRating: null,
 
             musicVolume: (window.localStorage && window.localStorage.musicVolume) || 0,
             soundVolume: (window.localStorage && window.localStorage.soundVolume) || 0,
@@ -58,22 +36,14 @@ class Game extends Component {
     }
 
     componentWillMount() {
-        const { gameState } = this.state;
-
-        // listen for updates
-        gameState.registerListener(this.update);
-
         // listen for resizes
         window.addEventListener('resize', this.resize);
     }
 
     componentDidMount() {
-        const { gameState } = this.state;
-        const { user } = this.props;
+        const { props } = this;
 
-        if (user) {
-            this.props.checkGame(gameState.gameId);
-        }
+        this.initGameState(props);
     }
 
     componentWillUnmount() {
@@ -89,6 +59,58 @@ class Game extends Component {
         this.setState({
             windowWidth: window.innerWidth,
             windowHeight: window.innerHeight,
+        });
+    }
+
+    componentWillReceiveProps(nextProps) {
+        const gameId = this.props.match.params.gameId;
+        const nextGameId = nextProps.match.params.gameId;
+        if (gameId === nextGameId) {
+            return;
+        }
+
+        this.initGameState(nextProps);
+    }
+
+    initGameState(props) {
+        if (this.state.gameState) {
+            this.state.gameState.unregisterListener(this.update);
+            this.state.gameState.destroy();
+        }
+
+        const gameId = props.match.params.gameId;
+        const { key } = qs.parse(props.location.search);
+        const playerKey = props.playerKey || key;
+
+        const gameState = new GameState(gameId, playerKey, props.fetchUserInfo, () => {
+            this.props.history.push('/');
+        }, (oldRating, newRating) => {
+            this.setState({ oldRating, newRating });
+        });
+
+        this.setState({
+            gameState,
+
+            modalType: null,
+            showReady: true,
+            inviteUsername: '',
+
+            game: null,
+            player: null,
+            isReady: false,
+
+            oldRating: null,
+            newRating: null,
+        }, () => {
+            // listen for updates
+            gameState.registerListener(this.update);
+
+            // check game
+            const { user } = this.props;
+
+            if (user) {
+                this.props.checkGame(gameState.gameId);
+            }
         });
     }
 
@@ -287,94 +309,108 @@ class Game extends Component {
                     </div>
                     <div className='game-meta'>
                         <div>
-                            <div className='game-meta-section game-ready-section'>
-                                <div
-                                    className={`game-ready-button ${readyAction ? 'clickable' : ''}`}
-                                    onClick={() => {
-                                        if (readyAction === 'ready') {
-                                            amplitude.getInstance().logEvent('Click Ready', {
-                                                source: 'sidebar',
-                                                player,
-                                                gameId: gameState.gameId,
-                                            });
-
-                                            gameState.ready();
-                                        } else if (readyAction === 'play-again') {
-                                            amplitude.getInstance().logEvent('Click Play Again', {
-                                                source: 'sidebar',
-                                                player,
-                                                gameId: gameState.gameId,
-                                            });
-
-                                            gameState.reset();
-                                        }
-                                    }}
-                                >
-                                    {readyText}
-                                </div>
-                                {(player !== 0 && (!game.started || game.finished !== 0)) &&
+                            {gameState.level === null &&
+                                <div className='game-meta-section game-ready-section'>
                                     <div
-                                        className='game-cancel-button'
+                                        className={`game-ready-button ${readyAction ? 'clickable' : ''}`}
                                         onClick={() => {
-                                            amplitude.getInstance().logEvent('Cancel Game', {
-                                                source: 'sidebar',
-                                                player,
-                                                gameId: gameState.gameId,
-                                            });
+                                            if (readyAction === 'ready') {
+                                                amplitude.getInstance().logEvent('Click Ready', {
+                                                    source: 'sidebar',
+                                                    player,
+                                                    gameId: gameState.gameId,
+                                                });
 
-                                            gameState.cancel();
+                                                gameState.ready();
+                                            } else if (readyAction === 'play-again') {
+                                                amplitude.getInstance().logEvent('Click Play Again', {
+                                                    source: 'sidebar',
+                                                    player,
+                                                    gameId: gameState.gameId,
+                                                });
+
+                                                gameState.reset();
+                                            }
                                         }}
                                     >
-                                        Cancel Game
+                                        {readyText}
                                     </div>
-                                }
-                            </div>
-                            <div className='game-meta-section'>
-                                <div className='game-id'>
-                                    Game ID: {gameState.gameId}
-                                </div>
-                            </div>
-                            <div className='game-meta-section'>
-                                <Tooltip
-                                    title='Copied to clipboard!'
-                                    distance={5}
-                                    trigger='click'
-                                >
-                                    <CopyToClipboard
-                                        text={baseUrl}
-                                        onCopy={() => {
-                                            amplitude.getInstance().logEvent('Copy Spectator Link', {
-                                                source: 'sidebar',
-                                                gameId: gameState.gameId,
-                                                player,
-                                            });
-                                        }}
-                                    >
-                                        <div className='game-friend-link'>
-                                            <div className='game-friend-link-text'>
-                                                Copy spectator link
-                                            </div>
-                                            <div className='game-friend-link-icon'>
-                                                <i className='fas fa-link' />
-                                            </div>
+                                    {(player !== 0 && (!game.started || game.finished !== 0)) &&
+                                        <div
+                                            className='game-cancel-button'
+                                            onClick={() => {
+                                                amplitude.getInstance().logEvent('Cancel Game', {
+                                                    source: 'sidebar',
+                                                    player,
+                                                    gameId: gameState.gameId,
+                                                });
+
+                                                gameState.cancel();
+                                            }}
+                                        >
+                                            Cancel Game
                                         </div>
-                                    </CopyToClipboard>
-                                </Tooltip>
-                            </div>
-                            <div className='game-meta-section game-meta-players'>
-                                <table>
-                                    <tbody>
-                                        <tr className='game-meta-player'>
-                                            <td className='game-meta-player-color'>White:</td>
-                                            <td><UserDisplay value={game.players[1]} knownUsers={knownUsers} /></td>
-                                        </tr>
-                                        <tr className='game-meta-player'>
-                                            <td className='game-meta-player-color'>Black:</td>
-                                            <td><UserDisplay value={game.players[2]} knownUsers={knownUsers} /></td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
+                                    }
+                                </div>
+                            }
+                            {gameState.level !== null &&
+                                <div className='game-meta-section game-level-section'>
+                                    <div className='game-level-num'>
+                                        Level {gameState.level + 1}
+                                    </div>
+                                    <div className='game-level-title'>
+                                        {CampaignLevels[gameState.level].title}
+                                    </div>
+                                    <div className='game-level-description'>
+                                        {CampaignLevels[gameState.level].description}
+                                    </div>
+                                </div>
+                            }
+                            {gameState.level === null &&
+                                <div className='game-meta-section'>
+                                    <Tooltip
+                                        title='Copied to clipboard!'
+                                        distance={5}
+                                        trigger='click'
+                                    >
+                                        <CopyToClipboard
+                                            text={baseUrl}
+                                            onCopy={() => {
+                                                amplitude.getInstance().logEvent('Copy Spectator Link', {
+                                                    source: 'sidebar',
+                                                    gameId: gameState.gameId,
+                                                    player,
+                                                });
+                                            }}
+                                        >
+                                            <div className='game-friend-link'>
+                                                <div className='game-friend-link-text'>
+                                                    Copy spectator link
+                                                </div>
+                                                <div className='game-friend-link-icon'>
+                                                    <i className='fas fa-link' />
+                                                </div>
+                                            </div>
+                                        </CopyToClipboard>
+                                    </Tooltip>
+                                </div>
+                            }
+                            {(gameState.level === null || gameState.player !== 1) &&
+                                <div className='game-meta-section game-meta-players'>
+                                    <table>
+                                        <tbody>
+                                            <tr className='game-meta-player'>
+                                                <td className='game-meta-player-color'>White:</td>
+                                                <td><UserDisplay value={game.players[1]} knownUsers={knownUsers} /></td>
+                                            </tr>
+                                            <tr className='game-meta-player'>
+                                                <td className='game-meta-player-color'>Black:</td>
+                                                <td><UserDisplay value={game.players[2]} knownUsers={knownUsers} /></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
                         </div>
                         <div className='game-audio-controls'>
                             <table>
@@ -519,8 +555,8 @@ class Game extends Component {
             >
                 {modalType === 'ready' &&
                     <div className='game-ready'>
-                        {this.renderReadyTitle(gameState.game)}
-                        {friendLink && !invited &&
+                        {gameState.level === null && this.renderReadyTitle(gameState.game)}
+                        {gameState.level === null && friendLink && !invited &&
                             <Tooltip
                                 title='Copied to clipboard!'
                                 distance={5}
@@ -551,7 +587,7 @@ class Game extends Component {
                                 </CopyToClipboard>
                             </Tooltip>
                         }
-                        {friendLink && !invited && user &&
+                        {gameState.level === null && friendLink && !invited && user &&
                             <div className='game-invite'>
                                 <input
                                     placeholder='... or invite by username'
@@ -568,7 +604,7 @@ class Game extends Component {
                                 </div>
                             </div>
                         }
-                        {difficulty &&
+                        {gameState.level === null && difficulty &&
                             <div className='game-difficulty-wrapper'>
                                 <div
                                     className={`game-difficulty-option ${difficulty === 'novice' ? 'selected' : ''}`}
@@ -587,6 +623,16 @@ class Game extends Component {
                                     onClick={() => this.changeDifficulty('advanced')}
                                 >
                                     Advanced
+                                </div>
+                            </div>
+                        }
+                        {gameState.level !== null &&
+                            <div className='game-level'>
+                                <div className='game-level-num'>
+                                    Level {gameState.level + 1}
+                                </div>
+                                <div className='game-level-title'>
+                                    {CampaignLevels[gameState.level].title}
                                 </div>
                             </div>
                         }
@@ -635,19 +681,37 @@ class Game extends Component {
                             </div>
                         }
                         {player !== 0 &&
-                            <div
-                                className='game-finished-button-again'
-                                onClick={() => {
-                                    amplitude.getInstance().logEvent('Click Play Again', {
-                                        source: 'modal',
-                                        player,
-                                        gameId: gameState.gameId,
-                                    });
+                            <div className='game-finished-buttons'>
+                                <div
+                                    className='game-finished-button-again'
+                                    onClick={() => {
+                                        amplitude.getInstance().logEvent('Click Play Again', {
+                                            source: 'modal',
+                                            player,
+                                            gameId: gameState.gameId,
+                                        });
 
-                                    gameState.reset();
-                                }}
-                            >
-                                Play Again
+                                        gameState.reset();
+                                    }}
+                                >
+                                    Play Again
+                                </div>
+                                {gameState.level !== null && gameState.level + 1 < CampaignLevels.length &&
+                                    <div
+                                        className='game-finished-button-again'
+                                        onClick={() => {
+                                            amplitude.getInstance().logEvent('Click Next Level', {
+                                                source: 'modal',
+                                                player,
+                                                gameId: gameState.gameId,
+                                            });
+
+                                            this.props.startCampaignLevel(gameState.level + 1);
+                                        }}
+                                    >
+                                        Next Level
+                                    </div>
+                                }
                             </div>
                         }
                         {player !== 0 &&

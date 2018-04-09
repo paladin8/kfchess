@@ -62,6 +62,8 @@ def get_bot(difficulty):
         return BasicBot(difficulty, 26, 2)
     elif difficulty == 'advanced':
         return BasicBot(difficulty, 13, 1)
+    elif difficulty == 'campaign':
+        return ExactTickBot(difficulty, 10, 1)
     else:
         raise ValueError('Unexpected difficulty ' + difficulty)
 
@@ -74,8 +76,7 @@ class BasicBot(object):
         self.top_n_moves = top_n_moves
 
     def get_move(self, game, player, randnum):
-        # moves approx every ticks_per_move (with randomness)
-        if game.current_tick % self.ticks_per_move != randnum % self.ticks_per_move:
+        if not self._should_move(game, randnum):
             return None
 
         # precompute some stuff for performance
@@ -107,6 +108,10 @@ class BasicBot(object):
         move = random.choice([m for m in all_moves if m[1] >= score_threshold])
         print 'ai choosing move %s with score %s' % (move[0], move[1])
         return move[0]
+
+    def _should_move(self, game, randnum):
+        # moves approx every ticks_per_move (with randomness)
+        return game.current_tick % self.ticks_per_move == randnum % self.ticks_per_move
 
     def _compute_current_pressures_and_protects(self, game, location_to_piece_map):
         current_pressures = collections.defaultdict(list)
@@ -294,6 +299,12 @@ class BasicBot(object):
                         break
 
         return False
+
+
+class ExactTickBot(BasicBot):
+
+    def _should_move(self, game, randnum):
+        return game.current_tick % self.ticks_per_move == 0
 
 
 if __name__ == '__main__':

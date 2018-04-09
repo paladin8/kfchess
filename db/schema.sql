@@ -36,3 +36,10 @@ CREATE TABLE active_games (
 );
 
 CREATE INDEX active_games_server_game_id_idx ON active_games (server, game_id);
+
+
+CREATE TABLE campaign_progress (
+    id        BIGSERIAL PRIMARY KEY,
+    user_id   BIGINT UNIQUE,
+    progress  JSONB
+);

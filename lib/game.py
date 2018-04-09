@@ -79,7 +79,7 @@ class Game(object):
 
     # move_ticks     = number of ticks to move 1 square in any direction (including diagonal)
     # cooldown_ticks = number of ticks before a piece can move again
-    def __init__(self, speed, players, num_players=2, debug=False):
+    def __init__(self, speed, players, num_players=2, board=None, debug=False):
         self.speed = speed
         self.players = players
         self.debug = debug
@@ -88,7 +88,7 @@ class Game(object):
         self.cooldown_ticks = speed.get_cooldown_ticks()
         self.players_ready = {i + 1: False for i in xrange(num_players)}
 
-        self.board = Board.initial()
+        self.board = board or Board.initial()
         self.active_moves = []
         self.cooldowns = []
         self.move_log = []
@@ -568,9 +568,10 @@ class Game(object):
 
 class GameState(object):
 
-    def __init__(self, game_id, game, player_keys, bots, replay=None):
+    def __init__(self, game_id, game, player_keys, bots, replay=None, level=None):
         self.game_id = game_id
         self.game = game
         self.player_keys = player_keys
         self.bots = bots
         self.replay = replay
+        self.level = level

@@ -4,6 +4,7 @@ import { BrowserRouter, Route } from 'react-router-dom';
 
 import About from './About.js';
 import Alert from './Alert.js';
+import Campaign from './Campaign.js';
 import Game from './Game.js';
 import Header from './Header.js';
 import Home from './Home.js';
@@ -36,6 +37,8 @@ export default class App extends Component {
         this.getUserGameHistory = this.getUserGameHistory.bind(this);
         this.getLiveInfo = this.getLiveInfo.bind(this);
         this.startReplay = this.startReplay.bind(this);
+        this.fetchCampaignInfo = this.fetchCampaignInfo.bind(this);
+        this.startCampaignLevel = this.startCampaignLevel.bind(this);
         this.logout = this.logout.bind(this);
 
         this.router = null;
@@ -322,7 +325,7 @@ export default class App extends Component {
 
     startReplay(historyId, callback) {
         this.postRequest(
-            '/api/replay/start',
+            '/api/game/startreplay',
             JSON.stringify({ historyId }),
             response => {
                 response.json().then(data => {
@@ -334,6 +337,35 @@ export default class App extends Component {
                 });
             },
             () => this.setError('Error starting replay.')
+        );
+    }
+
+    fetchCampaignInfo(callback) {
+        this.getRequest(
+            '/api/user/campaign',
+            response => {
+                response.json().then(data => {
+                    callback(data);
+                });
+            },
+            () => this.setError('Error fetching campaign info.')
+        );
+    }
+
+    startCampaignLevel(level) {
+        this.postRequest(
+            '/api/game/startcampaign',
+            JSON.stringify({ level }),
+            response => {
+                response.json().then(data => {
+                    if (data.success) {
+                        this.router.history.push(`/game/${data.gameId}?key=${data.playerKeys['1']}`);
+                    } else {
+                        this.setError(data.message);
+                    }
+                });
+            },
+            () => this.setError('Error starting campaign level.')
         );
     }
 
@@ -411,6 +443,7 @@ export default class App extends Component {
                                 fetchUserInfo={this.fetchUserInfo}
                                 inviteUser={this.inviteUser}
                                 playerKeys={playerKeys}
+                                startCampaignLevel={this.startCampaignLevel}
                                 {...props}
                             />
                         )
@@ -424,6 +457,15 @@ export default class App extends Component {
                                 {...props}
                             />
                         )
+                    }} />
+                    <Route path='/campaign' render={props => {
+                        return (
+                            <Campaign
+                                user={user}
+                                fetchCampaignInfo={this.fetchCampaignInfo}
+                                startCampaignLevel={this.startCampaignLevel}
+                            />
+                        );
                     }} />
                 </div>
                 :

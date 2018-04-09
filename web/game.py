@@ -12,7 +12,8 @@ from flask_login import current_user
 
 import context
 from db import db_service
-from lib import ai, elo
+from lib import ai, campaign, elo
+from lib.board import Board
 from lib.game import Game, GameState, Speed
 from lib.replay import Replay
 from web import game_states
@@ -176,7 +177,7 @@ def invite():
     })
 
 
-@game.route('/api/replay/start', methods=['POST'])
+@game.route('/api/game/startreplay', methods=['POST'])
 def replay_start():
     data = json.loads(request.data)
     history_id = data['historyId']
@@ -201,6 +202,52 @@ def replay_start():
     return json.dumps({
         'success': True,
         'gameId': game_id,
+    })
+
+
+@game.route('/api/game/startcampaign', methods=['POST'])
+def campaign_start():
+    data = json.loads(request.data)
+    level = data['level']
+    print 'campaign start', data
+
+    if not current_user.is_authenticated:
+        return json.dumps({
+            'success': False,
+            'message': 'User is not logged in.',
+        })
+
+    # check that user has access to this level
+    user_id = current_user.user_id
+    progress = db_service.get_campaign_progress(user_id)
+    belt = level / 8
+    if belt > 0 and not progress[str(belt - 1)]:
+        return json.dumps({
+            'success': False,
+            'message': 'User does not have access to this level.',
+        })
+
+    # create game and add to game states
+    campaign_level = campaign.get_level(level)
+    game = Game(
+        Speed(campaign_level.speed),
+        {1: 'u:%s' % user_id, 2: 'b:campaign'},
+        board=Board.from_str(campaign_level.board)
+    )
+    game.mark_ready(2)
+
+    game_id = generate_game_id()
+    player_keys = {1: str(uuid.uuid4())}
+    bots = {2: ai.get_bot('campaign')}
+    game_states[game_id] = GameState(game_id, game, player_keys, bots, level=level)
+
+    # update user current game
+    db_service.update_user_current_game(user_id, game_id, player_keys[1])
+
+    return json.dumps({
+        'success': True,
+        'gameId': game_id,
+        'playerKeys': player_keys,
     })
 
 
@@ -334,6 +381,19 @@ def initialize(init_socketio):
                                     'newRating': nr2,
                                 },
                             }, room=game_id, json=True)
+
+                        # update campaign progress
+                        if game_state.level is not None and game.finished == 1:
+                            progress = db_service.get_campaign_progress(user_id1)
+                            progress.levels_completed[game_state.level] = True
+
+                            # check if belt is completed
+                            belt = game_state.level / 8
+                            belt_levels = xrange(8 * belt, 8 * belt + 8)
+                            if all(progress.levels_completed.get(level) for level in belt_levels):
+                                progress.belts_completed[belt] = True
+
+                            db_service.update_campaign_progress(user_id1, progress)
                 except:
                     traceback.print_exc()
 

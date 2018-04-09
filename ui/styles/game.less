@@ -61,6 +61,28 @@
                     }
                 }
 
+                &.game-level-section {
+                    margin-bottom: 40px;
+
+                    .game-level-num {
+                        color: @font-light-grey;
+
+                        margin-bottom: 15px;
+                    }
+
+                    .game-level-title {
+                        font-weight: 700;
+
+                        margin-bottom: 40px;
+                    }
+
+                    .game-level-description {
+                        width: 100%;
+
+                        color: @font-light-grey;
+                    }
+                }
+
                 .game-friend-link {
                     display: flex;
 
@@ -217,8 +239,6 @@
                 margin-bottom: 15px;
 
                 color: @font-light-grey;
-
-                font-size: 15px;
             }
 
             .game-ready-text-players {
@@ -235,6 +255,24 @@
                         margin-right: 10px;
                     }
                 }
+            }
+        }
+
+        .game-level {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+
+            margin: 40px 0px;
+
+            .game-level-num {
+                color: @font-light-grey;
+
+                margin-bottom: 15px;
+            }
+
+            .game-level-title {
+                font-weight: 700;
             }
         }
 
@@ -347,19 +385,26 @@
             margin: 20px 0px;
         }
 
-        .game-finished-button-again {
-            .light-green-button;
-
-            width: 120px;
-            height: 40px;
+        .game-finished-buttons {
+            display: flex;
+            justify-content: space-between;
 
             margin: 20px 0px;
 
-            margin-bottom: 20px;
+            .game-finished-button-again {
+                .light-green-button;
 
-            font-size: 15px;
+                width: 120px;
+                height: 40px;
 
-            cursor: pointer;
+                font-size: 15px;
+
+                cursor: pointer;
+
+                &:first-child {
+                    margin-right: 20px;
+                }
+            }
         }
     }
 

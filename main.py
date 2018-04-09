@@ -7,7 +7,8 @@ from flask_socketio import SocketIO, join_room, leave_room, emit
 
 import config
 from db import db_service
-from lib import ai
+from lib import ai, campaign
+from lib.board import Board
 from lib.game import Game
 from web import game_states, game as game_handlers
 from web.game import game as game_blueprint
@@ -98,6 +99,7 @@ def join(data):
         'game': game_state.game.to_json_obj(),
         'player': auth_player,
         'ticks': game_state.replay.ticks if game_state.replay is not None else None,
+        'level': game_state.level,
     }, json=True)
 
 
@@ -218,8 +220,13 @@ def reset(data):
 
     # only authenticated players can reset game
     if auth_player is not None:
+        board = None
+        if game_state.level is not None:
+            campaign_level = campaign.get_level(game_state.level)
+            board = Board.from_str(campaign_level.board)
+
         old_game = game_state.game
-        game = Game(old_game.speed, old_game.players)
+        game = Game(old_game.speed, old_game.players, board=board)
         for player in game_state.bots:
             game.mark_ready(player)
         game_state.game = game

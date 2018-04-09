@@ -1,5 +1,6 @@
 import amplitude from 'amplitude-js';
 import React, { Component } from 'react';
+import { Link } from 'react-router-dom';
 
 export default class Home extends Component {
 
@@ -30,24 +31,36 @@ export default class Home extends Component {
         return (
             <div className='home'>
                 <div className='home-banner'>
-                    <div className='home-banner-video'>
-                        <video autoPlay loop muted playsInline>
-                            <source src='/static/banner-video.mp4' type='video/mp4' />
-                        </video>
-                    </div>
-                    <div className='home-banner-text'>
-                        <div className='home-banner-text-main'>
-                            Chess Without Turns
+                    <div className='home-banner-inner'>
+                        <div className='home-banner-video'>
+                            <video autoPlay loop muted playsInline>
+                                <source src='/static/banner-video.mp4' type='video/mp4' />
+                            </video>
                         </div>
-                        <div className='home-banner-text-sub'>
-                            The world's most popular strategy game goes real-time.
+                        <div className='home-banner-text'>
+                            <div className='home-banner-text-main'>
+                                Chess Without Turns
+                            </div>
+                            <div className='home-banner-text-sub'>
+                                The world's most popular strategy game goes real-time.
+                            </div>
                         </div>
                     </div>
                 </div>
                 <div className='home-play-buttons'>
                     <div className='home-play-button-wrapper'>
+                        <Link to='/campaign'>
+                            <div className='home-play-button'>
+                                Campaign
+                            </div>
+                        </Link>
+                        <div className='home-play-subtitle'>
+                            Complete Solo Missions
+                        </div>
+                    </div>
+                    <div className='home-play-button-wrapper'>
                         <div
-                            className='home-play-button home-play-vs-ai-button'
+                            className='home-play-button'
                             onClick={() => this.props.createNewGame(friendlySpeed, true, 'novice')}
                         >
                             Play vs AI
@@ -69,7 +82,7 @@ export default class Home extends Component {
                     </div>
                     <div className='home-play-button-wrapper'>
                         <div
-                            className='home-play-button home-create-game-button'
+                            className='home-play-button'
                             onClick={() => this.props.createNewGame(friendlySpeed, false)}
                         >
                             Play vs Friend
