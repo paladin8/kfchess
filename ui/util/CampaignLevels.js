@@ -1,4 +1,19 @@
-const levels = [
+export const BELTS = [
+    'None',
+    'White',
+    'Yellow',
+    'Green',
+    'Purple',
+    'Orange',
+    'Blue',
+    'Brown',
+    'Red',
+    'Black',
+];
+
+export const MAX_BELT = 2;  // currently only 2 are implemented
+
+const LEVELS = [
     {
         title: 'Welcome to Kung Fu Chess',
         description: 'It\'s like chess, but there are no turns. Win by capturing the enemy king!',
@@ -33,4 +48,4 @@ const levels = [
     },
 ];
 
-export default levels;
+export default LEVELS;

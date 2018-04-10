@@ -385,7 +385,7 @@ def initialize(init_socketio):
                             progress.levels_completed[game_state.level] = True
 
                             # check if belt is completed
-                            belt = game_state.level / 8
+                            belt = game_state.level / 8 + 1
                             belt_levels = xrange(8 * belt, 8 * belt + 8)
                             if all(progress.levels_completed.get(level) for level in belt_levels):
                                 progress.belts_completed[belt] = True

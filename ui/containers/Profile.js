@@ -8,6 +8,7 @@ import ProfilePic from './ProfilePic.js';
 import SpeedIcon from './SpeedIcon.js';
 import Spinner from './Spinner.js';
 import UserDisplay from './UserDisplay.js';
+import { BELTS } from '../util/CampaignLevels.js';
 import * as Time from '../util/Time.js';
 
 const RATING_TYPES = ['standard', 'lightning'];
@@ -24,6 +25,7 @@ export default class Profile extends Component {
             showEditUsername: false,
             editingUsername: false,
             showEditProfilePic: false,
+            campaignProgress: null,
             history: null,
         };
 
@@ -39,6 +41,7 @@ export default class Profile extends Component {
     }
 
     componentDidMount() {
+        this.fetchCampaignInfo(this.props);
         this.fetchHistory(this.props);
     }
 
@@ -50,11 +53,12 @@ export default class Profile extends Component {
         }
 
         this.fetchUser(nextProps);
+        this.fetchCampaignInfo(nextProps);
         this.fetchHistory(nextProps);
     }
 
-    fetchUser(nextProps) {
-        const { match, user, knownUsers, fetchUserInfo } = nextProps;
+    fetchUser(props) {
+        const { match, user, knownUsers } = props;
         const userId = match.params.userId;
         const isSelf = Boolean(user && match.params.userId === user.userId);
 
@@ -64,16 +68,25 @@ export default class Profile extends Component {
         });
 
         this.setState({ fetching: true });
-        fetchUserInfo([userId], () => {
+        this.props.fetchUserInfo([userId], () => {
             this.setState({ fetching: false });
         });
     }
 
-    fetchHistory(nextProps) {
-        const { match, user, getUserGameHistory } = nextProps;
+    fetchCampaignInfo(props) {
+        const { match } = props;
+        const userId = match.params.userId;
+
+        this.props.fetchCampaignInfo(userId, data => {
+            this.setState({ campaignProgress: data.progress });
+        });
+    }
+
+    fetchHistory(props) {
+        const { match, user } = props;
 
         this.setState({ historyFetching: true });
-        getUserGameHistory(match.params.userId, 0, 100, history => {
+        this.props.getUserGameHistory(match.params.userId, 0, 100, history => {
             this.setState({
                 history,
                 historyFetching: false,
@@ -146,8 +159,15 @@ export default class Profile extends Component {
             showEditUsername,
             editingUsername,
             showEditProfilePic,
+            campaignProgress,
         } = this.state;
         const { knownUsers } = this.props;
+
+        let belt = 0;
+        while (campaignProgress && campaignProgress.beltsCompleted[belt]) {
+            belt++;
+        }
+        const beltName = BELTS[belt];
 
         return (
             <div className='profile-content'>
@@ -179,56 +199,61 @@ export default class Profile extends Component {
                         />
                     </div>
                     <div className='profile-user-info'>
-                        <div
-                            className='profile-username'
-                            onMouseEnter={() => isMe && this.setState({ showEditUsername: true })}
-                            onMouseLeave={() => isMe && this.setState({ showEditUsername: false })}
-                            onClick={() => {
-                                if (isMe && !editingUsername) {
-                                    amplitude.getInstance().logEvent('Click Edit Username');
+                        <div className='profile-user-info-left'>
+                            <div
+                                className='profile-username'
+                                onMouseEnter={() => isMe && this.setState({ showEditUsername: true })}
+                                onMouseLeave={() => isMe && this.setState({ showEditUsername: false })}
+                                onClick={() => {
+                                    if (isMe && !editingUsername) {
+                                        amplitude.getInstance().logEvent('Click Edit Username');
 
-                                    this.setState({
-                                        editingUsername: true,
-                                        username: currUser.username,
-                                    }, () => {
-                                        this.usernameInput.focus();
-                                    });
+                                        this.setState({
+                                            editingUsername: true,
+                                            username: currUser.username,
+                                        }, () => {
+                                            this.usernameInput.focus();
+                                        });
+                                    }
+                                }}
+                            >
+                                {!editingUsername && <div className='profile-username-text'>{currUser.username}</div>}
+                                {editingUsername &&
+                                    <input
+                                        ref={input => this.usernameInput = input}
+                                        value={username}
+                                        maxLength={24}
+                                        onChange={(e) => this.setState({ username: e.target.value })}
+                                        onKeyPress={(e) => e.key === 'Enter' && this.saveUsername()}
+                                    />
                                 }
-                            }}
-                        >
-                            {!editingUsername && <div className='profile-username-text'>{currUser.username}</div>}
-                            {editingUsername &&
-                                <input
-                                    ref={input => this.usernameInput = input}
-                                    value={username}
-                                    maxLength={24}
-                                    onChange={(e) => this.setState({ username: e.target.value })}
-                                    onKeyPress={(e) => e.key === 'Enter' && this.saveUsername()}
-                                />
-                            }
-                            {showEditUsername && !editingUsername &&
-                                <div className='profile-edit-username'><i className='far fa-edit' /></div>
-                            }
-                            {editingUsername &&
-                                <div
-                                    className='profile-edit-username'
-                                    onClick={this.saveUsername}
-                                >
-                                    <i className='far fa-save' />
-                                </div>
-                            }
-                        </div>
-                        <div className='profile-ratings'>
-                            {RATING_TYPES.map(type => {
-                                return (
-                                    <div className='profile-rating' key={type}>
-                                        <div className='profile-rating-type'>{type}</div>
-                                        <div className='profile-rating-value'>
-                                            {currUser.ratings[type] || 'Unrated'}
-                                        </div>
+                                {showEditUsername && !editingUsername &&
+                                    <div className='profile-edit-username'><i className='far fa-edit' /></div>
+                                }
+                                {editingUsername &&
+                                    <div
+                                        className='profile-edit-username'
+                                        onClick={this.saveUsername}
+                                    >
+                                        <i className='far fa-save' />
                                     </div>
-                                );
-                            })}
+                                }
+                            </div>
+                            <div className='profile-ratings'>
+                                {RATING_TYPES.map(type => {
+                                    return (
+                                        <div className='profile-rating' key={type}>
+                                            <div className='profile-rating-type'>{type}</div>
+                                            <div className='profile-rating-value'>
+                                                {currUser.ratings[type] || 'Unrated'}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                        <div className='profile-user-info-right'>
+                            <img src={`/static/belt-${beltName.toLowerCase()}.png`} />
                         </div>
                     </div>
                 </div>

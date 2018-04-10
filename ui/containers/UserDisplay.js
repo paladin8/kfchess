@@ -23,7 +23,7 @@ export default class UserDisplay extends Component {
                     <Link to={`/profile/${user.userId}`} className='user-display-user-wrapper'>
                         <ProfilePic className='user-display-profile-pic' user={user} />
                         <div className='user-display-username'>
-                            {user.username.length <= 18 ? user.username : user.username.substring(0, 16) + '...'}
+                            {user.username}
                         </div>
                     </Link>
                 }

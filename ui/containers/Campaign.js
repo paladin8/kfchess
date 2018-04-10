@@ -3,21 +3,7 @@ import React, { Component } from 'react';
 import { Tooltip } from 'react-tippy';
 
 import Spinner from './Spinner.js';
-import CampaignLevels from '../util/CampaignLevels.js';
-
-const BELTS = [
-    'White',
-    'Yellow',
-    'Green',
-    'Purple',
-    'Orange',
-    'Blue',
-    'Brown',
-    'Red',
-    'Black',
-];
-
-const MAX_BELT = 1;  // currently only 0 and 1 are implemented
+import CampaignLevels, { BELTS, MAX_BELT } from '../util/CampaignLevels.js';
 
 export default class Campaign extends Component {
 
@@ -46,7 +32,7 @@ export default class Campaign extends Component {
         if (user) {
             amplitude.getInstance().logEvent('Visit Campaign Page');
 
-            this.props.fetchCampaignInfo(data => {
+            this.props.fetchCampaignInfo(user.userId, data => {
                 this.setState({
                     belt: Math.min(MAX_BELT, this.getCurrentBelt(data.progress)),
                     progress: data.progress,
@@ -61,7 +47,7 @@ export default class Campaign extends Component {
     }
 
     getCurrentBelt(progress) {
-        return Object.keys(progress.beltsCompleted).length;
+        return Object.keys(progress.beltsCompleted).length + 1;
     }
 
     chooseBelt(belt) {
@@ -102,7 +88,7 @@ export default class Campaign extends Component {
                         :
                         <div className='campaign-wrapper'>
                             <div className='campaign-title'>
-                                Campaign
+                                {BELTS[belt]} Belt Campaign
                             </div>
                             {this.renderCampaignBeltLevels(belt, progress)}
                             {this.renderCampaignBelts(progress)}
@@ -119,7 +105,9 @@ export default class Campaign extends Component {
         return (
             <div className='campaign-belts'>
                 <div className='campaign-belts-row'>
-                    {BELTS.map((_, beltIdx) => this.renderLargeBelt(beltIdx, currentBelt))}
+                    {BELTS.map((_, beltIdx) => {
+                        return beltIdx > 0 ? this.renderLargeBelt(beltIdx, currentBelt) : null;
+                    })}
                 </div>
             </div>
         );
@@ -132,55 +120,78 @@ export default class Campaign extends Component {
         if (beltIdx < currentBelt) {
             // complete belt
             return (
-                <div
-                    className='campaign-belt campaign-belt-completed'
-                    key={beltIdx}
-                    onClick={() => this.chooseBelt(beltIdx)}
+                <Tooltip
+                    title={`${beltName} Belt (Complete)`}
+                    trigger='mouseenter'
                 >
-                    <img src={`/static/belt-${beltName.toLowerCase()}.png`} />
-                </div>
+                    <div
+                        className='campaign-belt campaign-belt-completed'
+                        key={beltIdx}
+                        onClick={() => this.chooseBelt(beltIdx)}
+                    >
+                        <img src={`/static/belt-${beltName.toLowerCase()}.png`} />
+                    </div>
+                </Tooltip>
             );
         } else if (beltIdx > MAX_BELT) {
             // unavailable belt
             return (
-                <div
-                    className='campaign-belt campaign-belt-unavailable'
-                    key={beltIdx}
+                <Tooltip
+                    title={`${beltName} Belt (Coming Soon!)`}
+                    distance={0}
+                    trigger='mouseenter'
                 >
-                    <img src={`/static/belt-${beltName.toLowerCase()}.png`} />
-                </div>
+                    <div
+                        className='campaign-belt campaign-belt-unavailable'
+                        key={beltIdx}
+                    >
+                        <img src={`/static/belt-${beltName.toLowerCase()}.png`} />
+                    </div>
+                </Tooltip>
             );
         } else if (beltIdx === currentBelt) {
             // next belt
             return (
-                <div
-                    className='campaign-belt campaign-belt-next'
-                    key={beltIdx}
-                    onClick={() => this.chooseBelt(beltIdx)}
+                <Tooltip
+                    title={`${beltName} Belt`}
+                    distance={0}
+                    trigger='mouseenter'
                 >
-                    <img src={`/static/belt-${beltName.toLowerCase()}.png`} />
-                </div>
+                    <div
+                        className='campaign-belt campaign-belt-next'
+                        key={beltIdx}
+                        onClick={() => this.chooseBelt(beltIdx)}
+                    >
+                        <img src={`/static/belt-${beltName.toLowerCase()}.png`} />
+                    </div>
+                </Tooltip>
             );
         } else {
             // locked belt
             return (
-                <div
-                    className='campaign-belt campaign-belt-locked'
-                    key={beltIdx}
+                <Tooltip
+                    title={`${beltName} Belt (Locked)`}
+                    distance={0}
+                    trigger='mouseenter'
                 >
-                    <img src={`/static/belt-${beltName.toLowerCase()}.png`} />
-                </div>
+                    <div
+                        className='campaign-belt campaign-belt-locked'
+                        key={beltIdx}
+                    >
+                        <img src={`/static/belt-${beltName.toLowerCase()}.png`} />
+                    </div>
+                </Tooltip>
             );
         }
     }
 
     renderCampaignBeltLevels(belt, progress) {
         const beltName = BELTS[belt];
-        const levelOffset = 8 * belt;
+        const levelOffset = 8 * (belt - 1);
         const levelClasses = [0, 1, 2, 3, 4, 5, 6, 7, 8].map(idx => {
             let className = ''
             if (levelOffset + idx === 0 || progress.levelsCompleted[levelOffset + idx - 1]) {
-                className += 'level-selectable hvr-pulse '
+                className += 'level-selectable pulse '
             }
             if (progress.levelsCompleted[levelOffset + idx]) {
                 className += 'level-complete ';
@@ -236,12 +247,14 @@ export default class Campaign extends Component {
                 <div
                     className={`campaign-level ${levelClass}`}
                     onClick={() => {
-                        amplitude.getInstance().logEvent('Click Level', {
-                            level,
-                            isCompleted: progress.levelsCompleted[level] === true,
-                        });
+                        if (levelClass.includes('level-selectable')) {
+                            amplitude.getInstance().logEvent('Click Level', {
+                                level,
+                                isCompleted: progress.levelsCompleted[level] === true,
+                            });
 
-                        this.props.startCampaignLevel(level);
+                            this.props.startCampaignLevel(level);
+                        }
                     }}
                 />
             </Tooltip>

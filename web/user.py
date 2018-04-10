@@ -257,15 +257,9 @@ def history():
 
 @user.route('/api/user/campaign', methods=['GET'])
 def campaign():
+    user_id = int(request.args['userId'])
     print 'campaign'
 
-    if not current_user.is_authenticated:
-        return json.dumps({
-            'success': False,
-            'message': 'User is not logged in.',
-        })
-
-    user_id = current_user.user_id
     progress = db_service.get_campaign_progress(user_id)
     return json.dumps({
         'progress': progress.to_json_obj(),

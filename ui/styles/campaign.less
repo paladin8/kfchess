@@ -37,7 +37,7 @@
             flex-direction: column;
             align-items: center;
 
-            margin-top: 100px;
+            margin-top: 120px;
 
             width: 100%;
 
@@ -51,10 +51,17 @@
 
                     padding: 10px;
 
-                    height: 30px;
+                    height: 40px;
 
                     &.campaign-belt-completed, &.campaign-belt-next {
                         cursor: pointer;
+                    }
+
+                    &.campaign-belt-unavailable, &.campaign-belt-locked {
+
+                        img {
+                            opacity: 0.5;
+                        }
                     }
 
                     img {
@@ -88,6 +95,8 @@
                     border: solid 5px @path-color;
 
                     &.level-selectable {
+                        margin-bottom: -5px;
+
                         cursor: pointer;
                     }
 
@@ -104,7 +113,7 @@
                     border-bottom: dashed 5px @path-color;
 
                     &.path-complete {
-                        border-style: solid;
+                        border-bottom-style: solid;
                     }
 
                     &.path-end {

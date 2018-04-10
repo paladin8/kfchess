@@ -97,65 +97,90 @@
                 }
 
                 .profile-user-info {
-                    flex-grow: 1;
+                    display: flex;
+                    flex: 1;
 
-                    padding-left: 40px;
+                    padding-left: 30px;
 
-                    .profile-username {
-                        display: flex;
+                    .profile-user-info-left {
+                        flex: 1;
 
-                        height: 45px;
+                        .profile-username {
+                            display: flex;
 
-                        margin-bottom: 10px;
+                            height: 45px;
+                            max-width: 350px;
 
-                        font-size: 30px;
-                        font-weight: 700;
+                            margin-bottom: 10px;
 
-                        .profile-username-text {
-                            margin-top: 5px;
-
-                            white-space: nowrap;
-                        }
-
-                        input {
                             font-size: 30px;
-                            font-family: 'Karla', sans-serif;
                             font-weight: 700;
+
+                            .profile-username-text {
+                                margin-top: 5px;
+
+                                white-space: nowrap;
+                                text-overflow: ellipsis;
+                                overflow: hidden;
+                            }
+
+                            input {
+                                font-size: 30px;
+                                font-family: 'Karla', sans-serif;
+                                font-weight: 700;
+                            }
+
+                            .profile-edit-username {
+                                margin-left: 20px;
+                                margin-top: 8px;
+
+                                font-size: 25px;
+
+                                cursor: pointer;
+
+                                .fa-save {
+                                    margin-top: 3px;
+                                }
+                            }
                         }
 
-                        .profile-edit-username {
-                            margin-left: 20px;
-                            margin-top: 8px;
+                        .profile-ratings {
+                            font-size: 15px;
 
-                            font-size: 25px;
+                            .profile-rating {
+                                display: flex;
 
-                            cursor: pointer;
+                                margin-top: 5px;
 
-                            .fa-save {
-                                margin-top: 3px;
+                                .profile-rating-type {
+                                    width: 150px;
+
+                                    color: @font-light-grey;
+
+                                    text-transform: capitalize;
+                                }
+
+                                .profile-rating-value {
+                                    font-weight: 700;
+                                }
                             }
                         }
                     }
 
-                    .profile-ratings {
-                        font-size: 15px;
+                    .profile-user-info-right {
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: center;
+                        align-items: center;
 
-                        .profile-rating {
-                            display: flex;
+                        width: 60px;
+                        height: 100%;
 
-                            margin-top: 5px;
+                        padding-left: 20px;
+                        padding-right: 10px;
 
-                            .profile-rating-type {
-                                width: 150px;
-
-                                color: @font-light-grey;
-
-                                text-transform: capitalize;
-                            }
-
-                            .profile-rating-value {
-                                font-weight: 700;
-                            }
+                        img {
+                            width: 60px;
                         }
                     }
                 }
@@ -204,6 +229,8 @@
                                 height: 30px;
 
                                 .user-display {
+                                    max-width: 250px;
+
                                     margin-left: 10px;
                                 }
                             }

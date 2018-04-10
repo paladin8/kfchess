@@ -340,9 +340,9 @@ export default class App extends Component {
         );
     }
 
-    fetchCampaignInfo(callback) {
+    fetchCampaignInfo(userId, callback) {
         this.getRequest(
-            '/api/user/campaign',
+            `/api/user/campaign?userId=${userId}`,
             response => {
                 response.json().then(data => {
                     callback(data);
@@ -427,6 +427,7 @@ export default class App extends Component {
                                 user={user}
                                 knownUsers={knownUsers}
                                 fetchUserInfo={this.fetchUserInfo}
+                                fetchCampaignInfo={this.fetchCampaignInfo}
                                 updateUser={this.updateUser}
                                 uploadProfilePic={this.uploadProfilePic}
                                 getUserGameHistory={this.getUserGameHistory}
