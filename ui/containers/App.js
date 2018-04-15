@@ -49,23 +49,22 @@ export default class App extends Component {
     componentDidMount() {
         this.loadMyInfo(() => {
             this.setState({ initialLoadDone: true });
-            if (this.state.user) {
-                this.listener = new Listener(
-                    this.state.user.userId,
-                    () => this.loadMyInfo(),
-                    data => {
-                        const onlineUsers = Object.keys(data.users);
 
-                        this.setState({
-                            knownUsers: {
-                                ...this.state.knownUsers,
-                                ...data.users,
-                            },
-                            onlineUsers,
-                        });
-                    },
-                );
-            }
+            this.listener = new Listener(
+                this.state.user ? this.state.user.userId : null,
+                () => this.loadMyInfo(),
+                data => {
+                    const onlineUsers = Object.keys(data.users);
+
+                    this.setState({
+                        knownUsers: {
+                            ...this.state.knownUsers,
+                            ...data.users,
+                        },
+                        onlineUsers,
+                    });
+                },
+            );
         });
     }
 
@@ -391,6 +390,7 @@ export default class App extends Component {
             '',
             response => {
                 response.json().then(() => {
+                    this.router.history.push('/');
                     window.location.reload();
                 });
             },

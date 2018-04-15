@@ -77,12 +77,12 @@ export default class Users extends Component {
                                         <td className='online-users-username'>
                                             <UserDisplay value={`u:${userId}`} knownUsers={knownUsers} />
                                         </td>
-                                        {!user.currentGame && otherUser.currentGame &&
+                                        {(!user || !user.currentGame) && otherUser.currentGame &&
                                             <td className='online-users-action'>
                                                 {this.renderSpectate(otherUser)}
                                             </td>
                                         }
-                                        {!user.currentGame && user && !otherUser.currentGame &&
+                                        {user && !user.currentGame && !otherUser.currentGame &&
                                             <td className='online-users-action'>
                                                 {this.renderChallenge(otherUser)}
                                             </td>

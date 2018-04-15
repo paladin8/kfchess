@@ -27,7 +27,7 @@ google = oauth.remote_app(
     request_token_url=None,
     request_token_params={
         'scope': 'email',
-        'response_type': 'code'
+        'response_type': 'code',
     },
     access_token_url='https://accounts.google.com/o/oauth2/token',
     access_token_method='POST',
@@ -41,20 +41,25 @@ user = Blueprint('user', __name__)
 
 @user.route('/login', methods=['GET'])
 def login():
-    print 'login'
+    next_url = request.args.get('next') or url_for('index')
+    print 'login', request.args
 
     if current_user.is_authenticated:
-        return redirect(url_for('index'))
+        return redirect(next_url)
 
     callback = url_for('user.authorized', _external=True)
+    google.request_token_params['state'] = next_url
     return google.authorize(callback=callback)
 
 
 @user.route('/api/user/oauth2callback', methods=['GET'])
 @google.authorized_handler
 def authorized(data):
+    next_url = request.args.get('state') or url_for('index')
+    print 'oauth authorized', request.args
+
     if current_user.is_authenticated:
-        return redirect(url_for('index'))
+        return redirect(next_url)
 
     # store access token in the session
     access_token = data['access_token']
@@ -80,7 +85,7 @@ def authorized(data):
     else:
         print 'error getting google info', response.status_code, response.text
 
-    return redirect(url_for('index'))
+    return redirect(next_url)
 
 
 @user.route('/logout', methods=['POST'])

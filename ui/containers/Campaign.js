@@ -1,11 +1,13 @@
 import amplitude from 'amplitude-js';
 import React, { Component } from 'react';
+import Modal from 'react-modal';
+import { withRouter } from 'react-router';
 import { Tooltip } from 'react-tippy';
 
 import Spinner from './Spinner.js';
 import CampaignLevels, { BELTS, MAX_BELT } from '../util/CampaignLevels.js';
 
-export default class Campaign extends Component {
+class Campaign extends Component {
 
     constructor(props) {
         super(props);
@@ -79,9 +81,7 @@ export default class Campaign extends Component {
         return (
             <div className='campaign'>
                 {!user ?
-                    <div className='campaign-no-user'>
-                        You must <a href='/login'>log in</a> to track your progress in the campaign!
-                    </div>
+                    this.renderCampaignNoUser()
                     :
                     (!progress ?
                         <Spinner />
@@ -95,6 +95,50 @@ export default class Campaign extends Component {
                         </div>
                     )
                 }
+            </div>
+        );
+    }
+
+    renderCampaignNoUser() {
+        // render an empty campaign state to show behind modal
+        const belt = 1, progress = { beltsCompleted: {}, levelsCompleted: {} };
+
+        return (
+            <div className='campaign-no-user'>
+                <div className='campaign-wrapper'>
+                    <div className='campaign-title'>
+                        {BELTS[belt]} Belt Campaign
+                    </div>
+                    {this.renderCampaignBeltLevels(belt, progress)}
+                    {this.renderCampaignBelts(progress)}
+                </div>
+                <Modal
+                    isOpen={true}
+                    shouldCloseOnOverlayClick={false}
+                    shouldCloseOnEsc={false}
+                    className='campaign-no-user-modal'
+                >
+                    <div className='campaign-no-user-modal-content'>
+                        <div className='campaign-no-user-title'>
+                            Start your journey to complete 72 challenges and
+                        </div>
+                        <div className='campaign-no-user-title campaign-no-user-title-last'>
+                            become a Kung Fu Chess master. <a href='/login?next=/campaign'>Log in</a> to begin!
+                        </div>
+                        <div
+                            className='campaign-cancel-button'
+                            onClick={() => {
+                                amplitude.getInstance().logEvent('Cancel Campaign', {
+                                    source: 'modal',
+                                });
+
+                                this.props.history.push('/');
+                            }}
+                        >
+                            Cancel
+                        </div>
+                    </div>
+                </Modal>
             </div>
         );
     }
@@ -265,3 +309,5 @@ export default class Campaign extends Component {
         );
     }
 };
+
+export default withRouter(Campaign);

@@ -36,7 +36,7 @@
                 position: absolute;
                 top: 50%;
                 left: 50%;
-                transform: translateY(-50%) translateX(-50%);
+                transform: translate(-50%, -50%);
 
                 font-size: 25px;
 
@@ -66,11 +66,11 @@
 
                 &.times-transition-enter {
                     opacity: 0;
-                    transform: translateY(-50%) translateX(-50%) rotate(-45deg);
+                    transform: translate(-50%, -50%) rotate(-45deg);
 
                     &.times-transition-enter-active {
                         opacity: 1;
-                        transform: translateY(-50%) translateX(-50%) rotate(0deg);
+                        transform: translate(-50%, -50%) rotate(0deg);
                         animation: rotatein 500ms ease-in;
                     }
                 }
@@ -79,11 +79,11 @@
                     display: block;
 
                     opacity: 1;
-                    transform: translateY(-50%) translateX(-50%) rotate(0deg);
+                    transform: translate(-50%, -50%) rotate(0deg);
 
                     &.times-transition-exit-active {
                         opacity: 0;
-                        transform: translateY(-50%) translateX(-50%) rotate(-45deg);
+                        transform: translate(-50%, -50%) rotate(-45deg);
                         animation: rotateout 500ms ease-out;
                     }
                 }
@@ -213,12 +213,12 @@
 
     0% {
         opacity: 0;
-        transform: translateY(-50%) translateX(-50%) rotate(-45deg);
+        transform: translate(-50%, -50%) rotate(-45deg);
     }
 
     100% {
         opacity: 1;
-        transform: translateY(-50%) translateX(-50%) rotate(0deg);
+        transform: translate(-50%, -50%) rotate(0deg);
     }
 }
 
@@ -226,11 +226,11 @@
 
     0% {
         opacity: 1;
-        transform: translateY(-50%) translateX(-50%) rotate(0deg);
+        transform: translate(-50%, -50%) rotate(0deg);
     }
 
     100% {
         opacity: 0;
-        transform: translateY(-50%) translateX(-50%) rotate(-45deg);
+        transform: translate(-50%, -50%) rotate(-45deg);
     }
 }

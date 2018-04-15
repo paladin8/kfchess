@@ -8,7 +8,7 @@ import ProfilePic from './ProfilePic.js';
 import SpeedIcon from './SpeedIcon.js';
 import Spinner from './Spinner.js';
 import UserDisplay from './UserDisplay.js';
-import { BELTS } from '../util/CampaignLevels.js';
+import { BELTS, MAX_BELT } from '../util/CampaignLevels.js';
 import * as Time from '../util/Time.js';
 
 const RATING_TYPES = ['standard', 'lightning'];
@@ -164,7 +164,7 @@ export default class Profile extends Component {
         const { knownUsers } = this.props;
 
         let belt = 0;
-        while (campaignProgress && campaignProgress.beltsCompleted[belt]) {
+        while (campaignProgress && belt < MAX_BELT && campaignProgress.beltsCompleted[belt + 1]) {
             belt++;
         }
         const beltName = BELTS[belt];
@@ -253,7 +253,9 @@ export default class Profile extends Component {
                             </div>
                         </div>
                         <div className='profile-user-info-right'>
-                            <img src={`/static/belt-${beltName.toLowerCase()}.png`} />
+                            {campaignProgress !== null &&
+                                <img src={`/static/belt-${beltName.toLowerCase()}.png`} />
+                            }
                         </div>
                     </div>
                 </div>

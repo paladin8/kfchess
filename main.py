@@ -70,22 +70,25 @@ def _emit_online_users(requesting_user_id):
 @socketio.on('listen')
 def listen(data):
     data = json.loads(data)
-    user_id = int(data['userId'])
+    user_id = int(data['userId']) if data['userId'] is not None else None
     print 'listen', data
 
-    db_service.update_user_last_online(user_id)
+    if user_id:
+        db_service.update_user_last_online(user_id)
+        join_room(user_id)
 
-    join_room(user_id)
     _emit_online_users(user_id)
 
 
 @socketio.on('uping')
 def uping(data):
     data = json.loads(data)
-    user_id = int(data['userId'])
+    user_id = int(data['userId']) if data['userId'] is not None else None
     print 'uping', data
 
-    db_service.update_user_last_online(user_id)
+    if user_id:
+        db_service.update_user_last_online(user_id)
+
     _emit_online_users(user_id)
 
 
