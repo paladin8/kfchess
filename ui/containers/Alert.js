@@ -18,7 +18,7 @@ export default class Alert extends Component {
                 showing: true,
             }, () => {
                 // dismiss the alert after 5s
-                setTimeout(() => {
+                window.setTimeout(() => {
                     this.setState({
                         showing: false,
                     });

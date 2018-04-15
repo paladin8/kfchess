@@ -10,7 +10,7 @@ import { Tooltip } from 'react-tippy';
 import GameBoard from './GameBoard.js';
 import SpeedIcon from './SpeedIcon.js';
 import UserDisplay from './UserDisplay.js';
-import CampaignLevels from '../util/CampaignLevels.js';
+import CampaignLevels, { BELTS } from '../util/CampaignLevels.js';
 import GameState from '../util/GameState.js';
 
 class Game extends Component {
@@ -18,12 +18,25 @@ class Game extends Component {
     constructor(props) {
         super(props);
 
+        let musicVolume = 20, soundVolume = 20;
+        if (window.localStorage) {
+            if (window.localStorage.musicVolume !== undefined) {
+                musicVolume = window.localStorage.musicVolume;
+            }
+            if (window.localStorage.soundVolume !== undefined) {
+                soundVolume = window.localStorage.soundVolume;
+            }
+        } else {
+            // no local storage, default to 0 volume to not be annoying
+            musicVolume = soundVolume = 0;
+        }
+
         this.state = {
             windowWidth: window.innerWidth,
             windowHeight: window.innerHeight,
 
-            musicVolume: (window.localStorage && window.localStorage.musicVolume) || 0,
-            soundVolume: (window.localStorage && window.localStorage.soundVolume) || 0,
+            musicVolume,
+            soundVolume,
         };
 
         this.resize = this.resize.bind(this);
@@ -33,6 +46,7 @@ class Game extends Component {
         this.music = null;
         this.captureSounds = [];
         this.finishSound = null;
+        this.beltSound = null;
     }
 
     componentWillMount() {
@@ -86,6 +100,21 @@ class Game extends Component {
             this.props.history.push('/');
         }, (oldRating, newRating) => {
             this.setState({ oldRating, newRating });
+        }, newBelt => {
+            if (this.beltSound) {
+                window.setTimeout(() => {
+                    if (this.finishSound) {
+                        this.finishSound.pause();
+                    }
+
+                    const { soundVolume } = this.state;
+                    this.beltSound.volume = soundVolume / 100;
+                    this.beltSound.currentTime = 0;
+                    this.beltSound.play();
+                }, 2000);
+            }
+
+            this.setState({ newBelt });
         });
 
         this.setState({
@@ -101,6 +130,7 @@ class Game extends Component {
 
             oldRating: null,
             newRating: null,
+            newBelt: null,
         }, () => {
             // listen for updates
             gameState.registerListener(this.update);
@@ -131,6 +161,7 @@ class Game extends Component {
 
                 if (this.finishSound) {
                     this.finishSound.volume = soundVolume / 100;
+                    this.finishSound.currentTime = 0;
                     this.finishSound.play();
                 }
 
@@ -161,6 +192,7 @@ class Game extends Component {
             const soundIndex = Math.floor(Math.random() * this.captureSounds.length);
             const randomSound = this.captureSounds[soundIndex];
             randomSound.volume = soundVolume / 100;
+            randomSound.currentTime = 0;
             randomSound.play();
         }
 
@@ -354,6 +386,22 @@ class Game extends Component {
                                         Cancel Game
                                     </div>
                                 }
+                                {player !== 0 && gameState.level !== null && game.started && game.finished == 0 &&
+                                    <div
+                                        className='game-cancel-button'
+                                        onClick={() => {
+                                            amplitude.getInstance().logEvent('Restart Level', {
+                                                source: 'sidebar',
+                                                player,
+                                                gameId: gameState.gameId,
+                                            });
+
+                                            gameState.reset();
+                                        }}
+                                    >
+                                        Restart Level
+                                    </div>
+                                }
                             </div>
                             {gameState.level !== null &&
                                 <div className='game-meta-section game-level-section'>
@@ -526,6 +574,9 @@ class Game extends Component {
                 <audio ref={sound => this.finishSound = sound}>
                     <source src='/static/kfchess-gong.mp3' type='audio/mp3' />
                 </audio>
+                <audio ref={sound => this.beltSound = sound}>
+                    <source src='/static/belt-achievement.mp3' type='audio/mp3' />
+                </audio>
             </div>
         );
     }
@@ -543,7 +594,7 @@ class Game extends Component {
         readyAction,
         endGameText
     ) {
-        const { oldRating, newRating } = this.state;
+        const { oldRating, newRating, newBelt } = this.state;
         const { user, knownUsers } = this.props;
 
         return (
@@ -682,6 +733,14 @@ class Game extends Component {
                                 {`New rating: ${newRating} (${newRating >= oldRating ? '+' + (newRating - oldRating) : newRating - oldRating})`}
                             </div>
                         }
+                        {newBelt &&
+                            <div className='game-finished-new-belt'>
+                                <img src={`/static/belt-${BELTS[newBelt].toLowerCase()}.png`} />
+                                <div className='game-finished-new-belt-text'>
+                                    Congratulations! You've received the {`${BELTS[newBelt]}`} Belt.
+                                </div>
+                            </div>
+                        }
                         {player !== 0 &&
                             <div className='game-finished-buttons'>
                                 <div
@@ -698,7 +757,7 @@ class Game extends Component {
                                 >
                                     Play Again
                                 </div>
-                                {gameState.level !== null && gameState.level + 1 < CampaignLevels.length &&
+                                {gameState.level !== null && gameState.level + 1 < CampaignLevels.length && gameState.game.finished == 1 &&
                                     <div
                                         className='game-finished-button-again'
                                         onClick={() => {

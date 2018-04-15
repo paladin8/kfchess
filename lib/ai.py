@@ -80,7 +80,7 @@ class BasicBot(object):
             return None
 
         # precompute some stuff for performance
-        location_to_piece_map = game.board.get_location_to_piece_map()
+        location_to_piece_map = self._get_location_to_piece_map(game)
         current_pressures, current_protects = self._compute_current_pressures_and_protects(game, location_to_piece_map)
 
         # get all possible moves with scores
@@ -92,10 +92,16 @@ class BasicBot(object):
             ):
                 continue
 
+            # temporarily remove piece from map, otherwise calculations for blocking will be wrong
+            del location_to_piece_map[(piece.row, piece.col)]
+
             piece_moves = self._get_possible_moves(game, piece)
             for move in piece_moves:
                 score = self._get_score(game, current_pressures, current_protects, location_to_piece_map, move)
                 all_moves.append((move, score))
+
+            # add the piece back
+            location_to_piece_map[(piece.row, piece.col)] = piece
 
         if len(all_moves) == 0:
             return None
@@ -112,6 +118,18 @@ class BasicBot(object):
     def _should_move(self, game, randnum):
         # moves approx every ticks_per_move (with randomness)
         return game.current_tick % self.ticks_per_move == randnum % self.ticks_per_move
+
+    def _get_location_to_piece_map(self, game):
+        location_to_piece_map = game.board.get_location_to_piece_map()
+
+        # for moving pieces, take into consideration the next position of the piece rather than the current
+        for move in game.active_moves:
+            piece = move.piece
+            row, col = game._get_interp_position(move, game.current_tick + game.move_ticks)
+            del location_to_piece_map[(piece.row, piece.col)]
+            location_to_piece_map[(row, col)] = piece
+
+        return location_to_piece_map
 
     def _compute_current_pressures_and_protects(self, game, location_to_piece_map):
         current_pressures = collections.defaultdict(list)

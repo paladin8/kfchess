@@ -79,16 +79,18 @@ class Game(object):
 
     # move_ticks     = number of ticks to move 1 square in any direction (including diagonal)
     # cooldown_ticks = number of ticks before a piece can move again
-    def __init__(self, speed, players, num_players=2, board=None, debug=False):
+    def __init__(self, speed, players, num_players=2, board=None, is_campaign=False, debug=False):
         self.speed = speed
         self.players = players
+        self.num_players = num_players
+        self.board = board or Board.initial()
+        self.is_campaign = is_campaign
         self.debug = debug
 
         self.move_ticks = speed.get_move_ticks()
         self.cooldown_ticks = speed.get_cooldown_ticks()
         self.players_ready = {i + 1: False for i in xrange(num_players)}
 
-        self.board = board or Board.initial()
         self.active_moves = []
         self.cooldowns = []
         self.move_log = []
@@ -510,6 +512,7 @@ class Game(object):
 
         # too long without a capture, consider it a draw
         if (
+            not self.is_campaign and
             self.current_tick >= Game.MIN_DRAW_TICKS[self.speed.value] and
             self.current_tick - self.last_capture_tick > Game.DRAW_LIMITS[self.speed.value]
         ):
@@ -549,12 +552,14 @@ class Game(object):
         return {
             'speed': self.speed.value,
             'players': self.players,
+            'numPlayers': self.num_players,
+            'board': self.board.to_json_obj(),
+            'isCampaign': self.is_campaign,
 
             'moveTicks': self.move_ticks,
             'cooldownTicks': self.cooldown_ticks,
             'playersReady': self.players_ready,
 
-            'board': self.board.to_json_obj(),
             'activeMoves': [move.to_json_obj() for move in self.active_moves],
             'cooldowns': [cooldown.to_json_obj() for cooldown in self.cooldowns],
             'moveLog': [move.to_json_obj() for move in self.move_log],

@@ -123,6 +123,7 @@ export default class Campaign extends Component {
                 <Tooltip
                     title={`${beltName} Belt (Complete)`}
                     trigger='mouseenter'
+                    key={`belt-${beltIdx}`}
                 >
                     <div
                         className='campaign-belt campaign-belt-completed'
@@ -140,6 +141,7 @@ export default class Campaign extends Component {
                     title={`${beltName} Belt (Coming Soon!)`}
                     distance={0}
                     trigger='mouseenter'
+                    key={`belt-${beltIdx}`}
                 >
                     <div
                         className='campaign-belt campaign-belt-unavailable'
@@ -156,6 +158,7 @@ export default class Campaign extends Component {
                     title={`${beltName} Belt`}
                     distance={0}
                     trigger='mouseenter'
+                    key={`belt-${beltIdx}`}
                 >
                     <div
                         className='campaign-belt campaign-belt-next'
@@ -173,6 +176,7 @@ export default class Campaign extends Component {
                     title={`${beltName} Belt (Locked)`}
                     distance={0}
                     trigger='mouseenter'
+                    key={`belt-${beltIdx}`}
                 >
                     <div
                         className='campaign-belt campaign-belt-locked'
@@ -215,11 +219,11 @@ export default class Campaign extends Component {
                 </div>
                 <div className='campaign-levels-row'>
                     <div className='campaign-head' />
-                    {this.renderLevel(levelOffset + 3, levelClasses[3])}
-                    <div className={`campaign-path ${pathClasses[3]}`} />
-                    {this.renderLevel(levelOffset + 4, levelClasses[4])}
-                    <div className={`campaign-path ${pathClasses[4]}`} />
                     {this.renderLevel(levelOffset + 5, levelClasses[5])}
+                    <div className={`campaign-path ${pathClasses[4]}`} />
+                    {this.renderLevel(levelOffset + 4, levelClasses[4])}
+                    <div className={`campaign-path ${pathClasses[3]}`} />
+                    {this.renderLevel(levelOffset + 3, levelClasses[3])}
                     <div className={`campaign-tail campaign-tail-path ${pathClasses[2]}`} />
                 </div>
                 <div className='campaign-levels-row'>

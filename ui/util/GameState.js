@@ -4,12 +4,13 @@ const SIMULATED_DELAY = 0;
 
 export default class GameState {
 
-    constructor(gameId, playerKey, fetchUserInfo, endCallback, ratingCallback) {
+    constructor(gameId, playerKey, fetchUserInfo, endCallback, ratingCallback, beltCallback) {
         this.gameId = gameId;
         this.playerKey = playerKey;
         this.fetchUserInfo = fetchUserInfo;
         this.endCallback = endCallback;
         this.ratingCallback = ratingCallback;
+        this.beltCallback = beltCallback;
 
         this.player = null;
         this.game = null;
@@ -24,6 +25,7 @@ export default class GameState {
         this.handleMessage = this.handleMessage.bind(this);
         this.handleCancel = this.handleCancel.bind(this);
         this.handleNewRatings = this.handleNewRatings.bind(this);
+        this.handleNewBelt = this.handleNewBelt.bind(this);
 
         this.connect();
     }
@@ -47,6 +49,7 @@ export default class GameState {
 
         this.socket.on('cancelack', this.handleCancel);
         this.socket.on('newratings', this.handleNewRatings);
+        this.socket.on('newbelt', this.handleNewBelt);
 
         this.socket.emit('join', JSON.stringify({ gameId: this.gameId, playerKey: this.playerKey }));
     }
@@ -76,11 +79,19 @@ export default class GameState {
     }
 
     handleNewRatings(data) {
-        if (this.player === null || this.player === 0) {
+        if (!this.ratingCallback || this.player === null || this.player === 0) {
             return;
         }
 
         this.ratingCallback(data[this.player].oldRating, data[this.player].newRating);
+    }
+
+    handleNewBelt(data) {
+        if (!this.beltCallback || this.player !== 1) {
+            return;
+        }
+
+        this.beltCallback(data.belt);
     }
 
     update(game, updates) {

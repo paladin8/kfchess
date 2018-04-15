@@ -6,6 +6,7 @@ from flask_login import LoginManager
 from flask_socketio import SocketIO, join_room, leave_room, emit
 
 import config
+import context
 from db import db_service
 from lib import ai, campaign
 from lib.board import Board
@@ -218,15 +219,27 @@ def reset(data):
     game_state = game_states[game_id]
     auth_player = get_auth_player(game_state, player_key)
 
+    # can't reset an in-progress multiplayer game
+    if game_state.level is None and not game_state.game.finished:
+        return
+
     # only authenticated players can reset game
     if auth_player is not None:
+        db_service.remove_active_game(context.SERVER, game_id)
+
         board = None
         if game_state.level is not None:
             campaign_level = campaign.get_level(game_state.level)
             board = Board.from_str(campaign_level.board)
 
         old_game = game_state.game
-        game = Game(old_game.speed, old_game.players, board=board)
+        game = Game(
+            old_game.speed, old_game.players,
+            num_players=old_game.num_players,
+            board=board,
+            is_campaign=old_game.is_campaign,
+            debug=old_game.debug
+        )
         for player in game_state.bots:
             game.mark_ready(player)
         game_state.game = game

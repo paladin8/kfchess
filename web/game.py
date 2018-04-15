@@ -229,8 +229,12 @@ def campaign_start():
 
     # create game and add to game states
     campaign_level = campaign.get_level(level)
-    players = {1: 'u:%s' % user_id, 2: 'b:campaign'}
-    game = Game(Speed(campaign_level.speed), players, board=Board.from_str(campaign_level.board))
+    players = {1: 'u:%s' % user_id, 2: 'c:%s' % level}
+    game = Game(
+        Speed(campaign_level.speed), players,
+        board=Board.from_str(campaign_level.board),
+        is_campaign=True
+    )
     game.mark_ready(2)
 
     game_id = generate_game_id()
@@ -368,7 +372,7 @@ def initialize(init_socketio):
                             db_service.update_user_ratings(user_id1, user1.ratings)
                             db_service.update_user_ratings(user_id2, user2.ratings)
 
-                            socketio.emit('newratings', {
+                            data = {
                                 '1': {
                                     'oldRating': r1,
                                     'newRating': nr1,
@@ -377,7 +381,10 @@ def initialize(init_socketio):
                                     'oldRating': r2,
                                     'newRating': nr2,
                                 },
-                            }, room=game_id, json=True)
+                            }
+
+                            print 'new ratings', game_id, data
+                            socketio.emit('newratings', data, room=game_id, json=True)
 
                         # update campaign progress
                         if game_state.level is not None and game.finished == 1:
@@ -386,9 +393,16 @@ def initialize(init_socketio):
 
                             # check if belt is completed
                             belt = game_state.level / 8 + 1
-                            belt_levels = xrange(8 * belt, 8 * belt + 8)
-                            if all(progress.levels_completed.get(level) for level in belt_levels):
+                            belt_levels = xrange(8 * belt - 8, 8 * belt)
+                            if all(progress.levels_completed.get(str(level)) for level in belt_levels):
                                 progress.belts_completed[belt] = True
+
+                                data = {
+                                    'belt': belt,
+                                }
+
+                                print 'new belt', game_id, data
+                                socketio.emit('newbelt', data, room=game_id, json=True)
 
                             db_service.update_campaign_progress(user_id1, progress)
                 except:

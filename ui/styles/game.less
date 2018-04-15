@@ -393,6 +393,24 @@
             margin: 20px 0px;
         }
 
+        .game-finished-new-belt {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+
+            margin: 20px 0px;
+
+            img {
+                margin-bottom: 20px;
+
+                max-height: 200px;
+            }
+
+            .game-finished-new-belt-text {
+                font-weight: 700;
+            }
+        }
+
         .game-finished-buttons {
             display: flex;
             justify-content: space-between;
@@ -409,8 +427,8 @@
 
                 cursor: pointer;
 
-                &:first-child {
-                    margin-right: 20px;
+                &:not(:first-child) {
+                    margin-left: 20px;
                 }
             }
         }
