@@ -1,7 +1,10 @@
 @white: #ffffff;
+@red: #ff0000;
 @beige: #fcfcf4;
 @light-green: #7bcc70;
 @dull-blue: #5b91c6;
+@white-hover: hsl(0, 0, 97%);
+@light-green-hover: #87d07d;
 
 @font-white: #ffffff;
 @font-light-grey: hsl(0, 0, 45%);
@@ -25,18 +28,13 @@
     color: @font-white;
     background-color: @light-green;
 
-    -webkit-box-shadow: 0 2px 4px @box-shadow-white;
-    -moz-box-shadow: 0 2px 4px @box-shadow-white;
-    -ms-box-shadow: 0 2px 4px @box-shadow-white;
-    -o-box-shadow: 0 2px 4px @box-shadow-white;
     box-shadow: 0 2px 4px @box-shadow-white;
-
-    -webkit-border-radius: 12px;
-    -moz-border-radius: 12px;
-    -ms-border-radius: 12px;
-    -o-border-radius: 12px;
     border-radius: 12px;
     border-color: @light-green;
 
     text-shadow: 0 1px 1px @text-shadow-white;
+
+    &:hover {
+        background-color: @light-green-hover;
+    }
 }

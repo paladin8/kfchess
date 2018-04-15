@@ -453,10 +453,12 @@ class Game extends Component {
                                                 <td className='game-meta-player-color'>White:</td>
                                                 <td><UserDisplay value={game.players[1]} knownUsers={knownUsers} /></td>
                                             </tr>
-                                            <tr className='game-meta-player'>
-                                                <td className='game-meta-player-color'>Black:</td>
-                                                <td><UserDisplay value={game.players[2]} knownUsers={knownUsers} /></td>
-                                            </tr>
+                                            {gameState.level === null &&
+                                                <tr className='game-meta-player'>
+                                                    <td className='game-meta-player-color'>Black:</td>
+                                                    <td><UserDisplay value={game.players[2]} knownUsers={knownUsers} /></td>
+                                                </tr>
+                                            }
                                         </tbody>
                                     </table>
                                 </div>

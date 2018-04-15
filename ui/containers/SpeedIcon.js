@@ -16,14 +16,14 @@ export default class SpeedIcon extends Component {
                     <Tooltip
                         title={displayName}
                     >
-                        <i className='fas fa-clock' />
+                        <i className='fas fa-clock speed-icon-i' />
                     </Tooltip>
                 }
                 {speed === 'lightning' &&
                     <Tooltip
                         title={displayName}
                     >
-                        <i className='fas fa-bolt' />
+                        <i className='fas fa-bolt speed-icon-i' />
                     </Tooltip>
                 }
             </div>

@@ -1,3 +1,4 @@
+import datetime
 import json
 
 import eventlet
@@ -53,24 +54,39 @@ def index():
 # socket.io functions
 
 
+def _emit_online_users(requesting_user_id):
+    ten_minutes_ago = datetime.datetime.utcnow() - datetime.timedelta(minutes=10)
+    online_users = db_service.get_users_online_since(ten_minutes_ago)
+
+    emit('online', {
+        'users': {
+            user_id: user.to_json_obj()
+            for user_id, user in online_users.iteritems()
+            if user_id != requesting_user_id
+        },
+    }, json=True)
+
+
 @socketio.on('listen')
 def listen(data):
     data = json.loads(data)
-    user_id = data['userId']
+    user_id = int(data['userId'])
     print 'listen', data
 
     db_service.update_user_last_online(user_id)
 
     join_room(user_id)
+    _emit_online_users(user_id)
 
 
 @socketio.on('uping')
 def uping(data):
     data = json.loads(data)
-    user_id = data['userId']
+    user_id = int(data['userId'])
     print 'uping', data
 
     db_service.update_user_last_online(user_id)
+    _emit_online_users(user_id)
 
 
 def get_auth_player(game_state, player_key):

@@ -25,7 +25,7 @@ export default class Header extends Component {
                         <NavLink exact={true} activeClassName='header-link-active' to='/'>Home</NavLink>
                     </div>
                     <div className='header-menu-item'>
-                        <NavLink activeClassName='header-link-active' to='/live'>Live!</NavLink>
+                        <NavLink activeClassName='header-link-active' to='/live'>Watch</NavLink>
                     </div>
                     <div className='header-menu-item'>
                         <a

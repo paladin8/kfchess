@@ -16,11 +16,11 @@ module.exports = {
             },
             {
                 test: /\.less$/,
-                loaders: ['style-loader', 'css-loader', 'less-loader'],
+                loaders: ['style-loader', 'css-loader', 'less-loader', 'postcss-loader'],
             },
             {
                 test: /\.css$/,
-                loaders: ['style-loader', 'css-loader'],
+                loaders: ['style-loader', 'css-loader', 'postcss-loader'],
             },
             {
                 test: /\.(gif|png|jpe?g|svg)$/,

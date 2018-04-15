@@ -109,7 +109,11 @@
                 .home-play-option {
                     cursor: pointer;
 
-                    &.selected {
+                    &:hover {
+                        color: @font-black;
+                    }
+
+                    &.selected, &.selected:hover {
                         color: @font-black;
 
                         font-weight: 700;

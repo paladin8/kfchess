@@ -11,6 +11,7 @@ import Home from './Home.js';
 import Live from './Live.js';
 import Profile from './Profile.js';
 import Replay from './Replay.js';
+import Users from './Users.js';
 import Listener from '../util/Listener.js';
 
 export default class App extends Component {
@@ -23,6 +24,7 @@ export default class App extends Component {
             csrfToken: null,
             user: null,
             knownUsers: {},
+            onlineUsers: [],
             playerKeys: null,
             error: null,
         };
@@ -48,7 +50,21 @@ export default class App extends Component {
         this.loadMyInfo(() => {
             this.setState({ initialLoadDone: true });
             if (this.state.user) {
-                this.listener = new Listener(this.state.user.userId, () => this.loadMyInfo());
+                this.listener = new Listener(
+                    this.state.user.userId,
+                    () => this.loadMyInfo(),
+                    data => {
+                        const onlineUsers = Object.keys(data.users);
+
+                        this.setState({
+                            knownUsers: {
+                                ...this.state.knownUsers,
+                                ...data.users,
+                            },
+                            onlineUsers,
+                        });
+                    },
+                );
             }
         });
     }
@@ -390,7 +406,15 @@ export default class App extends Component {
     }
 
     render() {
-        const { initialLoadDone, csrfToken, user, knownUsers, playerKeys, error } = this.state;
+        const {
+            initialLoadDone,
+            csrfToken,
+            user,
+            knownUsers,
+            onlineUsers,
+            playerKeys,
+            error,
+        } = this.state;
 
         return (
             <BrowserRouter ref={router => this.router = router}>
@@ -402,6 +426,16 @@ export default class App extends Component {
                         logout={this.logout}
                     />
                     <Alert error={error} />
+                    <Users
+                        user={user}
+                        knownUsers={knownUsers}
+                        onlineUsers={onlineUsers}
+                        onOpen={() => {
+                            this.loadMyInfo();
+                            this.listener.ping();
+                        }}
+                        createNewGame={this.createNewGame}
+                    />
                     <Route exact path='/' render={props => {
                         return (
                             <Home
@@ -415,7 +449,6 @@ export default class App extends Component {
                             <Live
                                 user={user}
                                 knownUsers={knownUsers}
-                                createNewGame={this.createNewGame}
                                 getLiveInfo={this.getLiveInfo}
                             />
                         );

@@ -31,16 +31,7 @@
 
                 background-color: @white;
 
-                -webkit-box-shadow: 0 2px 4px @box-shadow-white;
-                -moz-box-shadow: 0 2px 4px @box-shadow-white;
-                -ms-box-shadow: 0 2px 4px @box-shadow-white;
-                -o-box-shadow: 0 2px 4px @box-shadow-white;
                 box-shadow: 0 2px 4px @box-shadow-white;
-
-                -webkit-border-radius: 12px;
-                -moz-border-radius: 12px;
-                -ms-border-radius: 12px;
-                -o-border-radius: 12px;
                 border-radius: 12px;
 
                 .profile-pic-wrapper {
@@ -229,8 +220,6 @@
                                 height: 30px;
 
                                 .user-display {
-                                    max-width: 250px;
-
                                     margin-left: 10px;
                                 }
                             }
@@ -240,7 +229,10 @@
                             }
 
                             .profile-history-replay {
+                                min-width: 25px;
+
                                 font-size: 20px;
+                                text-align: right;
 
                                 a {
                                     color: @dull-blue;

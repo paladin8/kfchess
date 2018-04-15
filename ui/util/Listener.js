@@ -4,9 +4,10 @@ const PING_INTERVAL = 1000 * 60 * 5;  // 5 min
 
 export default class Listener {
 
-    constructor(userId, inviteCallback) {
+    constructor(userId, inviteCallback, onlineCallback) {
         this.userId = userId;
         this.inviteCallback = inviteCallback;
+        this.onlineCallback = onlineCallback;
 
         this.destroyed = false;
 
@@ -23,6 +24,7 @@ export default class Listener {
         });
 
         this.socket.on('invite', this.inviteCallback);
+        this.socket.on('online', this.onlineCallback);
 
         this.socket.emit('listen', JSON.stringify({ userId: this.userId }));
 
@@ -30,9 +32,11 @@ export default class Listener {
             clearInterval(this.interval);
         }
 
-        this.interval = setInterval(() => {
-            this.socket.emit('uping', JSON.stringify({ userId: this.userId }));
-        }, PING_INTERVAL);
+        this.interval = setInterval(() => this.ping(), PING_INTERVAL);
+    }
+
+    ping() {
+        this.socket.emit('uping', JSON.stringify({ userId: this.userId }));
     }
 
     destroy() {

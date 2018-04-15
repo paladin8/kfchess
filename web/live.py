@@ -10,11 +10,20 @@ live = Blueprint('live', __name__)
 
 
 @live.route('/api/live', methods=['GET'])
-def live_index():
+def live_games():
     active_games = db_service.get_all_active_games()
 
-    ten_minutes_ago = datetime.datetime.utcnow() - datetime.timedelta(minutes=10)
-    online_users = db_service.get_users_online_since(ten_minutes_ago)
+    # fetch user info for all players in active games
+    user_ids = set()
+    for game in active_games:
+        for value in game.game_info['players'].itervalues():
+            if value.startswith('u:'):
+                user_ids.add(int(value[2:]))
+
+    if user_ids:
+        users = db_service.get_users_by_id(list(user_ids))
+    else:
+        users = {}
 
     return json.dumps({
         'games': [
@@ -22,6 +31,6 @@ def live_index():
         ],
         'users': {
             user_id: user.to_json_obj()
-            for user_id, user in online_users.iteritems()
-        }
+            for user_id, user in users.iteritems()
+        },
     })

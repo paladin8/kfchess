@@ -3,6 +3,8 @@
 .user-display {
     display: flex;
 
+    min-width: 0px;
+
     white-space: nowrap;
 
     .user-display-user-wrapper {
@@ -23,12 +25,12 @@
         }
 
         .user-display-profile-pic {
-            width: 25px;
-            height: 25px;
+            width: 30px;
+            height: 30px;
 
             img {
-                width: 23px;
-                height: 23px;
+                width: 28px;
+                height: 28px;
             }
         }
 
@@ -40,5 +42,10 @@
             text-overflow: ellipsis;
             overflow: hidden;
         }
+    }
+
+    .user-display-text {
+        text-overflow: ellipsis;
+        overflow: hidden;
     }
 }
