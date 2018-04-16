@@ -63,12 +63,19 @@ def get_bot(difficulty):
     elif difficulty == 'advanced':
         return BasicBot(difficulty, 13, 1)
     elif difficulty == 'campaign':
-        return ExactTickBot(difficulty, 10, 1)
+        return CampaignBot(difficulty, 10, 1)
     else:
         raise ValueError('Unexpected difficulty ' + difficulty)
 
 
 class BasicBot(object):
+
+    ROW_WEIGHT = 2
+    COLUMN_WEIGHT = 1
+    CAPTURE_WEIGHT = 32
+    PRESSURE_WEIGHT = 16
+    VULN_WEIGHT = 16
+    PROTECT_WEIGHT = 8
 
     def __init__(self, difficulty, ticks_per_move, top_n_moves):
         self.difficulty = difficulty
@@ -80,8 +87,13 @@ class BasicBot(object):
             return None
 
         # precompute some stuff for performance
-        location_to_piece_map = self._get_location_to_piece_map(game)
-        current_pressures, current_protects = self._compute_current_pressures_and_protects(game, location_to_piece_map)
+        location_to_piece_map, piece_to_location_map = self._get_location_to_piece_bimap(game, player)
+        current_pressures, current_protects = self._compute_current_pressures_and_protects(
+            game, location_to_piece_map
+        )
+
+        # print 'curr pres', current_pressures
+        # print 'curr prot', current_protects
 
         # get all possible moves with scores
         all_moves = []
@@ -93,15 +105,21 @@ class BasicBot(object):
                 continue
 
             # temporarily remove piece from map, otherwise calculations for blocking will be wrong
-            del location_to_piece_map[(piece.row, piece.col)]
+            location = piece_to_location_map[piece.id]
+            del location_to_piece_map[location]
 
             piece_moves = self._get_possible_moves(game, piece)
             for move in piece_moves:
-                score = self._get_score(game, current_pressures, current_protects, location_to_piece_map, move)
-                all_moves.append((move, score))
+                score = self._get_score(
+                    game, current_pressures, current_protects, location_to_piece_map,
+                    piece_to_location_map, move
+                )
+                if score >= self._move_score_threshold():
+                    all_moves.append((move, score))
 
             # add the piece back
-            location_to_piece_map[(piece.row, piece.col)] = piece
+            location_to_piece_map[location] = piece
+            piece_to_location_map[piece.id] = location
 
         if len(all_moves) == 0:
             return None
@@ -119,17 +137,27 @@ class BasicBot(object):
         # moves approx every ticks_per_move (with randomness)
         return game.current_tick % self.ticks_per_move == randnum % self.ticks_per_move
 
-    def _get_location_to_piece_map(self, game):
+    def _get_location_to_piece_bimap(self, game, player):
         location_to_piece_map = game.board.get_location_to_piece_map()
 
-        # for moving pieces, take into consideration the next position of the piece rather than the current
+        piece_to_location_map = {
+            piece.id: location for location, piece in location_to_piece_map.iteritems()
+        }
+
+        # for our own moving pieces, take into consideration the move
         for move in game.active_moves:
             piece = move.piece
-            row, col = game._get_interp_position(move, game.current_tick + game.move_ticks)
-            del location_to_piece_map[(piece.row, piece.col)]
-            location_to_piece_map[(row, col)] = piece
+            if not piece.captured and piece.player == player:
+                del location_to_piece_map[(piece.row, piece.col)]
 
-        return location_to_piece_map
+        for move in game.active_moves:
+            piece = move.piece
+            if not piece.captured and piece.player == player:
+                row, col = move.move_seq[-1]
+                location_to_piece_map[(row, col)] = piece
+                piece_to_location_map[piece.id] = (row, col)
+
+        return location_to_piece_map, piece_to_location_map
 
     def _compute_current_pressures_and_protects(self, game, location_to_piece_map):
         current_pressures = collections.defaultdict(list)
@@ -215,22 +243,31 @@ class BasicBot(object):
 
         return moves
 
-    def _get_score(self, game, current_pressures, current_protects, location_to_piece_map, move):
+    def _get_score(
+        self, game, current_pressures, current_protects, location_to_piece_map, piece_to_location_map, move
+    ):
         piece, row, col = move
         new_piece = piece.at_position(row, col)
 
         # moving forward is good
         row_score = piece.row - row if piece.player == 1 else row - piece.row
         if piece.type == 'P':
-            row_score *= 2
+            promoted = row == 0 if piece.player == 1 else row == 7
+            if promoted:
+                row_score = 16
+            else:
+                row_score *= 2
 
         # moving toward the center is good
         col_score = int(abs(3.5 - piece.col) - abs(3.5 - col))
 
         capture_score, pressure_score, vuln_score, protect_score = 0, 0, 0, 0
+        new_vulns = []
         for p in game.board.pieces:
             if p.captured or p.id == piece.id:
                 continue
+
+            ploc = piece_to_location_map[p.id]
 
             # capture score
             if (
@@ -254,7 +291,9 @@ class BasicBot(object):
 
                 pressure_value = PRESSURE_SCORES[p.type]
                 if p.type != 'K' and len(current_protects[p.id]) > 0:
-                    pressure_value += min(PIECE_SCORES[p2.type] for p2 in current_protects[p.id]) - PIECE_SCORES[piece.type]
+                    pressure_value += min(
+                        PIECE_SCORES[p2.type] for p2 in current_protects[p.id]
+                    ) - PIECE_SCORES[piece.type]
                 pressure_score += (new_pressure - old_pressure) * pressure_score
 
             # vulnerable score
@@ -262,19 +301,50 @@ class BasicBot(object):
                 old_vuln = p in current_pressures[piece.id]
                 new_vuln = 1.5 * self._can_target(location_to_piece_map, p, row, col)
                 vuln_score -= (new_vuln - old_vuln) * VULN_SCORES[piece.type]
+                if new_vuln:
+                    new_vulns.append(p)
 
-            # protect score
+            # protecting score
             if p.player == piece.player:
-                protect = p in current_pressures[piece.id]
-                new_protect = self._can_target(location_to_piece_map, new_piece, p.row, p.col)
+                protect = piece in current_protects[p.id]
+                new_protect = self._can_target(location_to_piece_map, new_piece, ploc[0], ploc[1])
 
                 protect_value = 0
                 if p.type != 'K' and len(current_pressures[p.id]) > 0:
-                    protect_value += min(PIECE_SCORES[p2.type] for p2 in current_pressures[p.id]) - PIECE_SCORES[p.type]
-                protect_score += (new_protect - protect) * max(0, protect_value)
+                    protect_value += min(
+                        PIECE_SCORES[p2.type] for p2 in current_pressures[p.id]
+                    ) - PIECE_SCORES[p.type]
+                protect_score += (new_protect - protect) * max(0.1, protect_value)
 
-        # print piece, 'r', row, 'c', col, 'rsc', row_score, 'csc', col_score, 'cap', capture_score, 'pres', pressure_score, 'vuln', vuln_score, 'prot', protect_score
-        return 2 * row_score + col_score + 16 * capture_score + 8 * pressure_score + 8 * vuln_score + 4 * protect_score
+        for p in game.board.pieces:
+            if p.captured or p.id == piece.id:
+                continue
+
+            ploc = piece_to_location_map[p.id]
+
+            # protected score
+            if p.player == piece.player:
+                protect = p in current_protects[piece.id]
+                new_protect = self._can_target(location_to_piece_map, p.at_position(ploc[0], ploc[1]), row, col)
+
+                protect_value = 0
+                if piece.type != 'K' and len(new_vulns) > 0:
+                    protect_value += min(
+                        PIECE_SCORES[p2.type] for p2 in new_vulns
+                    ) - PIECE_SCORES[piece.type]
+                protect_score += (new_protect - protect) * max(0.1, protect_value)
+
+        # print piece, 'r', row, 'c', col, 'rsc', row_score, 'csc', col_score, 'cap', capture_score, \
+        #     'pres', pressure_score, 'vuln', vuln_score, 'prot', protect_score
+
+        return (
+            self.ROW_WEIGHT * row_score +
+            self.COLUMN_WEIGHT * col_score +
+            self.CAPTURE_WEIGHT * capture_score +
+            self.PRESSURE_WEIGHT * pressure_score +
+            self.VULN_WEIGHT * vuln_score +
+            self.PROTECT_WEIGHT * protect_score
+        )
 
     def _can_target(self, location_to_piece_map, piece, t_row, t_col):
         if t_row == piece.row and t_col == piece.col:
@@ -318,11 +388,23 @@ class BasicBot(object):
 
         return False
 
+    def _move_score_threshold(self):
+        # effectively negative infinity
+        return -10000
 
-class ExactTickBot(BasicBot):
+
+class CampaignBot(BasicBot):
+
+    ROW_WEIGHT = 1
+    PROTECT_WEIGHT = 12
 
     def _should_move(self, game, randnum):
+        # consider moving exactly every self.ticks_per_move ticks
         return game.current_tick % self.ticks_per_move == 0
+
+    def _move_score_threshold(self):
+        # don't consider anything too bad
+        return -10
 
 
 if __name__ == '__main__':

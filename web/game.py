@@ -220,8 +220,8 @@ def campaign_start():
     # check that user has access to this level
     user_id = current_user.user_id
     progress = db_service.get_campaign_progress(user_id)
-    belt = level / 8
-    if belt > 0 and not progress[str(belt - 1)]:
+    belt = level / 8 + 1
+    if belt > 1 and not progress.belts_completed[str(belt - 1)]:
         return json.dumps({
             'success': False,
             'message': 'User does not have access to this level.',

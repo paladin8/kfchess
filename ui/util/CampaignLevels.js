@@ -11,7 +11,7 @@ export const BELTS = [
     'Black',
 ];
 
-export const MAX_BELT = 1;  // currently only 1 is implemented
+export const MAX_BELT = 2;  // currently only 1 is implemented
 
 const LEVELS = [
     // white belt
@@ -51,6 +51,38 @@ const LEVELS = [
 
     // yellow belt
 
+    {
+        title: 'Bishop Blockade',
+        description: 'Don\'t let the pawn advance to the end of the board!',
+    },
+    {
+        title: 'Double Trouble',
+        description: 'Choose your angle of attack wisely.',
+    },
+    {
+        title: 'Ragtag Crew',
+        description: 'Use the various tools at your disposal to deconstruct the enemy line.',
+    },
+    {
+        title: 'Clean Sweep',
+        description: 'Rooks specialize in sweeping up the backline.',
+    },
+    {
+        title: 'Queen of Blades',
+        description: 'She rules the board and captures pawns like it\'s no big deal.',
+    },
+    {
+        title: 'Helm\'s Deep',
+        description: 'Haldir\'s Elves (bishops) and the Riders of Rohan (knights) fight alongside Theoden.',
+    },
+    {
+        title: 'Attack of the Clones',
+        description: 'May the force be with you.',
+    },
+    {
+        title: 'For the Alliance!',
+        description: 'You must put an end to the Horde once and for all.',
+    },
 ];
 
 export default LEVELS;

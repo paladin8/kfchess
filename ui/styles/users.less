@@ -1,6 +1,8 @@
 @import 'colors.less';
 
 .online-users {
+    position: absolute;
+    z-index: 5;
 
     .online-users-button {
         display: flex;
@@ -111,6 +113,9 @@
     }
 
     .online-users-tray {
+        display: flex;
+        flex-direction: column;
+
         position: fixed;
         right: 35px;
         bottom: 80px;
@@ -147,7 +152,7 @@
             }
         }
 
-        .online-users {
+        .online-users-inner {
             padding: 20px;
 
             font-size: 15px;

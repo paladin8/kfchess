@@ -3,6 +3,7 @@ import React, { Component } from 'react';
 import Modal from 'react-modal';
 import { withRouter } from 'react-router';
 import { Tooltip } from 'react-tippy';
+import { CSSTransition } from 'react-transition-group'
 
 import Spinner from './Spinner.js';
 import CampaignLevels, { BELTS, MAX_BELT } from '../util/CampaignLevels.js';
@@ -90,7 +91,16 @@ class Campaign extends Component {
                             <div className='campaign-title'>
                                 {BELTS[belt]} Belt Campaign
                             </div>
-                            {this.renderCampaignBeltLevels(belt, progress)}
+                            <div className='campaign-levels-wrapper'>
+                                {BELTS.map((beltName, beltIdx) => {
+                                    if (beltIdx > 0 && beltIdx <= MAX_BELT) {
+                                        return this.renderCampaignBeltLevels(
+                                            beltIdx, progress, belt === beltIdx
+                                        );
+                                    }
+                                    return null;
+                                })}
+                            </div>
                             {this.renderCampaignBelts(progress)}
                         </div>
                     )
@@ -165,7 +175,7 @@ class Campaign extends Component {
             // complete belt
             return (
                 <Tooltip
-                    title={`${beltName} Belt (Complete)`}
+                    html={<span>{`${beltName} Belt (Complete)`}</span>}
                     trigger='mouseenter'
                     key={`belt-${beltIdx}`}
                 >
@@ -182,7 +192,7 @@ class Campaign extends Component {
             // unavailable belt
             return (
                 <Tooltip
-                    title={`${beltName} Belt (Coming Soon!)`}
+                    html={<span>{`${beltName} Belt (Coming Soon!)`}</span>}
                     distance={0}
                     trigger='mouseenter'
                     key={`belt-${beltIdx}`}
@@ -199,7 +209,7 @@ class Campaign extends Component {
             // next belt
             return (
                 <Tooltip
-                    title={`${beltName} Belt`}
+                    html={<span>{`${beltName} Belt`}</span>}
                     distance={0}
                     trigger='mouseenter'
                     key={`belt-${beltIdx}`}
@@ -217,7 +227,7 @@ class Campaign extends Component {
             // locked belt
             return (
                 <Tooltip
-                    title={`${beltName} Belt (Locked)`}
+                    html={<span>{`${beltName} Belt (Locked)`}</span>}
                     distance={0}
                     trigger='mouseenter'
                     key={`belt-${beltIdx}`}
@@ -233,7 +243,7 @@ class Campaign extends Component {
         }
     }
 
-    renderCampaignBeltLevels(belt, progress) {
+    renderCampaignBeltLevels(belt, progress, isActive) {
         const beltName = BELTS[belt];
         const levelOffset = 8 * (belt - 1);
         const levelClasses = [0, 1, 2, 3, 4, 5, 6, 7, 8].map(idx => {
@@ -251,36 +261,43 @@ class Campaign extends Component {
         });
 
         return (
-            <div className='campaign-levels'>
-                <div className='campaign-levels-row'>
-                    <div className='campaign-head' />
-                    {this.renderLevel(levelOffset + 0, levelClasses[0])}
-                    <div className={`campaign-path ${pathClasses[0]}`} />
-                    {this.renderLevel(levelOffset + 1, levelClasses[1])}
-                    <div className={`campaign-path ${pathClasses[1]}`} />
-                    {this.renderLevel(levelOffset + 2, levelClasses[2])}
-                    <div className='campaign-tail' />
-                </div>
-                <div className='campaign-levels-row'>
-                    <div className='campaign-head' />
-                    {this.renderLevel(levelOffset + 5, levelClasses[5])}
-                    <div className={`campaign-path ${pathClasses[4]}`} />
-                    {this.renderLevel(levelOffset + 4, levelClasses[4])}
-                    <div className={`campaign-path ${pathClasses[3]}`} />
-                    {this.renderLevel(levelOffset + 3, levelClasses[3])}
-                    <div className={`campaign-tail campaign-tail-path ${pathClasses[2]}`} />
-                </div>
-                <div className='campaign-levels-row'>
-                    <div className={`campaign-head campaign-head-path ${pathClasses[5]}`} />
-                    {this.renderLevel(levelOffset + 6, levelClasses[6])}
-                    <div className={`campaign-path ${pathClasses[6]}`} />
-                    {this.renderLevel(levelOffset + 7, levelClasses[7])}
-                    <div className={`campaign-path path-end ${pathClasses[7]}`} />
-                    <div className='campaign-end'>
-                        <img src={`/static/belt-${beltName.toLowerCase()}.png`} />
+            <CSSTransition
+                in={isActive}
+                timeout={1000}
+                classNames='levels-transition'
+                key={`campaign-levels-${belt}`}
+            >
+                <div className={`campaign-levels ${isActive ? 'campaign-levels-active' : ''}`}>
+                    <div className='campaign-levels-row'>
+                        <div className='campaign-head' />
+                        {this.renderLevel(levelOffset + 0, levelClasses[0])}
+                        <div className={`campaign-path ${pathClasses[0]}`} />
+                        {this.renderLevel(levelOffset + 1, levelClasses[1])}
+                        <div className={`campaign-path ${pathClasses[1]}`} />
+                        {this.renderLevel(levelOffset + 2, levelClasses[2])}
+                        <div className='campaign-tail' />
+                    </div>
+                    <div className='campaign-levels-row'>
+                        <div className='campaign-head' />
+                        {this.renderLevel(levelOffset + 5, levelClasses[5])}
+                        <div className={`campaign-path ${pathClasses[4]}`} />
+                        {this.renderLevel(levelOffset + 4, levelClasses[4])}
+                        <div className={`campaign-path ${pathClasses[3]}`} />
+                        {this.renderLevel(levelOffset + 3, levelClasses[3])}
+                        <div className={`campaign-tail campaign-tail-path ${pathClasses[2]}`} />
+                    </div>
+                    <div className='campaign-levels-row'>
+                        <div className={`campaign-head campaign-head-path ${pathClasses[5]}`} />
+                        {this.renderLevel(levelOffset + 6, levelClasses[6])}
+                        <div className={`campaign-path ${pathClasses[6]}`} />
+                        {this.renderLevel(levelOffset + 7, levelClasses[7])}
+                        <div className={`campaign-path path-end ${pathClasses[7]}`} />
+                        <div className='campaign-end'>
+                            <img src={`/static/belt-${beltName.toLowerCase()}.png`} />
+                        </div>
                     </div>
                 </div>
-            </div>
+            </CSSTransition>
         );
     }
 
@@ -289,7 +306,7 @@ class Campaign extends Component {
 
         return (
             <Tooltip
-                title={CampaignLevels[level].title}
+                html={<span>{CampaignLevels[level].title}</span>}
                 trigger='mouseenter'
             >
                 <div

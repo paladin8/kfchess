@@ -64,7 +64,7 @@ export default class Users extends Component {
         const { user, knownUsers, onlineUsers } = this.props;
 
         return (
-            <div className='online-users'>
+            <div className='online-users-inner'>
                 <div className='online-users-title'>Users Online ({onlineUsers.length})</div>
                 {onlineUsers.length > 0 ?
                     <table className='online-users-table'>

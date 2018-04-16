@@ -397,17 +397,6 @@ class Game(object):
                 if dist > 0.71:
                     continue
 
-                # pawns not moving diagonally cannot capture, so they always get captured on collision
-                if piece.type == 'P' and move.move_seq[0][1] == move.move_seq[-1][1]:
-                    piece.captured = True
-                    self.last_capture_tick = self.current_tick
-                    updates.append({
-                        'type': 'capture',
-                        'piece': p.to_json_obj(),
-                        'target': piece.to_json_obj(),
-                    })
-                    break
-
                 # knights can only capture at the end of their move
                 if piece.type == 'N':
                     interp = float(self.current_tick - move.starting_tick) / (2 * self.move_ticks)
@@ -439,6 +428,23 @@ class Game(object):
                 # one of these has to be within the true capture threshold to consider a capture
                 if min(dist, n_dist, n_other_dist) > 0.4001:
                     continue
+
+                # pawns not moving diagonally cannot capture, so they always get captured on collision
+                if piece.type == 'P' and move.move_seq[0][1] == move.move_seq[-1][1]:
+                    if (
+                        other_move.piece.type != 'P' or
+                        other_move.move_seq[0][1] != other_move.move_seq[-1][1] or
+                        other_move.starting_tick < move.starting_tick
+                    ):
+                        piece.captured = True
+                        self.last_capture_tick = self.current_tick
+                        updates.append({
+                            'type': 'capture',
+                            'piece': p.to_json_obj(),
+                            'target': piece.to_json_obj(),
+                        })
+
+                    break
 
                 captured = False
                 if n_dist < dist and n_other_dist > dist:

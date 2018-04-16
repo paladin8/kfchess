@@ -162,6 +162,10 @@ export default class GameBoard extends Component {
             }
         }
 
+        if (game.finished) {
+            this.unselect();
+        }
+
         const currentTick = gameState.getCurrentTick();
 
         const movingPieces = {};
