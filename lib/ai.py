@@ -263,6 +263,7 @@ class BasicBot(object):
 
         capture_score, pressure_score, vuln_score, protect_score = 0, 0, 0, 0
         new_vulns = []
+        new_protects = []
         for p in game.board.pieces:
             if p.captured or p.id == piece.id:
                 continue
@@ -278,29 +279,19 @@ class BasicBot(object):
 
                 # capturing improves vulnerable score for other pieces
                 for p2 in game.board.pieces:
-                    if p2.captured or p2.player == p.player:
+                    if p2.captured or p2.player == p.player or p2.id == piece.id:
                         continue
 
                     if p in current_pressures[p2.id]:
                         vuln_score += VULN_SCORES[p2.type]
 
-            # pressure score
-            if p.player != piece.player:
-                old_pressure = piece in current_pressures[p.id]
-                new_pressure = self._can_target(location_to_piece_map, new_piece, p.row, p.col)
-
-                pressure_value = PRESSURE_SCORES[p.type]
-                if p.type != 'K' and len(current_protects[p.id]) > 0:
-                    pressure_value += min(
-                        PIECE_SCORES[p2.type] for p2 in current_protects[p.id]
-                    ) - PIECE_SCORES[piece.type]
-                pressure_score += (new_pressure - old_pressure) * pressure_score
-
             # vulnerable score
             if p.player != piece.player:
                 old_vuln = p in current_pressures[piece.id]
                 new_vuln = 1.5 * self._can_target(location_to_piece_map, p, row, col)
+
                 vuln_score -= (new_vuln - old_vuln) * VULN_SCORES[piece.type]
+
                 if new_vuln:
                     new_vulns.append(p)
 
@@ -312,7 +303,7 @@ class BasicBot(object):
                 protect_value = 0
                 if p.type != 'K' and len(current_pressures[p.id]) > 0:
                     protect_value += min(
-                        PIECE_SCORES[p2.type] for p2 in current_pressures[p.id]
+                        PRESSURE_SCORES[p2.type] for p2 in current_pressures[p.id]
                     ) - PIECE_SCORES[p.type]
                 protect_score += (new_protect - protect) * max(0.1, protect_value)
 
@@ -330,9 +321,29 @@ class BasicBot(object):
                 protect_value = 0
                 if piece.type != 'K' and len(new_vulns) > 0:
                     protect_value += min(
-                        PIECE_SCORES[p2.type] for p2 in new_vulns
+                        PRESSURE_SCORES[p2.type] for p2 in new_vulns
                     ) - PIECE_SCORES[piece.type]
                 protect_score += (new_protect - protect) * max(0.1, protect_value)
+
+                if new_protect:
+                    new_protects.append(p)
+
+        for p in game.board.pieces:
+            if p.captured or p.id == piece.id:
+                continue
+
+            # pressure score
+            if p.player != piece.player:
+                old_pressure = piece in current_pressures[p.id]
+                new_pressure = self._can_target(location_to_piece_map, new_piece, p.row, p.col)
+
+                pressure_value = PRESSURE_SCORES[p.type]
+                if self._can_target(location_to_piece_map, p, new_piece.row, new_piece.col):
+                    pressure_value -= PRESSURE_SCORES[piece.type]
+                elif p.type != 'K' and len(current_protects[p.id]) > 0:
+                    pressure_value -= PIECE_SCORES[piece.type]
+
+                pressure_score += (new_pressure - old_pressure) * pressure_value
 
         # print piece, 'r', row, 'c', col, 'rsc', row_score, 'csc', col_score, 'cap', capture_score, \
         #     'pres', pressure_score, 'vuln', vuln_score, 'prot', protect_score

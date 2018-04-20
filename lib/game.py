@@ -406,16 +406,26 @@ class Game(object):
                 # if the other piece is static and we're close enough, capture it
                 if other_move is None:
                     if dist < 0.4001:
-                        p.captured = True
-                        self.last_capture_tick = self.current_tick
-                        updates.append({
-                            'type': 'capture',
-                            'piece': piece.to_json_obj(),
-                            'target': p.to_json_obj(),
-                        })
+                        if piece.type == 'P' and move.move_seq[0][1] == move.move_seq[-1][1]:
+                            piece.captured = True
+                            self.last_capture_tick = self.current_tick
+                            updates.append({
+                                'type': 'capture',
+                                'piece': p.to_json_obj(),
+                                'target': piece.to_json_obj(),
+                            })
+                        else:
+                            p.captured = True
+                            self.last_capture_tick = self.current_tick
+                            updates.append({
+                                'type': 'capture',
+                                'piece': piece.to_json_obj(),
+                                'target': p.to_json_obj(),
+                            })
+
                         break
-                    else:
-                        continue
+
+                    continue
 
                 # check distance after a half-tick
                 n_row, n_col = self._get_interp_position(move, self.current_tick + 0.5)
@@ -444,7 +454,9 @@ class Game(object):
                             'target': piece.to_json_obj(),
                         })
 
-                    break
+                        break
+
+                    continue
 
                 captured = False
                 if n_dist < dist and n_other_dist > dist:

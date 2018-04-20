@@ -162,7 +162,7 @@ export default class GameBoard extends Component {
             }
         }
 
-        if (game.finished) {
+        if (!game.started) {
             this.unselect();
         }
 

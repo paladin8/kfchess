@@ -192,7 +192,16 @@ def replay_start():
 
     # create game and add to game states
     replay = Replay.from_json_obj(game_history.replay)
-    game = Game(Speed(replay.speed), replay.players)
+    if replay.players[2].startswith('c'):
+        level = int(replay.players[2][2:])
+        campaign_level = campaign.get_level(level)
+        game = Game(
+            Speed(replay.speed), replay.players,
+            board=Board.from_str(campaign_level.board),
+            is_campaign=True
+        )
+    else:
+        game = Game(Speed(replay.speed), replay.players)
     for player in replay.players:
         game.mark_ready(player)
 
@@ -389,13 +398,17 @@ def initialize(init_socketio):
                         # update campaign progress
                         if game_state.level is not None and game.finished == 1:
                             progress = db_service.get_campaign_progress(user_id1)
-                            progress.levels_completed[game_state.level] = True
+                            progress.levels_completed[str(game_state.level)] = True
 
                             # check if belt is completed
                             belt = game_state.level / 8 + 1
                             belt_levels = xrange(8 * belt - 8, 8 * belt)
-                            if all(progress.levels_completed.get(str(level)) for level in belt_levels):
-                                progress.belts_completed[belt] = True
+                            print belt, belt_levels, progress.levels_completed
+                            if (
+                                not progress.belts_completed.get(str(belt)) and
+                                all(progress.levels_completed.get(str(level)) for level in belt_levels)
+                            ):
+                                progress.belts_completed[str(belt)] = True
 
                                 data = {
                                     'belt': belt,

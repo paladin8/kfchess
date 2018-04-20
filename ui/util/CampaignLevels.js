@@ -11,7 +11,7 @@ export const BELTS = [
     'Black',
 ];
 
-export const MAX_BELT = 2;  // currently only 1 is implemented
+export const MAX_BELT = 3;
 
 const LEVELS = [
     // white belt
@@ -82,6 +82,41 @@ const LEVELS = [
     {
         title: 'For the Alliance!',
         description: 'You must put an end to the Horde once and for all.',
+    },
+
+    // green belt
+
+    {
+        title: 'Fast as Lightning',
+        description: 'Lightning speed is five times faster. You can still dodge if you\'re quick, though!',
+    },
+    {
+        title: 'Lightning McQueen',
+        description: 'McQueen and the crew race to the finish.',
+    },
+    {
+        title: 'Quick Attack',
+        description: 'The enemy king is cornered. Finish him off before the reinforcements arrive!',
+    },
+    {
+        title: 'The Great Escape',
+        description: 'Get out and grab victory before the wall closes in.',
+    },
+    {
+        title: 'Half and Half',
+        description: 'An empty half leaves the king vulnerable to attack.',
+    },
+    {
+        title: 'Pillar of Autumn',
+        description: 'Slice through the pillar before it falls. Leave no pawn standing!',
+    },
+    {
+        title: 'Pressure Point',
+        description: 'Survive the pressure and take control of the situation.',
+    },
+    {
+        title: 'Need for Speed',
+        description: 'Discover your inner speed demon to overcome the odds.',
     },
 ];
 

@@ -157,6 +157,7 @@ class Game extends Component {
                     gameId: gameState.gameId,
                     player: gameState.player,
                     won: (gameState.game.finished === gameState.player),
+                    level: gameState.level,
                 });
 
                 if (this.finishSound) {
@@ -172,6 +173,7 @@ class Game extends Component {
                 amplitude.getInstance().logEvent('Start Game', {
                     gameId: gameState.gameId,
                     player: gameState.player,
+                    level: gameState.level,
                 });
 
                 modalType = null;
@@ -354,6 +356,7 @@ class Game extends Component {
                                                 source: 'sidebar',
                                                 player,
                                                 gameId: gameState.gameId,
+                                                level: gameState.level,
                                             });
 
                                             gameState.ready();
@@ -362,6 +365,7 @@ class Game extends Component {
                                                 source: 'sidebar',
                                                 player,
                                                 gameId: gameState.gameId,
+                                                level: gameState.level,
                                             });
 
                                             gameState.reset();
@@ -378,6 +382,7 @@ class Game extends Component {
                                                 source: 'sidebar',
                                                 player,
                                                 gameId: gameState.gameId,
+                                                level: gameState.level,
                                             });
 
                                             gameState.cancel();
@@ -394,6 +399,7 @@ class Game extends Component {
                                                 source: 'sidebar',
                                                 player,
                                                 gameId: gameState.gameId,
+                                                level: gameState.level,
                                             });
 
                                             gameState.reset();
@@ -716,6 +722,7 @@ class Game extends Component {
                                     source: 'modal',
                                     player,
                                     gameId: gameState.gameId,
+                                    level: gameState.level,
                                 });
 
                                 gameState.cancel();
@@ -752,6 +759,7 @@ class Game extends Component {
                                             source: 'modal',
                                             player,
                                             gameId: gameState.gameId,
+                                            level: gameState.level,
                                         });
 
                                         gameState.reset();
@@ -767,6 +775,7 @@ class Game extends Component {
                                                 source: 'modal',
                                                 player,
                                                 gameId: gameState.gameId,
+                                                level: gameState.level,
                                             });
 
                                             this.props.startCampaignLevel(gameState.level + 1);
@@ -785,6 +794,7 @@ class Game extends Component {
                                         source: 'modal',
                                         player,
                                         gameId: gameState.gameId,
+                                        level: gameState.level,
                                     });
 
                                     gameState.cancel();
