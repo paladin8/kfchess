@@ -68,7 +68,7 @@ def new():
         players[2] = 'u:%s' % user.user_id
         db_service.update_user_current_game(user.user_id, game_id, player_keys[2])
 
-        socketio.emit('invite', '', room=str(user.user_id))
+        socketio.emit('invite', '', room=user.user_id)
 
     for i in xrange(1, 3):
         if i not in players:
@@ -403,7 +403,6 @@ def initialize(init_socketio):
                             # check if belt is completed
                             belt = game_state.level / 8 + 1
                             belt_levels = xrange(8 * belt - 8, 8 * belt)
-                            print belt, belt_levels, progress.levels_completed
                             if (
                                 not progress.belts_completed.get(str(belt)) and
                                 all(progress.levels_completed.get(str(level)) for level in belt_levels)

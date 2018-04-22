@@ -34,7 +34,7 @@ const LEVELS = [
     },
     {
         title: 'Royal Couple',
-        description: 'A king should always protect his queen!',
+        description: 'A king must always protect his queen!',
     },
     {
         title: 'Step by Step',
@@ -73,7 +73,7 @@ const LEVELS = [
     },
     {
         title: 'Helm\'s Deep',
-        description: 'Haldir\'s Elves (bishops) and the Riders of Rohan (knights) fight alongside Theoden.',
+        description: 'Haldir\'s Elves and the Riders of Rohan fight alongside Theoden.',
     },
     {
         title: 'Attack of the Clones',

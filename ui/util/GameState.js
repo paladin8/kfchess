@@ -23,6 +23,7 @@ export default class GameState {
         this.destroyed = false;
 
         this.handleMessage = this.handleMessage.bind(this);
+        this.handleReset = this.handleReset.bind(this);
         this.handleCancel = this.handleCancel.bind(this);
         this.handleNewRatings = this.handleNewRatings.bind(this);
         this.handleNewBelt = this.handleNewBelt.bind(this);
@@ -45,8 +46,8 @@ export default class GameState {
         this.socket.on('difficultyack', this.handleMessage);
         this.socket.on('update', this.handleMessage);
         this.socket.on('moveack', this.handleMessage);
-        this.socket.on('resetack', this.handleMessage);
 
+        this.socket.on('resetack', this.handleReset);
         this.socket.on('cancelack', this.handleCancel);
         this.socket.on('newratings', this.handleNewRatings);
         this.socket.on('newbelt', this.handleNewBelt);
@@ -72,6 +73,16 @@ export default class GameState {
         } else {
             this.update(data.game, data.updates);
         }
+    }
+
+    handleReset(data) {
+        if (this.ratingCallback) {
+            this.ratingCallback(null, null);
+        }
+        if (this.beltCallback) {
+            this.beltCallback(null);
+        }
+        this.handleMessage(data);
     }
 
     handleCancel() {

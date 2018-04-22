@@ -40,6 +40,7 @@ class Game extends Component {
         };
 
         this.resize = this.resize.bind(this);
+        this.keyPress = this.keyPress.bind(this);
         this.update = this.update.bind(this);
         this.closeModal = this.closeModal.bind(this);
 
@@ -52,6 +53,7 @@ class Game extends Component {
     componentWillMount() {
         // listen for resizes
         window.addEventListener('resize', this.resize);
+        window.addEventListener('keydown', this.keyPress);
     }
 
     componentDidMount() {
@@ -62,10 +64,13 @@ class Game extends Component {
 
     componentWillUnmount() {
         window.removeEventListener('resize', this.resize);
+        window.removeEventListener('keydown', this.keyPress);
 
-        if (this.state.gameState) {
-            this.state.gameState.unregisterListener(this.update);
-            this.state.gameState.destroy();
+        const { gameState } = this.state;
+
+        if (gameState) {
+            gameState.unregisterListener(this.update);
+            gameState.destroy();
         }
     }
 
@@ -74,6 +79,16 @@ class Game extends Component {
             windowWidth: window.innerWidth,
             windowHeight: window.innerHeight,
         });
+    }
+
+    keyPress(e) {
+        const { gameState } = this.state;
+
+        if (e.keyCode === 32 && gameState) {
+            // space signals ready or game start
+            gameState.ready();
+            e.preventDefault();
+        }
     }
 
     componentWillReceiveProps(nextProps) {
@@ -101,7 +116,7 @@ class Game extends Component {
         }, (oldRating, newRating) => {
             this.setState({ oldRating, newRating });
         }, newBelt => {
-            if (this.beltSound) {
+            if (newBelt && this.beltSound) {
                 window.setTimeout(() => {
                     if (this.finishSound) {
                         this.finishSound.pause();
@@ -314,6 +329,11 @@ class Game extends Component {
             }
         }
 
+        let belt = null;
+        if (gameState && gameState.level !== null) {
+            belt = Math.floor(gameState.level / 8) + 1;
+        }
+
         const isPortrait = windowHeight > 1.5 * windowWidth;
 
         if (this.music) {
@@ -412,7 +432,7 @@ class Game extends Component {
                             {gameState.level !== null &&
                                 <div className='game-meta-section game-level-section'>
                                     <div className='game-level-num'>
-                                        Level {gameState.level + 1}
+                                        Level {gameState.level + 1} ({BELTS[belt]} Belt)
                                     </div>
                                     <div className='game-level-title'>
                                         {CampaignLevels[gameState.level].title}

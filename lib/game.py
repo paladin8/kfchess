@@ -294,8 +294,7 @@ class Game(object):
                 (
                     not capture or
                     i != steps or
-                    i_piece.player == piece.player or
-                    self._already_moving(i_piece)
+                    i_piece.player == piece.player
                 )
             ):
                 return None
