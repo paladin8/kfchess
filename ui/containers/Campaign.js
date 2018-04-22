@@ -119,7 +119,9 @@ class Campaign extends Component {
                     <div className='campaign-title'>
                         {BELTS[belt]} Belt Campaign
                     </div>
-                    {this.renderCampaignBeltLevels(belt, progress)}
+                    <div className='campaign-levels-wrapper'>
+                        {this.renderCampaignBeltLevels(belt, progress, true)}
+                    </div>
                     {this.renderCampaignBelts(progress)}
                 </div>
                 <Modal

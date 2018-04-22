@@ -194,10 +194,10 @@ class Game extends Component {
                 modalType = null;
             }
 
-            if (!gameState.game.started && gameState.player !== 0 && gameState.level === null) {
+            if (!gameState.game.started && gameState.player !== 0) {
                 modalType = 'ready';
                 showReady = (
-                    playerKeys === null || !('2' in playerKeys) ||
+                    playerKeys === null || !('2' in playerKeys) || gameState.level !== null ||
                     !(Object.values(gameState.game.players).includes('o')) ||
                     gameState.game.playersReady['1'] || gameState.game.playersReady['2']
                 );
@@ -709,11 +709,11 @@ class Game extends Component {
                         }
                         {gameState.level !== null &&
                             <div className='game-level'>
-                                <div className='game-level-num'>
-                                    Level {gameState.level + 1}
-                                </div>
                                 <div className='game-level-title'>
                                     {CampaignLevels[gameState.level].title}
+                                </div>
+                                <div className='game-level-description'>
+                                    {CampaignLevels[gameState.level].description}
                                 </div>
                             </div>
                         }
