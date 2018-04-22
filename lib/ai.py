@@ -341,7 +341,7 @@ class BasicBot(object):
                 if self._can_target(location_to_piece_map, p, new_piece.row, new_piece.col):
                     pressure_value -= PRESSURE_SCORES[piece.type]
                 elif p.type != 'K' and len(current_protects[p.id]) > 0:
-                    pressure_value -= PIECE_SCORES[piece.type]
+                    pressure_value = max(0, pressure_value - PIECE_SCORES[piece.type])
 
                 pressure_score += (new_pressure - old_pressure) * pressure_value
 
