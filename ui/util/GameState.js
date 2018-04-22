@@ -48,6 +48,7 @@ export default class GameState {
         this.socket.on('moveack', this.handleMessage);
 
         this.socket.on('resetack', this.handleReset);
+        this.socket.on('notfound', this.handleCancel);
         this.socket.on('cancelack', this.handleCancel);
         this.socket.on('newratings', this.handleNewRatings);
         this.socket.on('newbelt', this.handleNewBelt);

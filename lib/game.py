@@ -77,6 +77,8 @@ class Game(object):
         Speed.LIGHTNING: 450,  # 45 sec
     }
 
+    NO_MOVE_TIMEOUT = 120  # 2 min
+
     # move_ticks     = number of ticks to move 1 square in any direction (including diagonal)
     # cooldown_ticks = number of ticks before a piece can move again
     def __init__(self, speed, players, num_players=2, board=None, is_campaign=False, debug=False):
@@ -172,7 +174,10 @@ class Game(object):
         if self.debug:
             print 'moving %s along %s from tick %s' % (piece, move_seq, self.current_tick)
 
-        self.last_move_time = time.time()
+        if not self.players[players].startswith('b'):
+            # last move time only counts for non-bots
+            self.last_move_time = time.time()
+
         return move
 
     # get the sequence of moves to move piece to (to_row, to_col)
@@ -527,11 +532,17 @@ class Game(object):
                 self.finished = 1 if p.player == 2 else 2
                 return self.finished, updates
 
-        # too long without a capture, consider it a draw
+        # too long without a capture or player move, consider it a draw
         if (
-            not self.is_campaign and
-            self.current_tick >= Game.MIN_DRAW_TICKS[self.speed.value] and
-            self.current_tick - self.last_capture_tick > Game.DRAW_LIMITS[self.speed.value]
+            (
+                not self.is_campaign and
+                self.current_tick >= Game.MIN_DRAW_TICKS[self.speed.value] and
+                self.current_tick - self.last_capture_tick > Game.DRAW_LIMITS[self.speed.value]
+            ) or
+            (
+                self.is_campaign and
+                time.time() - self.last_move_time >= Game.NO_MOVE_TIMEOUT
+            )
         ):
             self.finished = -1
             return -1, updates

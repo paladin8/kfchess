@@ -48,6 +48,14 @@ def new():
     players = {i: 'b:%s' % bot.difficulty for i, bot in bots.iteritems()}
     if current_user.is_authenticated:
         players[1] = 'u:%s' % current_user.user_id
+
+        user = db_service.get_user_by_id(current_user.user_id)
+        if user.current_game:
+            return json.dumps({
+                'success': False,
+                'message': 'User already in game.',
+            })
+
         db_service.update_user_current_game(current_user.user_id, game_id, player_keys[1])
 
     # check opponent
@@ -226,8 +234,16 @@ def campaign_start():
             'message': 'User is not logged in.',
         })
 
-    # check that user has access to this level
+    # check if user is already in game
     user_id = current_user.user_id
+    user = db_service.get_user_by_id(user_id)
+    if user.current_game:
+        return json.dumps({
+            'success': False,
+            'message': 'User already in game.',
+        })
+
+    # check that user has access to this level
     progress = db_service.get_campaign_progress(user_id)
     belt = level / 8 + 1
     if belt > 1 and not progress.belts_completed[str(belt - 1)]:

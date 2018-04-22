@@ -109,6 +109,7 @@ def join(data):
     print 'join', data
 
     if game_id not in game_states:
+        emit('notfound')
         return
 
     game_state = game_states[game_id]
@@ -158,6 +159,7 @@ def ready(data):
     print 'ready', data
 
     if game_id not in game_states:
+        emit('notfound')
         return
 
     game_state = game_states[game_id]
@@ -182,6 +184,7 @@ def difficulty(data):
     print 'difficulty', data
 
     if game_id not in game_states:
+        emit('notfound')
         return
 
     game_state = game_states[game_id]
@@ -211,6 +214,7 @@ def move(data):
     print 'move', data
 
     if game_id not in game_states:
+        emit('notfound')
         return
 
     game_state = game_states[game_id]
@@ -233,6 +237,7 @@ def reset(data):
     print 'reset', data
 
     if game_id not in game_states:
+        emit('notfound')
         return
 
     game_state = game_states[game_id]
