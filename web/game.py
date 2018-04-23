@@ -238,10 +238,16 @@ def campaign_start():
     user_id = current_user.user_id
     user = db_service.get_user_by_id(user_id)
     if user.current_game:
-        return json.dumps({
-            'success': False,
-            'message': 'User already in game.',
-        })
+        game_id = user.current_game['gameId']
+        if game_id in game_states:
+            game_state = game_states[game_id]
+            if not game_state.game.started or game_state.game.finished:
+                del game_states[game_id]
+            else:
+                return json.dumps({
+                    'success': False,
+                    'message': 'User already in game.',
+                })
 
     # check that user has access to this level
     progress = db_service.get_campaign_progress(user_id)
