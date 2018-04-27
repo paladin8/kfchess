@@ -87,7 +87,14 @@ def uping(data):
     print 'uping', data
 
     if user_id:
-        db_service.update_user_last_online(user_id)
+        user = db_service.get_user_by_id(user_id)
+        if user:
+            # check if current game is still valid
+            game_id = user.current_game and user.current_game['gameId']
+            if game_id and game_id not in game_states:
+                db_service.update_user_current_game(user_id, None, None)
+
+            db_service.update_user_last_online(user_id)
 
     _emit_online_users(user_id)
 
