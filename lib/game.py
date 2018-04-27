@@ -174,7 +174,7 @@ class Game(object):
         if self.debug:
             print 'moving %s along %s from tick %s' % (piece, move_seq, self.current_tick)
 
-        if not self.players[player].startswith('b'):
+        if not self.players[player].startswith('b') and not self.players[player].startswith('c'):
             # last move time only counts for non-bots
             self.last_move_time = time.time()
 
