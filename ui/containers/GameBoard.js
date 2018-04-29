@@ -340,8 +340,9 @@ export default class GameBoard extends Component {
                 const cooldown = cooldownPieces[pieceId];
                 const interp = Math.max(0, Math.min(1, (currentTick - cooldown.startingTick) / game.cooldownTicks));
                 const piece = gameLogic.getPieceById(game, cooldown.pieceId);
+                const finishing = (1 - interp) * game.cooldownTicks < 2;
 
-                this.updateCooldownGraphics(pieceSprite.cooldownGraphics, piece.row, piece.col, interp);
+                this.updateCooldownGraphics(pieceSprite.cooldownGraphics, piece.row, piece.col, interp, finishing);
             } else {
                 pieceSprite.cooldownGraphics.visible = false;
 
@@ -354,7 +355,7 @@ export default class GameBoard extends Component {
                         if (currentTick - move.startingTick >= totalMoveTicks) {
                             const lastMove = move.moveSeq[move.moveSeq.length - 1];
                             const interp = (currentTick - move.startingTick - totalMoveTicks) / game.cooldownTicks;
-                            this.updateCooldownGraphics(pieceSprite.cooldownGraphics, lastMove[0], lastMove[1], interp);
+                            this.updateCooldownGraphics(pieceSprite.cooldownGraphics, lastMove[0], lastMove[1], interp, false);
                         }
                     }
                 }
@@ -362,17 +363,22 @@ export default class GameBoard extends Component {
         }
     }
 
-    updateCooldownGraphics(cooldownGraphics, row, col, interp) {
+    updateCooldownGraphics(cooldownGraphics, row, col, interp, finishing) {
         interp = Math.max(0, Math.min(interp, 1));
 
         cooldownGraphics.visible = true;
         cooldownGraphics.clear();
-        cooldownGraphics.alpha = 0.5;
-        cooldownGraphics.beginFill(COOLDOWN_COLOR);
+        cooldownGraphics.beginFill(COOLDOWN_COLOR, 0.5);
 
         const offset = this.cellDim * interp, remaining = this.cellDim - offset;
         const position = this.getPosition(row, col);
         cooldownGraphics.drawRect(position.x, position.y + offset, this.cellDim, remaining);
+
+        if (finishing) {
+            cooldownGraphics.endFill();
+            cooldownGraphics.lineStyle(4, COOLDOWN_COLOR);
+            cooldownGraphics.drawRect(position.x + 1, position.y + 1, this.cellDim - 2, this.cellDim - 2);
+        }
     }
 
     handleClick(event, down) {
