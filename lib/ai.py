@@ -1,4 +1,5 @@
 import collections
+import math
 import random
 
 from lib.game import Game, Speed
@@ -131,7 +132,7 @@ class BasicBot(object):
 
         move = random.choice([m for m in all_moves if m[1] >= score_threshold])
         print 'ai choosing move %s with score %s' % (move[0], move[1])
-        return move[0]
+        return move[0][:3]
 
     def _should_move(self, game, randnum):
         # moves approx every ticks_per_move (with randomness)
@@ -184,7 +185,7 @@ class BasicBot(object):
                     row >= 0 and row < 8 and col >= 0 and col < 8 and
                     game._get_pawn_move_seq(piece, row, col) is not None
                 ):
-                    moves.append((piece, row, col))
+                    moves.append((piece, row, col, 1))
 
             if (
                 (piece.player == 1 and piece.row == 6) or
@@ -192,7 +193,7 @@ class BasicBot(object):
             ):
                 row = piece.row + 2 * row_dir
                 if row >= 0 and row < 8 and game._get_pawn_move_seq(piece, row, piece.col) is not None:
-                    moves.append((piece, row, piece.col))
+                    moves.append((piece, row, piece.col, 1))
 
         if piece.type == 'N':
             for row_dir, col_dir in KNIGHT_DIRS:
@@ -201,31 +202,31 @@ class BasicBot(object):
                     row >= 0 and row < 8 and col >= 0 and col < 8 and
                     game._get_knight_move_seq(piece, row, col) is not None
                 ):
-                    moves.append((piece, row, col))
+                    moves.append((piece, row, col, 2))
 
         if piece.type in ['B', 'Q', 'K']:
             for row_dir, col_dir in BISHOP_DIRS:
-                limit = 1 if piece.type == 'K' else 8
+                limit = 1 if piece.type == 'K' else 7
                 for i in xrange(1, limit + 1):
                     row, col = piece.row + i * row_dir, piece.col + i * col_dir
                     if (
                         row >= 0 and row < 8 and col >= 0 and col < 8 and
                         game._get_bishop_move_seq(piece, row, col) is not None
                     ):
-                        moves.append((piece, row, col))
+                        moves.append((piece, row, col, i))
                     else:
                         break
 
         if piece.type in ['R', 'Q', 'K']:
             for row_dir, col_dir in ROOK_DIRS:
-                limit = 1 if piece.type == 'K' else 8
+                limit = 1 if piece.type == 'K' else 7
                 for i in xrange(1, limit + 1):
                     row, col = piece.row + i * row_dir, piece.col + i * col_dir
                     if (
                         row >= 0 and row < 8 and col >= 0 and col < 8 and
                         game._get_rook_move_seq(piece, row, col) is not None
                     ):
-                        moves.append((piece, row, col))
+                        moves.append((piece, row, col, i))
                     else:
                         break
 
@@ -239,14 +240,15 @@ class BasicBot(object):
                     game._get_rook_move_seq(piece, piece.row, col) is not None and
                     game._get_rook_move_seq(rook_piece, rook_piece.row, rook_to_col) is not None
                 ):
-                    moves.append((piece, piece.row, col))
+                    moves.append((piece, piece.row, col, 2))
 
         return moves
 
     def _get_score(
         self, game, current_pressures, current_protects, location_to_piece_map, piece_to_location_map, move
     ):
-        piece, row, col = move
+        piece, row, col, dist = move
+        ticks_to_move = dist * game.move_ticks
         new_piece = piece.at_position(row, col)
 
         # moving forward is good
@@ -275,7 +277,7 @@ class BasicBot(object):
                 p.row == row and p.col == col and
                 p.player != piece.player and not game._already_moving(p)
             ):
-                capture_score += PIECE_SCORES[p.type]
+                capture_score += PIECE_SCORES[p.type] * self._capture_decay(game, p, ticks_to_move)
 
                 # capturing improves vulnerable score for other pieces
                 for p2 in game.board.pieces:
@@ -357,6 +359,26 @@ class BasicBot(object):
             self.PROTECT_WEIGHT * protect_score
         )
 
+    def _capture_decay(self, game, piece, ticks_to_move):
+        piece_cooldown = None
+        for cooldown in game.cooldowns:
+            if cooldown.piece.id == piece.id:
+                piece_cooldown = cooldown
+                break
+
+        if piece_cooldown:
+            cooldown_ticks = game.cooldown_ticks - (game.current_tick - piece_cooldown.starting_tick)
+        else:
+            cooldown_ticks = 0
+
+        delta = ticks_to_move - cooldown_ticks
+        if delta < 10:
+            # less than 1 second to react, no decay
+            return 1
+
+        # decays exponentially with the time to react
+        return math.exp(- (delta - 10) / 60)
+
     def _can_target(self, location_to_piece_map, piece, t_row, t_col):
         if t_row == piece.row and t_col == piece.col:
             return False
@@ -374,7 +396,7 @@ class BasicBot(object):
             row_delta, col_delta = t_row - piece.row, t_col - piece.col
             if abs(row_delta) == abs(col_delta):
                 row_dir, col_dir = row_delta / abs(row_delta), col_delta / abs(col_delta)
-                limit = 1 if piece.type == 'K' else 8
+                limit = 1 if piece.type == 'K' else 7
                 for i in xrange(1, limit + 1):
                     row, col = piece.row + i * row_dir, piece.col + i * col_dir
                     if row == t_row and col == t_col:
@@ -388,7 +410,7 @@ class BasicBot(object):
             if row_delta == 0 or col_delta == 0:
                 row_dir = row_delta / abs(row_delta) if row_delta != 0 else 0
                 col_dir = col_delta / abs(col_delta) if col_delta != 0 else 0
-                limit = 1 if piece.type == 'K' else 8
+                limit = 1 if piece.type == 'K' else 7
                 for i in xrange(1, limit + 1):
                     row, col = piece.row + i * row_dir, piece.col + i * col_dir
                     if row == t_row and col == t_col:

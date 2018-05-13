@@ -2,6 +2,7 @@ import datetime
 import json
 import random
 import string
+import sys
 import time
 import traceback
 import uuid
@@ -295,80 +296,170 @@ def initialize(init_socketio):
         start = time.time()
         tick_number = 0
         while True:
-            # adjust sleep amount to avoid drift
-            tick_number += 1
-            next_tick = start + TICK_PERIOD * tick_number
-            sleep_amount = next_tick - time.time()
-            if sleep_amount > 0:
-                eventlet.sleep(sleep_amount)
+            try:
+                # adjust sleep amount to avoid drift
+                tick_number += 1
+                next_tick = start + TICK_PERIOD * tick_number
+                sleep_amount = next_tick - time.time()
+                if sleep_amount > 0:
+                    eventlet.sleep(sleep_amount)
 
-            randnum = random.randint(0, 9999)
+                if tick_number % 600 == 0:
+                    # log extra info and flush every minute
+                    print 'game tick', tick_number
+                    sys.stdout.flush()
 
-            current_time = time.time()
-            expired_games = set()
-            for game_id, game_state in game_states.iteritems():
-                game = game_state.game
+                randnum = random.randint(0, 9999)
 
-                # keep games around for 10 min
-                if current_time - game.last_tick_time > 60 * 10:
-                    expired_games.add(game_id)
-                    continue
+                current_time = time.time()
+                expired_games = set()
+                for game_id, game_state in game_states.iteritems():
+                    game = game_state.game
 
-                if not game.started or game.finished:
-                    continue
+                    if tick_number % 600 == 0:
+                        # log extra info every minute
+                        print 'game status', game_id, game.current_tick, game.players, game.finished
 
-                moved = False
+                    # keep games around for 10 min
+                    if current_time - game.last_tick_time > 60 * 10:
+                        expired_games.add(game_id)
+                        continue
 
-                try:
-                    # add to active games
-                    if game.current_tick == 0 and game_state.replay is None:
-                        db_service.add_active_game(context.SERVER, game_id, {
-                            'players': game.players,
-                            'speed': game.speed.value,
-                            'startTime': str(datetime.datetime.utcnow()),
-                        })
-                except:
-                    traceback.print_exc()
+                    if not game.started or game.finished:
+                        continue
 
-                try:
-                    # check for bot moves (after game has been running for 1s)
-                    if game.current_tick >= 10:
-                        for player, bot in game_state.bots.iteritems():
-                            move = bot.get_move(game, player, randnum)
-                            if move:
-                                piece, row, col = move
-                                game.move(piece.id, player, row, col)
+                    moved = False
+
+                    try:
+                        # add to active games
+                        if game.current_tick == 0 and game_state.replay is None:
+                            db_service.add_active_game(context.SERVER, game_id, {
+                                'players': game.players,
+                                'speed': game.speed.value,
+                                'startTime': str(datetime.datetime.utcnow()),
+                            })
+                    except:
+                        traceback.print_exc()
+
+                    try:
+                        # check for bot moves (after game has been running for 1s)
+                        if game.current_tick >= 10:
+                            for player, bot in game_state.bots.iteritems():
+                                move = bot.get_move(game, player, randnum)
+                                if move:
+                                    piece, row, col = move
+                                    game.move(piece.id, player, row, col)
+                                    moved = True
+                    except:
+                        traceback.print_exc()
+
+                    try:
+                        # check for replay moves
+                        if game_state.replay:
+                            for replay_move in game_state.replay.moves_by_tick[game.current_tick]:
+                                game.move(replay_move.piece_id, replay_move.player, replay_move.row, replay_move.col)
                                 moved = True
-                except:
-                    traceback.print_exc()
+                    except:
+                        traceback.print_exc()
 
-                try:
-                    # check for replay moves
-                    if game_state.replay:
-                        for replay_move in game_state.replay.moves_by_tick[game.current_tick]:
-                            game.move(replay_move.piece_id, replay_move.player, replay_move.row, replay_move.col)
-                            moved = True
-                except:
-                    traceback.print_exc()
+                    try:
+                        # tick game; if there are updates (or a bot/replay move), emit to room
+                        status, updates = game.tick()
+                        if status != 0 or updates or moved:
+                            socketio.emit('update', {
+                                'game': game.to_json_obj(),
+                                'updates': updates,
+                            }, room=game_id, json=True)
+                    except:
+                        traceback.print_exc()
 
-                try:
-                    # tick game; if there are updates (or a bot/replay move), emit to room
-                    status, updates = game.tick()
-                    if status != 0 or updates or moved:
-                        socketio.emit('update', {
-                            'game': game.to_json_obj(),
-                            'updates': updates,
-                        }, room=game_id, json=True)
-                except:
-                    traceback.print_exc()
+                    try:
+                        # remove from active games and add to history
+                        if game.finished and game_state.replay is None:
+                            db_service.remove_active_game(context.SERVER, game_id)
 
-                try:
-                    # remove from active games and add to history
-                    if game.finished and game_state.replay is None:
+                            history_id = db_service.add_game_history(Replay.from_game(game))
+                            user_id1, user_id2 = None, None
+                            for player, value in game.players.iteritems():
+                                if not value.startswith('u:'):
+                                    continue
+
+                                user_id = int(value[2:])
+                                if player == 1:
+                                    user_id1 = user_id
+                                elif player == 2:
+                                    user_id2 = user_id
+
+                                opponents = [v for k, v in game.players.iteritems() if k != player]
+                                db_service.add_user_game_history(user_id, game.start_time, {
+                                    'speed': game.speed.value,
+                                    'player': player,
+                                    'winner': game.finished,
+                                    'historyId': history_id,
+                                    'ticks': game.current_tick,
+                                    'opponents': opponents,
+                                })
+
+                            # update elo if two logged in users
+                            if user_id1 and user_id2:
+                                user1 = db_service.get_user_by_id(user_id1)
+                                user2 = db_service.get_user_by_id(user_id2)
+
+                                r1 = user1.ratings.get(game.speed.value, DEFAULT_RATING)
+                                r2 = user2.ratings.get(game.speed.value, DEFAULT_RATING)
+                                nr1, nr2 = elo.update_ratings(r1, r2, game.finished)
+
+                                user1.ratings[game.speed.value] = nr1
+                                user2.ratings[game.speed.value] = nr2
+                                db_service.update_user_ratings(user_id1, user1.ratings)
+                                db_service.update_user_ratings(user_id2, user2.ratings)
+
+                                data = {
+                                    '1': {
+                                        'oldRating': r1,
+                                        'newRating': nr1,
+                                    },
+                                    '2': {
+                                        'oldRating': r2,
+                                        'newRating': nr2,
+                                    },
+                                }
+
+                                print 'new ratings', game_id, data
+                                socketio.emit('newratings', data, room=game_id, json=True)
+
+                            # update campaign progress
+                            if game_state.level is not None and game.finished == 1:
+                                progress = db_service.get_campaign_progress(user_id1)
+                                progress.levels_completed[str(game_state.level)] = True
+
+                                # check if belt is completed
+                                belt = game_state.level / 8 + 1
+                                belt_levels = xrange(8 * belt - 8, 8 * belt)
+                                if (
+                                    not progress.belts_completed.get(str(belt)) and
+                                    all(progress.levels_completed.get(str(level)) for level in belt_levels)
+                                ):
+                                    progress.belts_completed[str(belt)] = True
+
+                                    data = {
+                                        'belt': belt,
+                                    }
+
+                                    print 'new belt', game_id, data
+                                    socketio.emit('newbelt', data, room=game_id, json=True)
+
+                                db_service.update_campaign_progress(user_id1, progress)
+                    except:
+                        traceback.print_exc()
+
+                # remove expired games
+                for game_id in expired_games:
+                    try:
+                        print 'expiring', game_id
                         db_service.remove_active_game(context.SERVER, game_id)
 
-                        history_id = db_service.add_game_history(Replay.from_game(game))
-                        user_id1, user_id2 = None, None
+                        game = game_state[game_id].game
                         for player, value in game.players.iteritems():
                             if not value.startswith('u:'):
                                 continue
@@ -379,73 +470,16 @@ def initialize(init_socketio):
                             elif player == 2:
                                 user_id2 = user_id
 
-                            opponents = [v for k, v in game.players.iteritems() if k != player]
-                            db_service.add_user_game_history(user_id, game.start_time, {
-                                'speed': game.speed.value,
-                                'player': player,
-                                'winner': game.finished,
-                                'historyId': history_id,
-                                'ticks': game.current_tick,
-                                'opponents': opponents,
-                            })
+                        if user_id1:
+                            db_service.update_user_current_game(user_id1, None, None)
+                        if user_id2:
+                            db_service.update_user_current_game(user_id2, None, None)
 
-                        # update elo if two logged in users
-                        if user_id1 and user_id2:
-                            user1 = db_service.get_user_by_id(user_id1)
-                            user2 = db_service.get_user_by_id(user_id2)
-
-                            r1 = user1.ratings.get(game.speed.value, DEFAULT_RATING)
-                            r2 = user2.ratings.get(game.speed.value, DEFAULT_RATING)
-                            nr1, nr2 = elo.update_ratings(r1, r2, game.finished)
-
-                            user1.ratings[game.speed.value] = nr1
-                            user2.ratings[game.speed.value] = nr2
-                            db_service.update_user_ratings(user_id1, user1.ratings)
-                            db_service.update_user_ratings(user_id2, user2.ratings)
-
-                            data = {
-                                '1': {
-                                    'oldRating': r1,
-                                    'newRating': nr1,
-                                },
-                                '2': {
-                                    'oldRating': r2,
-                                    'newRating': nr2,
-                                },
-                            }
-
-                            print 'new ratings', game_id, data
-                            socketio.emit('newratings', data, room=game_id, json=True)
-
-                        # update campaign progress
-                        if game_state.level is not None and game.finished == 1:
-                            progress = db_service.get_campaign_progress(user_id1)
-                            progress.levels_completed[str(game_state.level)] = True
-
-                            # check if belt is completed
-                            belt = game_state.level / 8 + 1
-                            belt_levels = xrange(8 * belt - 8, 8 * belt)
-                            if (
-                                not progress.belts_completed.get(str(belt)) and
-                                all(progress.levels_completed.get(str(level)) for level in belt_levels)
-                            ):
-                                progress.belts_completed[str(belt)] = True
-
-                                data = {
-                                    'belt': belt,
-                                }
-
-                                print 'new belt', game_id, data
-                                socketio.emit('newbelt', data, room=game_id, json=True)
-
-                            db_service.update_campaign_progress(user_id1, progress)
-                except:
-                    traceback.print_exc()
-
-            # remove expired games
-            for game_id in expired_games:
-                db_service.remove_active_game(context.SERVER, game_id)
-                del game_states[game_id]
+                        del game_states[game_id]
+                    except:
+                        traceback.print_exc()
+            except:
+                traceback.print_exc()
 
 
     eventlet.spawn(tick)

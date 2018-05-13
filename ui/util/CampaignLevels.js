@@ -11,7 +11,7 @@ export const BELTS = [
     'Black',
 ];
 
-export const MAX_BELT = 3;
+export const MAX_BELT = 4;
 
 const LEVELS = [
     // white belt
@@ -117,6 +117,41 @@ const LEVELS = [
     {
         title: 'Need for Speed',
         description: 'Discover your inner speed demon to overcome the odds.',
+    },
+
+    // purple belt
+
+    {
+        title: 'Pawn Shop',
+        description: 'You won\'t be able to buy your way to victory here.',
+    },
+    {
+        title: 'A Knightly Battle',
+        description: 'Stop horsing around!',
+    },
+    {
+        title: 'Canterbury vs York',
+        description: 'The bishops have succumbed to a civil war.',
+    },
+    {
+        title: 'Captain Rook',
+        description: 'Charge forward and break through the enemy fortress.',
+    },
+    {
+        title: 'Queensland',
+        description: 'The land of the Queen and the home of the King.',
+    },
+    {
+        title: 'Fountain of Dreams',
+        description: 'Will you find what you seek?',
+    },
+    {
+        title: 'Battlefield',
+        description: 'The enemy formation is strong, but breakable.',
+    },
+    {
+        title: 'Final Destination',
+        description: 'No items, Fox only, Final Destination.',
     },
 ];
 

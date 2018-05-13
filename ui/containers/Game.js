@@ -85,8 +85,12 @@ class Game extends Component {
         const { gameState } = this.state;
 
         if (e.keyCode === 32 && gameState) {
-            // space signals ready or game start
-            gameState.ready();
+            // space signals ready, game start, or reset
+            if (gameState.game && gameState.game.finished) {
+                gameState.reset();
+            } else {
+                gameState.ready();
+            }
             e.preventDefault();
         }
     }

@@ -351,6 +351,120 @@ LEVELS = [
             R1000000K1B1N100
         '''
     ),
+
+    # purple belt
+
+    CampaignLevel(
+        Speed.STANDARD,
+        '''
+            P2P2P2P2K2P2P2P2
+            P2P2P2P2P2P2P2P2
+            0000000000000000
+            0000000000000000
+            0000000000000000
+            0000000000000000
+            0000P1P1P1P10000
+            P1P1P1P1K1P1P1P1
+        '''
+    ),
+
+    CampaignLevel(
+        Speed.STANDARD,
+        '''
+            N2N2N2N2K2N2N2N2
+            N2N2N2N2N2N2N2N2
+            0000000000000000
+            0000000000000000
+            0000000000000000
+            0000000000000000
+            0000N1N1N1N10000
+            N1N1N1N1K1N1N1N1
+        '''
+    ),
+
+    CampaignLevel(
+        Speed.STANDARD,
+        '''
+            B2B2B2B2K2B2B2B2
+            B2B2B2B2B2B2B2B2
+            0000000000000000
+            0000000000000000
+            0000000000000000
+            0000000000000000
+            0000B1B1B1B10000
+            B1B1B1B1K1B1B1B1
+        '''
+    ),
+
+    CampaignLevel(
+        Speed.STANDARD,
+        '''
+            R2R2R2R2K2R2R2R2
+            R2R2R2R2R2R2R2R2
+            0000000000000000
+            0000000000000000
+            0000000000000000
+            0000000000000000
+            0000R1R1R1R10000
+            R1R1R1R1K1R1R1R1
+        '''
+    ),
+
+    CampaignLevel(
+        Speed.STANDARD,
+        '''
+            Q2Q2Q2Q2K2Q2Q2Q2
+            Q2Q2Q2Q2Q2Q2Q2Q2
+            0000000000000000
+            0000000000000000
+            0000000000000000
+            0000000000000000
+            0000Q1Q1Q1Q10000
+            Q1Q1Q1Q1K1Q1Q1Q1
+        '''
+    ),
+
+    CampaignLevel(
+        Speed.STANDARD,
+        '''
+            R2R2R2R2K2R2R2R2
+            B2B2P2P2P2P2B2B2
+            0000000000000000
+            0000000000000000
+            0000000000000000
+            0000000000000000
+            N1N1P1P1P1P1N1N1
+            B1B1B1B1K1B1B1B1
+        '''
+    ),
+
+    CampaignLevel(
+        Speed.STANDARD,
+        '''
+            P2R2Q2Q2K2Q2R2P2
+            00P2B2R2R2B2P200
+            0000P2B2B2P20000
+            000000P2P2000000
+            0000000000000000
+            0000000000000000
+            R1R1P1P1P1P1R1R1
+            N1N1Q1Q1K1Q1N1N1
+        '''
+    ),
+
+    CampaignLevel(
+        Speed.STANDARD,
+        '''
+            Q2Q2Q2Q2K2Q2Q2Q2
+            N2N2N2N2B2B2B2B2
+            P2P2P2P2P2P2P2P2
+            0000000000000000
+            0000000000000000
+            0000000000000000
+            N1N1N1N1N1N1N1N1
+            R1R1B1B1K1B1R1R1
+        '''
+    ),
 ]
 
 
