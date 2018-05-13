@@ -459,7 +459,7 @@ def initialize(init_socketio):
                         print 'expiring', game_id
                         db_service.remove_active_game(context.SERVER, game_id)
 
-                        game = game_state[game_id].game
+                        game = game_states[game_id].game
                         for player, value in game.players.iteritems():
                             if not value.startswith('u:'):
                                 continue
