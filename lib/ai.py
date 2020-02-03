@@ -140,10 +140,7 @@ class BasicBot(object):
 
     def _get_location_to_piece_bimap(self, game, player):
         location_to_piece_map = game.board.get_location_to_piece_map()
-
-        piece_to_location_map = {
-            piece.id: location for location, piece in location_to_piece_map.iteritems()
-        }
+        piece_to_location_map = game.board.get_piece_to_location_map()
 
         # for our own moving pieces, take into consideration the move
         for move in game.active_moves:

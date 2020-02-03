@@ -86,6 +86,13 @@ class Board(object):
                 result[(p.row, p.col)] = p
         return result
 
+    def get_piece_to_location_map(self):
+        result = {}
+        for p in self.pieces:
+            if not p.captured:
+                result[p.id] = (p.row, p.col)
+        return result
+
     def to_json_obj(self):
         return {
             'pieces': [piece.to_json_obj() for piece in self.pieces],

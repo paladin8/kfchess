@@ -5,7 +5,7 @@ import string
 import traceback
 import uuid
 
-from flask import Blueprint, abort, request, redirect, session, url_for
+from flask import Blueprint, request, redirect, session, url_for
 from flask_login import current_user, login_user, logout_user
 from flask_oauth import OAuth
 from sqlalchemy.exc import IntegrityError
@@ -17,7 +17,7 @@ from db import db_service, s3
 ANIMALS = ['Tiger', 'Leopard', 'Crane', 'Snake', 'Dragon']
 CHESS_PIECES = ['Pawn', 'Knight', 'Bishop', 'Rook', 'Queen', 'King']
 
-PROFILE_PIC_SIZE_LIMIT = 1024 * 64;
+PROFILE_PIC_SIZE_LIMIT = 1024 * 64
 
 oauth = OAuth()
 google = oauth.remote_app(
@@ -71,7 +71,9 @@ def authorized(data):
     if response.status_code == 200:
         user_data = response.json()
 
-        email = [e for e in user_data['emails'] if e['type'] == 'account'][0]['value']
+        print 'user data', user_data
+
+        email = [e for e in user_data['emails'] if e['type'] == 'ACCOUNT'][0]['value']
         user = db_service.get_user_by_email(email)
         if user is None:
             # create user with random username
