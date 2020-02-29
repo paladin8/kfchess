@@ -145,7 +145,7 @@ class BasicBot(object):
         # for our own moving pieces, take into consideration the move
         for move in game.active_moves:
             piece = move.piece
-            if not piece.captured and piece.player == player:
+            if not piece.captured and piece.player == player and (piece.row, piece.col) in location_to_piece_map:
                 del location_to_piece_map[(piece.row, piece.col)]
 
         for move in game.active_moves:

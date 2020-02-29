@@ -313,7 +313,7 @@ def initialize(init_socketio):
 
                 current_time = time.time()
                 expired_games = set()
-                for game_id, game_state in game_states.iteritems():
+                for game_id, game_state in game_states.items():
                     game = game_state.game
 
                     if tick_number % 600 == 0:
