@@ -42,6 +42,9 @@ export default class Header extends Component {
                         <NavLink activeClassName='header-link-active' to='/about'>About</NavLink>
                     </div>
                     <div className='header-menu-item'>
+                        <NavLink activeClassName='header-link-active' to='/privacy-policy'>Privacy</NavLink>
+                    </div>
+                    <div className='header-menu-item'>
                         {user ?
                             this.renderProfileDropdown()
                             :

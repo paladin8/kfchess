@@ -9,6 +9,7 @@ import Game from './Game.js';
 import Header from './Header.js';
 import Home from './Home.js';
 import Live from './Live.js';
+import PrivacyPolicy from './PrivacyPolicy.js'
 import Profile from './Profile.js';
 import Replay from './Replay.js';
 import Users from './Users.js';
@@ -454,6 +455,7 @@ export default class App extends Component {
                         );
                     }} />
                     <Route path='/about' component={About} />
+                    <Route path='/privacy-policy' component={PrivacyPolicy} />
                     <Route path='/profile/:userId' render={props => {
                         return (
                             <Profile
