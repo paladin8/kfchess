@@ -48,6 +48,9 @@ def login():
         return redirect(next_url)
 
     callback = url_for('user.authorized', _external=True)
+    if 'kfchess.com' in callback:
+        callback = callback.replace('http://', 'https://')
+
     google.request_token_params['state'] = next_url
     return google.authorize(callback=callback)
 
