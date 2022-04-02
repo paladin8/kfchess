@@ -8,6 +8,14 @@ import { CSSTransition } from 'react-transition-group'
 import Spinner from './Spinner.js';
 import CampaignLevels, { BELTS, MAX_BELT } from '../util/CampaignLevels.js';
 
+const inIFrame = () => {
+    try {
+        return window.self !== window.top;
+    } catch (e) {
+        return true;
+    }
+};
+
 class Campaign extends Component {
 
     constructor(props) {
@@ -113,6 +121,11 @@ class Campaign extends Component {
         // render an empty campaign state to show behind modal
         const belt = 1, progress = { beltsCompleted: {}, levelsCompleted: {} };
 
+        const loginButton = inIFrame() ?
+            <a href='/login?next=/campaign' target='_blank'>Log in</a>
+            :
+            <a href='/login?next=/campaign'>Log in</a>;
+
         return (
             <div className='campaign-no-user'>
                 <div className='campaign-wrapper'>
@@ -135,7 +148,7 @@ class Campaign extends Component {
                             Start your journey to complete 72 challenges and
                         </div>
                         <div className='campaign-no-user-title campaign-no-user-title-last'>
-                            become a Kung Fu Chess master. <a href='/login?next=/campaign'>Log in</a> to begin!
+                            {'become a Kung Fu Chess master. ' + loginButton + ' to begin!'}
                         </div>
                         <div
                             className='campaign-cancel-button'

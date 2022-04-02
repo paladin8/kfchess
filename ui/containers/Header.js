@@ -57,7 +57,13 @@ export default class Header extends Component {
                             this.renderProfileDropdown()
                             :
                             (inIFrame() ?
-                                null
+                                <a
+                                    href={`/login?next=${currentUri}`}
+                                    onClick={() => amplitude.getInstance().logEvent('Click Login')}
+                                    target='_blank'
+                                >
+                                    Login
+                                </a>
                                 :
                                 <a
                                     href={`/login?next=${currentUri}`}
