@@ -5,6 +5,14 @@ import { Tooltip } from 'react-tippy';
 
 import ProfilePic from './ProfilePic.js';
 
+const inIFrame = () => {
+    try {
+        return window.self !== window.top;
+    } catch (e) {
+        return true;
+    }
+};
+
 export default class Header extends Component {
 
     render() {
@@ -48,12 +56,16 @@ export default class Header extends Component {
                         {user ?
                             this.renderProfileDropdown()
                             :
-                            <a
-                                href={`/login?next=${currentUri}`}
-                                onClick={() => amplitude.getInstance().logEvent('Click Login')}
-                            >
-                                Login
-                            </a>
+                            {inIFrame() ?
+                                null
+                                :
+                                <a
+                                    href={`/login?next=${currentUri}`}
+                                    onClick={() => amplitude.getInstance().logEvent('Click Login')}
+                                >
+                                    Login
+                                </a>
+                            }
                         }
                     </div>
                 </div>
