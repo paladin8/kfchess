@@ -56,7 +56,7 @@ export default class Header extends Component {
                         {user ?
                             this.renderProfileDropdown()
                             :
-                            {inIFrame() ?
+                            (inIFrame() ?
                                 null
                                 :
                                 <a
@@ -65,7 +65,7 @@ export default class Header extends Component {
                                 >
                                     Login
                                 </a>
-                            }
+                            )
                         }
                     </div>
                 </div>
