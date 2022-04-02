@@ -22,7 +22,7 @@ eventlet.monkey_patch()
 
 app = Flask(__name__)
 app.secret_key = config.FLASK_SECRET_KEY
-app.config.update(SESSION_COOKIE_SAMESITE=None, SESSION_COOKIE_SECURE=True)
+app.config.update(SESSION_COOKIE_SAMESITE='None', SESSION_COOKIE_SECURE=True)
 
 app.register_blueprint(game_blueprint)
 app.register_blueprint(live_blueprint)
