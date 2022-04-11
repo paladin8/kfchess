@@ -10,6 +10,9 @@ import './styles/index.less';
 
 amplitude.getInstance().init(AMPLITUDE_API_KEY, null, {
     includeReferrer: true,
+    includeUtm: true,
+    includeGclid: true,
+    includeFbclid: true,
 });
 
 ReactDOM.render(<App />, document.getElementById('app'));
