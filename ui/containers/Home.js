@@ -9,6 +9,7 @@ export default class Home extends Component {
 
         this.state = {
             friendlySpeed: (window.localStorage && window.localStorage.friendlySpeed) || 'standard',
+            exposed: false,
         };
     }
 
@@ -26,16 +27,28 @@ export default class Home extends Component {
     }
 
     render () {
-        const { friendlySpeed } = this.state;
+        const { friendlySpeed, exposed } = this.state;
         const { expReady, experiment } = this.props;
 
         let main = 'Chess Without Turns';
         let sub = "The world's most popular strategy game goes real-time.";
 
-        const variant = experiment.variant('home-text-2023-04');
+        const homeTextFlagKey = 'home-text-2023-04';
+        const variant = experiment.variant(homeTextFlagKey);
         if (variant && variant.payload) {
             main = variant.payload.main;
             sub = variant.payload.sub;
+
+            if (!exposed) {
+                amplitude.getInstance().logEvent('$exposure', {
+                    flag_key: homeTextFlagKey,
+                    variant: variant.value,
+                });
+
+                this.setState({
+                    exposed: true,
+                });
+            }
         }
 
         return (
