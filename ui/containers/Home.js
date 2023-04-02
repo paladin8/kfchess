@@ -27,6 +27,16 @@ export default class Home extends Component {
 
     render () {
         const { friendlySpeed } = this.state;
+        const { expReady, experiment } = this.props;
+
+        let main = 'Chess Without Turns';
+        let sub = "The world's most popular strategy game goes real-time.";
+
+        const variant = experiment.variant('home-text-2023-04');
+        if (variant && variant.payload) {
+            main = variant.payload.main;
+            sub = variant.payload.sub;
+        }
 
         return (
             <div className='home'>
@@ -39,10 +49,10 @@ export default class Home extends Component {
                         </div>
                         <div className='home-banner-text'>
                             <div className='home-banner-text-main'>
-                                Chess Without Turns
+                                {main}
                             </div>
                             <div className='home-banner-text-sub'>
-                                The world's most popular strategy game goes real-time.
+                                {sub}
                             </div>
                         </div>
                     </div>

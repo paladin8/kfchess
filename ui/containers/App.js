@@ -1,4 +1,5 @@
 import amplitude from 'amplitude-js';
+import { Experiment } from '@amplitude/experiment-js-client';
 import React, { Component } from 'react';
 import { BrowserRouter, Route } from 'react-router-dom';
 
@@ -28,6 +29,7 @@ export default class App extends Component {
             onlineUsers: [],
             playerKeys: null,
             error: null,
+            expReady: false,
         };
 
         this.loadMyInfo = this.loadMyInfo.bind(this);
@@ -45,6 +47,8 @@ export default class App extends Component {
         this.logout = this.logout.bind(this);
 
         this.router = null;
+
+        this.experiment = Experiment.initialize(EXPERIMENT_API_KEY);
     }
 
     componentDidMount() {
@@ -120,6 +124,19 @@ export default class App extends Component {
                             this.router.history.push(`/game/${gameId}?key=${playerKey}`);
                         }
                     }
+
+                    this.experiment.fetch({
+                        user_id: data.user && data.user.userId,
+                        device_id: amplitude.getInstance().options.deviceId,
+                    }).then(() => {
+                        this.setState({
+                            expReady: true,
+                        });
+                    }).catch(() => {
+                        this.setState({
+                            expReady: true,
+                        });
+                    });
 
                     this.setState({
                         csrfToken: data.csrfToken,
@@ -415,11 +432,12 @@ export default class App extends Component {
             onlineUsers,
             playerKeys,
             error,
+            expReady,
         } = this.state;
 
         return (
             <BrowserRouter ref={router => this.router = router}>
-                {initialLoadDone ? <div>
+                {initialLoadDone && expReady ? <div>
                     <Header
                         user={user}
                         router={this.router}
@@ -441,6 +459,8 @@ export default class App extends Component {
                         return (
                             <Home
                                 createNewGame={this.createNewGame}
+                                expReady={expReady}
+                                experiment={this.experiment}
                                 {...props}
                             />
                         );

@@ -35,10 +35,10 @@ AWS_SECRET_KEY = ''
 
 Without the Google Cloud and AWS keys, a few features won't work, namely the login mechanism and uploading profile pictures.
 
-Now use `FLASK_APP=main.py FLASK_DEBUG=1 flask run` to start it. It listens on port 5000. This server does hot reloading on the python files, so any changes made to the code will restart the server.
+Now use `FLASK_APP=main.py FLASK_DEBUG=1 flask run -h localhost -p 5001` to start it. It listens on port 5001. This server does hot reloading on the python files, so any changes made to the code will restart the server.
 
 ### Setting up webpack
 
 All of the JavaScript code is in the `ui/` directory. From there, run `npm install .` to install all the necessary dependencies for the frontend. Then `npm run dev` will start the webpack development server that hosts the frontend locally.
 
-Now navigate to `http://localhost:8080/` and you should see the Kung Fu Chess site!
+Now navigate to `http://localhost:8081/` and you should see the Kung Fu Chess site!
