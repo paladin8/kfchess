@@ -3,7 +3,7 @@ Flask==1.0
 Flask-Login==0.4.1
 Flask-OAuth==0.12
 Flask-SocketIO==2.9.4
-eventlet==0.22.1
+eventlet==0.31.0
 psycopg2==2.7.4
 python-engineio==2.0.3
 python-socketio==1.9.0
