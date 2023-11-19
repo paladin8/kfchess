@@ -22,14 +22,22 @@ export default class Header extends Component {
 
         return (
             <div className='header'>
-                <Link to='/' className='header-logo'>
-                    <div className='header-logo-img'>
-                        <img src='/static/logo.png' />
-                    </div>
-                    <div className='header-logo-text'>
-                        Kung Fu Chess <sup>Beta</sup>
-                    </div>
-                </Link>
+                <div className='header-left'>
+                    <Link to='/' className='header-logo'>
+                        <div className='header-logo-img'>
+                            <img src='/static/logo.png' />
+                        </div>
+                        <div className='header-logo-text'>
+                            Kung Fu Chess
+                        </div>
+                    </Link>
+                    <a href='https://amplitude.com' target='_blank' className='header-amp'>
+                        <div className='header-amp-text'>Powered by</div>
+                        <div className='header-amp-img'>
+                            <img src='/static/amplitude.png' />
+                        </div>
+                    </a>
+                </div>
                 <div className='header-menu'>
                     <div className='header-menu-item'>
                         <NavLink exact={true} activeClassName='header-link-active' to='/'>Home</NavLink>

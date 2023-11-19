@@ -3,45 +3,64 @@
 .header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
 
     width: 100%;
     height: 40px;
 
     margin: 0px 0px 40px 0px;
 
-    .header-logo {
+    .header-left {
         display: flex;
-        align-items: center;
+        flex-direction: column;
 
-        min-width: 310px;
+        .header-logo {
+            display: flex;
+            align-items: center;
 
-        color: @font-black;
+            min-width: 310px;
 
-        cursor: pointer;
+            color: @font-black;
 
-        .header-logo-img {
-            width: 40px;
-            height: 40px;
+            cursor: pointer;
 
-            img {
-                height: 100%;
+            .header-logo-img {
+                width: 30px;
+                height: 30px;
+
+                img {
+                    height: 100%;
+                }
+            }
+
+            .header-logo-text {
+                margin-left: 10px;
+
+                font-size: 30px;
+                font-weight: 700;
+
+                line-height: 40px;
             }
         }
 
-        .header-logo-text {
-            margin-left: 10px;
+        .header-amp {
+            display: flex;
+            align-items: center;
 
-            font-size: 30px;
-            font-weight: 700;
+            color: @font-black;
 
-            line-height: 40px;
+            cursor: pointer;
 
-            sup {
-                color: @font-light-grey;
+            .header-amp-text {
+                font-size: 13px;
+            }
 
-                font-size: 15px;
-                font-weight: 500;
+            .header-amp-img {
+                height: 25px;
+
+                img {
+                    height: 100%;
+                }
             }
         }
     }

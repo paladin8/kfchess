@@ -52,6 +52,14 @@ export default class App extends Component {
     }
 
     componentDidMount() {
+        // hack for development
+        // this.setState({
+        //     initialLoadDone: true,
+        //     knownUsers: {},
+        //     onlineUsers: [],
+        //     expReady: true,
+        // });
+
         this.loadMyInfo(() => {
             this.setState({ initialLoadDone: true });
 
