@@ -35,7 +35,7 @@ AWS_SECRET_KEY = ''
 
 Without the Google Cloud and AWS keys, a few features won't work, namely the login mechanism and uploading profile pictures.
 
-Now use `FLASK_APP=main.py FLASK_DEBUG=1 flask run -h localhost -p 5001` to start it. It listens on port 5001. This server does hot reloading on the python files, so any changes made to the code will restart the server.
+Now use `FLASK_APP=main.py FLASK_DEBUG=1 flask run -h 127.0.0.1 -p 5001` to start it. It listens on port 5001. This server does hot reloading on the python files, so any changes made to the code will restart the server.
 
 ### Setting up webpack
 

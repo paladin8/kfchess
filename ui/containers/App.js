@@ -1,4 +1,4 @@
-import amplitude from 'amplitude-js';
+import * as amplitude from '@amplitude/analytics-browser';
 import { Experiment } from '@amplitude/experiment-js-client';
 import React, { Component } from 'react';
 import { BrowserRouter, Route } from 'react-router-dom';
@@ -48,7 +48,7 @@ export default class App extends Component {
 
         this.router = null;
 
-        this.experiment = Experiment.initialize(EXPERIMENT_API_KEY);
+        this.experiment = Experiment.initializeWithAmplitudeAnalytics(EXPERIMENT_API_KEY);
     }
 
     componentDidMount() {
@@ -120,11 +120,12 @@ export default class App extends Component {
                             knownUsers,
                         });
 
-                        amplitude.getInstance().setUserId(data.user.userId);
-                        amplitude.getInstance().setUserProperties({
-                            username: data.user.username,
-                            pictureUrl: data.user.pictureUrl,
-                        });
+                        amplitude.setUserId(data.user.userId);
+
+                        const identify = new amplitude.Identify();
+                        identify.set('username', data.user.username);
+                        identify.set('pictureUrl', data.user.pictureUrl);
+                        amplitude.identify(identify);
 
                         if (data.user.currentGame) {
                             const { gameId, playerKey } = data.user.currentGame;
@@ -133,10 +134,7 @@ export default class App extends Component {
                         }
                     }
 
-                    this.experiment.fetch({
-                        user_id: data.user && data.user.userId,
-                        device_id: amplitude.getInstance().options.deviceId,
-                    }).then(() => {
+                    this.experiment.start().then(() => {
                         this.setState({
                             expReady: true,
                         });
@@ -191,7 +189,7 @@ export default class App extends Component {
     }
 
     updateUser(username, callback) {
-        amplitude.getInstance().logEvent('Update User', {
+        amplitude.track('Update User', {
             username,
         });
 
@@ -222,7 +220,7 @@ export default class App extends Component {
     }
 
     uploadProfilePic(data, callback) {
-        amplitude.getInstance().logEvent('Upload Profile Pic');
+        amplitude.track('Upload Profile Pic');
 
         if (data.length > 1024 * 64) {
             this.setError('File is too large (max size 64KB).');
@@ -255,7 +253,7 @@ export default class App extends Component {
     }
 
     createNewGame(speed, isBot, difficulty, username) {
-        amplitude.getInstance().logEvent('Create New Game', {
+        amplitude.track('Create New Game', {
             speed,
             isBot,
             difficulty,
@@ -302,7 +300,7 @@ export default class App extends Component {
     }
 
     inviteUser(gameId, username, callback) {
-        amplitude.getInstance().logEvent('Invite User', {
+        amplitude.track('Invite User', {
             gameId,
             username,
         });

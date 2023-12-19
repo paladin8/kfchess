@@ -1,10 +1,10 @@
-import amplitude from 'amplitude-js';
+import * as amplitude from '@amplitude/analytics-browser';
 import React, { Component } from 'react';
 
 export default class About extends Component {
 
     componentDidMount() {
-        amplitude.getInstance().logEvent('Visit About Page');
+        amplitude.track('Visit About Page');
     }
 
     render() {

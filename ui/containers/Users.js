@@ -1,4 +1,4 @@
-import amplitude from 'amplitude-js';
+import * as amplitude from '@amplitude/analytics-browser';
 import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
 import { Tooltip } from 'react-tippy';
@@ -109,7 +109,7 @@ export default class Users extends Component {
                 <Link
                     to={`/game/${otherUser.currentGame.gameId}`}
                     onClick={() => {
-                        amplitude.getInstance().logEvent('Click Spectate Game', {
+                        amplitude.track('Click Spectate Game', {
                             source: 'online',
                             gameId: otherUser.currentGame.gameId,
                         });
@@ -131,7 +131,7 @@ export default class Users extends Component {
                 trigger='click'
                 interactive={false}
                 onShow={() => {
-                    amplitude.getInstance().logEvent('Click Challenge', {
+                    amplitude.track('Click Challenge', {
                         userId: otherUser.userId,
                     });
                 }}
@@ -143,7 +143,7 @@ export default class Users extends Component {
                         <div
                             className='online-users-challenge-menu-item'
                             onClick={() => {
-                                amplitude.getInstance().logEvent('Click Challenge Speed', {
+                                amplitude.track('Click Challenge Speed', {
                                     userId: otherUser.userId,
                                     speed: 'standard',
                                 });
@@ -158,7 +158,7 @@ export default class Users extends Component {
                         <div
                             className='online-users-challenge-menu-item'
                             onClick={() => {
-                                amplitude.getInstance().logEvent('Click Challenge Speed', {
+                                amplitude.track('Click Challenge Speed', {
                                     userId: otherUser.userId,
                                     speed: 'lightning',
                                 });

@@ -1,4 +1,5 @@
-import amplitude from 'amplitude-js';
+import * as amplitude from '@amplitude/analytics-browser';
+import { sessionReplayPlugin } from '@amplitude/plugin-session-replay-browser';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import ReactModal from 'react-modal';
@@ -8,12 +9,10 @@ import App from './containers/App';
 import 'react-tippy/dist/tippy.css';
 import './styles/index.less';
 
-amplitude.getInstance().init(AMPLITUDE_API_KEY, null, {
-    includeReferrer: true,
-    includeUtm: true,
-    includeGclid: true,
-    includeFbclid: true,
-});
+amplitude.init(AMPLITUDE_API_KEY);
+
+const sessionReplayTracking = sessionReplayPlugin();
+amplitude.add(sessionReplayTracking);
 
 ReactDOM.render(<App />, document.getElementById('app'));
 

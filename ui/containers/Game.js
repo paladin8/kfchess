@@ -1,4 +1,4 @@
-import amplitude from 'amplitude-js';
+import * as amplitude from '@amplitude/analytics-browser';
 import qs from 'query-string';
 import React, { Component } from 'react';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
@@ -172,7 +172,7 @@ class Game extends Component {
         if (gameState.game) {
             // various modal triggers
             if (modalType === null && gameState.game.finished) {
-                amplitude.getInstance().logEvent('Finish Game', {
+                amplitude.track('Finish Game', {
                     gameId: gameState.gameId,
                     player: gameState.player,
                     won: (gameState.game.finished === gameState.player),
@@ -189,7 +189,7 @@ class Game extends Component {
             } else if (modalType === 'game-finished' && !gameState.game.finished) {
                 modalType = null;
             } else if (modalType === 'ready' && gameState.game.started) {
-                amplitude.getInstance().logEvent('Start Game', {
+                amplitude.track('Start Game', {
                     gameId: gameState.gameId,
                     player: gameState.player,
                     level: gameState.level,
@@ -243,7 +243,7 @@ class Game extends Component {
     changeDifficulty(difficulty) {
         const { gameState } = this.state;
 
-        amplitude.getInstance().logEvent('Change AI Difficulty', {
+        amplitude.track('Change AI Difficulty', {
             gameId: gameState.gameId,
             difficulty,
         });
@@ -376,7 +376,7 @@ class Game extends Component {
                                     className={`game-ready-button ${readyAction ? 'clickable' : ''}`}
                                     onClick={() => {
                                         if (readyAction === 'ready') {
-                                            amplitude.getInstance().logEvent('Click Ready', {
+                                            amplitude.track('Click Ready', {
                                                 source: 'sidebar',
                                                 player,
                                                 gameId: gameState.gameId,
@@ -385,7 +385,7 @@ class Game extends Component {
 
                                             gameState.ready();
                                         } else if (readyAction === 'play-again') {
-                                            amplitude.getInstance().logEvent('Click Play Again', {
+                                            amplitude.track('Click Play Again', {
                                                 source: 'sidebar',
                                                 player,
                                                 gameId: gameState.gameId,
@@ -402,7 +402,7 @@ class Game extends Component {
                                     <div
                                         className='game-cancel-button'
                                         onClick={() => {
-                                            amplitude.getInstance().logEvent('Cancel Game', {
+                                            amplitude.track('Cancel Game', {
                                                 source: 'sidebar',
                                                 player,
                                                 gameId: gameState.gameId,
@@ -419,7 +419,7 @@ class Game extends Component {
                                     <div
                                         className='game-cancel-button'
                                         onClick={() => {
-                                            amplitude.getInstance().logEvent('Restart Level', {
+                                            amplitude.track('Restart Level', {
                                                 source: 'sidebar',
                                                 player,
                                                 gameId: gameState.gameId,
@@ -456,7 +456,7 @@ class Game extends Component {
                                         <CopyToClipboard
                                             text={baseUrl}
                                             onCopy={() => {
-                                                amplitude.getInstance().logEvent('Copy Spectator Link', {
+                                                amplitude.track('Copy Spectator Link', {
                                                     source: 'sidebar',
                                                     gameId: gameState.gameId,
                                                     player,
@@ -508,12 +508,6 @@ class Game extends Component {
                                                 value={musicVolume}
                                                 onChange={() => {}}
                                                 onInput={e => {
-                                                    amplitude.getInstance().logEvent('Change Volume', {
-                                                        source: 'game',
-                                                        type: 'music',
-                                                        volume: e.target.value,
-                                                    });
-
                                                     this.setState({ musicVolume : e.target.value });
                                                     if (window.localStorage) {
                                                         window.localStorage.musicVolume = e.target.value;
@@ -533,12 +527,6 @@ class Game extends Component {
                                                 value={soundVolume}
                                                 onChange={() => {}}
                                                 onInput={e => {
-                                                    amplitude.getInstance().logEvent('Change Volume', {
-                                                        source: 'game',
-                                                        type: 'sound',
-                                                        volume: e.target.value,
-                                                    });
-
                                                     this.setState({ soundVolume : e.target.value });
                                                     if (window.localStorage) {
                                                         window.localStorage.soundVolume = e.target.value;
@@ -650,7 +638,7 @@ class Game extends Component {
                                 <CopyToClipboard
                                     text={friendLink}
                                     onCopy={() => {
-                                        amplitude.getInstance().logEvent('Copy Friend Link', {
+                                        amplitude.track('Copy Friend Link', {
                                             source: 'modal',
                                             player,
                                             gameId: gameState.gameId,
@@ -726,7 +714,7 @@ class Game extends Component {
                                 className={`game-ready-button ${readyAction ? 'clickable' : ''}`}
                                 onClick={() => {
                                     if (readyAction === 'ready') {
-                                        amplitude.getInstance().logEvent('Click Ready', {
+                                        amplitude.track('Click Ready', {
                                             source: 'modal',
                                             player,
                                             gameId: gameState.gameId,
@@ -742,7 +730,7 @@ class Game extends Component {
                         <div
                             className='game-cancel-button'
                             onClick={() => {
-                                amplitude.getInstance().logEvent('Cancel Game', {
+                                amplitude.track('Cancel Game', {
                                     source: 'modal',
                                     player,
                                     gameId: gameState.gameId,
@@ -779,7 +767,7 @@ class Game extends Component {
                                 <div
                                     className='game-finished-button-again'
                                     onClick={() => {
-                                        amplitude.getInstance().logEvent('Click Play Again', {
+                                        amplitude.track('Click Play Again', {
                                             source: 'modal',
                                             player,
                                             gameId: gameState.gameId,
@@ -795,7 +783,7 @@ class Game extends Component {
                                     <div
                                         className='game-finished-button-again'
                                         onClick={() => {
-                                            amplitude.getInstance().logEvent('Click Next Level', {
+                                            amplitude.track('Click Next Level', {
                                                 source: 'modal',
                                                 player,
                                                 gameId: gameState.gameId,
@@ -814,7 +802,7 @@ class Game extends Component {
                             <div
                                 className='game-cancel-button'
                                 onClick={() => {
-                                    amplitude.getInstance().logEvent('Cancel Game', {
+                                    amplitude.track('Cancel Game', {
                                         source: 'modal',
                                         player,
                                         gameId: gameState.gameId,

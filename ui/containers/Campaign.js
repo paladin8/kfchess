@@ -1,4 +1,4 @@
-import amplitude from 'amplitude-js';
+import * as amplitude from '@amplitude/analytics-browser';
 import React, { Component } from 'react';
 import Modal from 'react-modal';
 import { withRouter } from 'react-router';
@@ -41,7 +41,7 @@ class Campaign extends Component {
         const { user } = props;
 
         if (user) {
-            amplitude.getInstance().logEvent('Visit Campaign Page');
+            amplitude.track('Visit Campaign Page');
 
             this.props.fetchCampaignInfo(user.userId, data => {
                 this.setState({
@@ -64,7 +64,7 @@ class Campaign extends Component {
     chooseBelt(belt) {
         const { progress } = this.state;
 
-        amplitude.getInstance().logEvent('Click Campaign Belt', {
+        amplitude.track('Click Campaign Belt', {
             belt,
             isCompleted: progress.beltsCompleted[belt] === true,
         });
@@ -75,7 +75,7 @@ class Campaign extends Component {
     startLevel(level) {
         const { progress } = this.state;
 
-        amplitude.getInstance().logEvent('Click Campaign Level', {
+        amplitude.track('Click Campaign Level', {
             level,
             isCompleted: progress.levelsCompleted[level] === true,
         });
@@ -155,7 +155,7 @@ class Campaign extends Component {
                         <div
                             className='campaign-cancel-button'
                             onClick={() => {
-                                amplitude.getInstance().logEvent('Cancel Campaign', {
+                                amplitude.track('Cancel Campaign', {
                                     source: 'modal',
                                 });
 
@@ -330,7 +330,7 @@ class Campaign extends Component {
                     className={`campaign-level ${levelClass}`}
                     onClick={() => {
                         if (levelClass.includes('level-selectable')) {
-                            amplitude.getInstance().logEvent('Click Level', {
+                            amplitude.track('Click Level', {
                                 level,
                                 isCompleted: progress.levelsCompleted[level] === true,
                             });

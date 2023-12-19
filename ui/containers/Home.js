@@ -1,4 +1,4 @@
-import amplitude from 'amplitude-js';
+import * as amplitude from '@amplitude/analytics-browser';
 import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -9,16 +9,15 @@ export default class Home extends Component {
 
         this.state = {
             friendlySpeed: (window.localStorage && window.localStorage.friendlySpeed) || 'standard',
-            exposed: false,
         };
     }
 
     componentDidMount() {
-        amplitude.getInstance().logEvent('Visit Home Page');
+        amplitude.track('Visit Home Page');
     }
 
     changeFriendlySpeed(friendlySpeed) {
-        amplitude.getInstance().logEvent('Change Friendly Speed', { friendlySpeed });
+        amplitude.track('Change Friendly Speed', { friendlySpeed });
         this.setState({ friendlySpeed });
 
         if (window.localStorage) {
@@ -27,7 +26,7 @@ export default class Home extends Component {
     }
 
     render () {
-        const { friendlySpeed, exposed } = this.state;
+        const { friendlySpeed } = this.state;
         const { expReady, experiment } = this.props;
 
         let main = 'Chess Without Turns';
@@ -38,17 +37,6 @@ export default class Home extends Component {
         if (variant && variant.payload) {
             main = variant.payload.main;
             sub = variant.payload.sub;
-
-            if (!exposed) {
-                amplitude.getInstance().logEvent('$exposure', {
-                    flag_key: homeTextFlagKey,
-                    variant: variant.value,
-                });
-
-                this.setState({
-                    exposed: true,
-                });
-            }
         }
 
         return (

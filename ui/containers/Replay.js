@@ -1,4 +1,4 @@
-import amplitude from 'amplitude-js';
+import * as amplitude from '@amplitude/analytics-browser';
 import qs from 'query-string';
 import React, { Component } from 'react';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
@@ -56,7 +56,7 @@ export default class Replay extends Component {
         const { match } = this.props;
         const historyId = match.params.historyId;
 
-        amplitude.getInstance().logEvent('Watch Replay', {
+        amplitude.track('Watch Replay', {
             historyId,
         });
     }
@@ -171,7 +171,7 @@ export default class Replay extends Component {
                                     <CopyToClipboard
                                         text={baseUrl}
                                         onCopy={() => {
-                                            amplitude.getInstance().logEvent('Copy Replay Link', {
+                                            amplitude.track('Copy Replay Link', {
                                                 source: 'sidebar',
                                                 gameId: gameState.gameId,
                                                 historyId,
@@ -218,7 +218,7 @@ export default class Replay extends Component {
                                                 value={musicVolume}
                                                 onChange={() => {}}
                                                 onInput={e => {
-                                                    amplitude.getInstance().logEvent('Change Volume', {
+                                                    amplitude.track('Change Volume', {
                                                         source: 'replay',
                                                         type: 'music',
                                                         volume: e.target.value,
@@ -243,7 +243,7 @@ export default class Replay extends Component {
                                                 value={soundVolume}
                                                 onChange={() => {}}
                                                 onInput={e => {
-                                                    amplitude.getInstance().logEvent('Change Volume', {
+                                                    amplitude.track('Change Volume', {
                                                         source: 'replay',
                                                         type: 'sound',
                                                         volume: e.target.value,

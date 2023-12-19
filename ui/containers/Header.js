@@ -1,4 +1,4 @@
-import amplitude from 'amplitude-js';
+import * as amplitude from '@amplitude/analytics-browser';
 import React, { Component } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { Tooltip } from 'react-tippy';
@@ -31,7 +31,12 @@ export default class Header extends Component {
                             Kung Fu Chess
                         </div>
                     </Link>
-                    <a href='https://amplitude.com' target='_blank' className='header-amp'>
+                    <a
+                        href='https://amplitude.com'
+                        target='_blank'
+                        className='header-amp' 
+                        onClick={() => amplitude.track('Click Amplitude Link')}
+                    >
                         <div className='header-amp-text'>Powered by</div>
                         <div className='header-amp-img'>
                             <img src='/static/amplitude.png' />
@@ -49,7 +54,7 @@ export default class Header extends Component {
                         <a
                             href='https://www.reddit.com/r/kfchess/'
                             target='_blank'
-                            onClick={() => amplitude.getInstance().logEvent('Click Reddit Link')}
+                            onClick={() => amplitude.track('Click Reddit Link')}
                         >
                             Reddit
                         </a>
@@ -67,7 +72,7 @@ export default class Header extends Component {
                             (inIFrame() ?
                                 <a
                                     href={`/login?next=${currentUri}`}
-                                    onClick={() => amplitude.getInstance().logEvent('Click Login')}
+                                    onClick={() => amplitude.track('Click Login')}
                                     target='_blank'
                                 >
                                     Login
@@ -75,7 +80,7 @@ export default class Header extends Component {
                                 :
                                 <a
                                     href={`/login?next=${currentUri}`}
-                                    onClick={() => amplitude.getInstance().logEvent('Click Login')}
+                                    onClick={() => amplitude.track('Click Login')}
                                 >
                                     Login
                                 </a>
@@ -100,7 +105,7 @@ export default class Header extends Component {
                 theme='light'
                 className='header-profile-dropdown-tooltip'
                 onShow={() => {
-                    amplitude.getInstance().logEvent('Click Profile Pic');
+                    amplitude.track('Click Profile Pic');
                     this.props.loadMyInfo();
                 }}
                 html={
@@ -129,7 +134,7 @@ export default class Header extends Component {
                         <div className='header-profile-dropdown-option'>
                             <a
                                 onClick={() => {
-                                    amplitude.getInstance().logEvent('Logout');
+                                    amplitude.track('Logout');
 
                                     this.props.logout();
                                 }}

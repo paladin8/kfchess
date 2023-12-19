@@ -1,4 +1,4 @@
-import amplitude from 'amplitude-js';
+import * as amplitude from '@amplitude/analytics-browser';
 import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
 import moment from 'moment';
@@ -62,7 +62,7 @@ export default class Profile extends Component {
         const userId = match.params.userId;
         const isSelf = Boolean(user && match.params.userId === user.userId);
 
-        amplitude.getInstance().logEvent('Visit Profile Page', {
+        amplitude.track('Visit Profile Page', {
             userId: match.params.userId,
             isSelf,
         });
@@ -182,7 +182,7 @@ export default class Profile extends Component {
                             <div
                                 className='profile-pic-edit'
                                 onClick={() => {
-                                    amplitude.getInstance().logEvent('Click Edit Profile Pic');
+                                    amplitude.track('Click Edit Profile Pic');
 
                                     this.profilePicInput.click()
                                 }}
@@ -206,7 +206,7 @@ export default class Profile extends Component {
                                 onMouseLeave={() => isMe && this.setState({ showEditUsername: false })}
                                 onClick={() => {
                                     if (isMe && !editingUsername) {
-                                        amplitude.getInstance().logEvent('Click Edit Username');
+                                        amplitude.track('Click Edit Username');
 
                                         this.setState({
                                             editingUsername: true,
@@ -333,7 +333,7 @@ export default class Profile extends Component {
                                                     <Link
                                                         to={`/replay/${gameInfo.historyId}`}
                                                         onClick={() => {
-                                                            amplitude.getInstance().logEvent('Click Watch Replay', {
+                                                            amplitude.track('Click Watch Replay', {
                                                                 source: 'profile',
                                                                 historyId: gameInfo.historyId,
                                                             });

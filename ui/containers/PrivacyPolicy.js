@@ -1,10 +1,10 @@
-import amplitude from 'amplitude-js';
+import * as amplitude from '@amplitude/analytics-browser';
 import React, { Component } from 'react';
 
 export default class PrivacyPolicy extends Component {
 
     componentDidMount() {
-        amplitude.getInstance().logEvent('Visit Privacy Policy Page');
+        amplitude.track('Visit Privacy Policy Page');
     }
 
     render() {
