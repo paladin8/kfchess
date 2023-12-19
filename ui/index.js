@@ -9,7 +9,9 @@ import App from './containers/App';
 import 'react-tippy/dist/tippy.css';
 import './styles/index.less';
 
-amplitude.init(AMPLITUDE_API_KEY);
+amplitude.init(AMPLITUDE_API_KEY, {
+	minIdLength: 1,
+});
 
 const sessionReplayTracking = sessionReplayPlugin();
 amplitude.add(sessionReplayTracking);
