@@ -69,15 +69,19 @@ class Game(object):
     PLAYER_DIRECTION = [GAME_CONTINUES, WHITE_WINS, BLACK_WINS]
 
     MIN_DRAW_TICKS = {
-        Speed.STANDARD: 1800,  # 3 min
+        Speed.STANDARD: 3600,  # 6 min
         Speed.LIGHTNING: 900,  # 90 sec
     }
     DRAW_LIMITS = {
-        Speed.STANDARD: 900,   # 90 sec
+        Speed.STANDARD: 1800,  # 3 min
         Speed.LIGHTNING: 450,  # 45 sec
     }
+    NO_MOVE_TIMEOUTS = {
+        Speed.STANDARD: 120,   # 2 min
+        Speed.LIGHTNING: 30,   # 30 sec
+    }
 
-    NO_MOVE_TIMEOUT = 120  # 2 min
+    CAMPAIGN_NO_MOVE_TIMEOUT = 120  # 2 min
 
     # move_ticks     = number of ticks to move 1 square in any direction (including diagonal)
     # cooldown_ticks = number of ticks before a piece can move again
@@ -537,11 +541,12 @@ class Game(object):
             (
                 not self.is_campaign and
                 self.current_tick >= Game.MIN_DRAW_TICKS[self.speed.value] and
-                self.current_tick - self.last_capture_tick > Game.DRAW_LIMITS[self.speed.value]
+                self.current_tick - self.last_capture_tick > Game.DRAW_LIMITS[self.speed.value] and
+                time.time() - self.last_move_time >= Game.NO_MOVE_TIMEOUTS[self.speed.value]
             ) or
             (
                 self.is_campaign and
-                time.time() - self.last_move_time >= Game.NO_MOVE_TIMEOUT
+                time.time() - self.last_move_time >= Game.CAMPAIGN_NO_MOVE_TIMEOUT
             )
         ):
             self.finished = -1
