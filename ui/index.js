@@ -11,6 +11,9 @@ import './styles/index.less';
 
 amplitude.init(AMPLITUDE_API_KEY, {
 	minIdLength: 1,
+	autocapture: {
+		elementInteractions: true,
+	}
 });
 
 const sessionReplayTracking = sessionReplayPlugin();

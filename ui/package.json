@@ -10,9 +10,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@amplitude/analytics-browser": "^2.3.7",
-    "@amplitude/experiment-js-client": "^1.9.7",
-    "@amplitude/plugin-session-replay-browser": "^0.10.1",
+    "@amplitude/analytics-browser": "^2.11.1",
+    "@amplitude/experiment-js-client": "^1.11.0",
+    "@amplitude/plugin-session-replay-browser": "^0.10.2",
     "amplitude-js": "^4.1.0",
     "moment": "^2.21.0",
     "pixi.js": "^4.7.0",
